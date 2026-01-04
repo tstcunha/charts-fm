@@ -1,5 +1,5 @@
 ---
-globs: lib/lastfm*.ts,app/api/auth/lastfm/**/*.ts,lib/group-service.ts,lib/group-stats.ts,lib/weekly-utils.ts
+globs: lib/lastfm*.ts,app/api/auth/lastfm/**/*.ts,lib/group-service.ts,lib/group-stats.ts,lib/weekly-utils.ts,app/api/groups/**/charts/**/*.ts
 alwaysApply: false
 ---
 
