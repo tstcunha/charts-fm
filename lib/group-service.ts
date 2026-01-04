@@ -2,7 +2,7 @@
 
 import { prisma } from './prisma'
 import { getWeeklyStats } from './lastfm-weekly'
-import { getWeekStart, getLastNFinishedWeeks } from './weekly-utils'
+import { getWeekStart, getLastNFinishedWeeks, getWeekStartForDay, getWeekEndForDay, getLastNFinishedWeeksForDay } from './weekly-utils'
 import { aggregateGroupStats } from './group-stats'
 import { TopItem } from './lastfm-weekly'
 import { cacheChartMetrics } from './group-chart-metrics'
@@ -68,11 +68,77 @@ export async function fetchOrGetUserWeeklyStats(
 }
 
 /**
+ * Check if two week ranges overlap
+ */
+export function weeksOverlap(
+  weekStart1: Date,
+  weekEnd1: Date,
+  weekStart2: Date,
+  weekEnd2: Date
+): boolean {
+  // Two weeks overlap if one starts before the other ends
+  return weekStart1 < weekEnd2 && weekStart2 < weekEnd1
+}
+
+/**
+ * Get the week start of the most recent chart for a group
+ */
+export async function getLastChartWeek(groupId: string): Promise<Date | null> {
+  const lastChart = await prisma.groupWeeklyStats.findFirst({
+    where: { groupId },
+    orderBy: { weekStart: 'desc' },
+    select: { weekStart: true },
+  })
+  return lastChart ? lastChart.weekStart : null
+}
+
+/**
+ * Delete charts that overlap with a given week range
+ */
+export async function deleteOverlappingCharts(
+  groupId: string,
+  newWeekStart: Date,
+  newWeekEnd: Date
+): Promise<void> {
+  // Get all existing charts for this group
+  const existingCharts = await prisma.groupWeeklyStats.findMany({
+    where: { groupId },
+  })
+
+  // Find charts that overlap
+  const overlappingCharts = existingCharts.filter((chart) => {
+    const chartWeekStart = new Date(chart.weekStart)
+    const chartWeekEnd = new Date(chart.weekEnd)
+    return weeksOverlap(newWeekStart, newWeekEnd, chartWeekStart, chartWeekEnd)
+  })
+
+  // Delete overlapping charts
+  for (const chart of overlappingCharts) {
+    await prisma.groupWeeklyStats.delete({
+      where: { id: chart.id },
+    })
+    // Also delete associated chart entries
+    await prisma.groupChartEntry.deleteMany({
+      where: {
+        groupId,
+        weekStart: chart.weekStart,
+      },
+    })
+  }
+}
+
+/**
  * Calculate and store group weekly stats
+ * @param groupId - The group ID
+ * @param weekStart - The week start date (should already be calculated based on group's trackingDayOfWeek)
+ * @param chartSize - The chart size to use (from group settings)
+ * @param trackingDayOfWeek - The tracking day of week (for calculating weekEnd)
  */
 export async function calculateGroupWeeklyStats(
   groupId: string,
-  weekStart: Date
+  weekStart: Date,
+  chartSize: number,
+  trackingDayOfWeek: number
 ): Promise<void> {
   // Get all group members
   const members = await prisma.groupMember.findMany({
@@ -104,8 +170,11 @@ export async function calculateGroupWeeklyStats(
 
   const userStats = await Promise.all(userStatsPromises)
 
-  // Aggregate stats
-  const aggregated = aggregateGroupStats(userStats)
+  // Aggregate stats with chart size
+  const aggregated = aggregateGroupStats(userStats, chartSize)
+
+  // Calculate week end based on tracking day
+  const weekEnd = getWeekEndForDay(weekStart, trackingDayOfWeek)
 
   // Store or update group stats
   await prisma.groupWeeklyStats.upsert({
@@ -118,12 +187,13 @@ export async function calculateGroupWeeklyStats(
     create: {
       groupId,
       weekStart,
-      weekEnd: getWeekStart(new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000)),
+      weekEnd,
       topTracks: aggregated.topTracks,
       topArtists: aggregated.topArtists,
       topAlbums: aggregated.topAlbums,
     },
     update: {
+      weekEnd,
       topTracks: aggregated.topTracks,
       topArtists: aggregated.topArtists,
       topAlbums: aggregated.topAlbums,
@@ -145,11 +215,28 @@ export async function calculateGroupWeeklyStats(
  * Initialize group with historical data (last 5 finished weeks)
  */
 export async function initializeGroupWithHistory(groupId: string): Promise<void> {
-  const weeks = getLastNFinishedWeeks(5)
+  // Get group settings
+  const group = await prisma.group.findUnique({
+    where: { id: groupId },
+    select: { chartSize: true, trackingDayOfWeek: true },
+  })
+
+  if (!group) {
+    return
+  }
+
+  const chartSize = group.chartSize || 10
+  const trackingDayOfWeek = group.trackingDayOfWeek ?? 0
+
+  // Use the group's tracking day to calculate weeks
+  const weeks = getLastNFinishedWeeksForDay(5, trackingDayOfWeek)
+  
+  // Reverse to process from oldest to newest so previous week comparisons work correctly
+  const weeksInOrder = [...weeks].reverse()
   
   // Process weeks sequentially to avoid overwhelming the API
-  for (const weekStart of weeks) {
-    await calculateGroupWeeklyStats(groupId, weekStart)
+  for (const weekStart of weeksInOrder) {
+    await calculateGroupWeeklyStats(groupId, weekStart, chartSize, trackingDayOfWeek)
     // Small delay between API calls
     await new Promise(resolve => setTimeout(resolve, 500))
   }

@@ -11,9 +11,12 @@ export interface AggregatedStats {
 /**
  * Aggregate top tracks from multiple users
  * Combines playcounts for the same track (same name + artist)
+ * @param userStats - Array of user stats containing top tracks
+ * @param chartSize - Number of tracks to return (default: 10)
  */
 export function aggregateTopTracks(
-  userStats: Array<{ topTracks: TopItem[] }>
+  userStats: Array<{ topTracks: TopItem[] }>,
+  chartSize: number = 10
 ): TopItem[] {
   const trackMap = new Map<string, { name: string; artist: string; playcount: number }>()
 
@@ -36,15 +39,18 @@ export function aggregateTopTracks(
 
   return Array.from(trackMap.values())
     .sort((a, b) => b.playcount - a.playcount)
-    .slice(0, 10)
+    .slice(0, chartSize)
 }
 
 /**
  * Aggregate top artists from multiple users
  * Combines playcounts for the same artist
+ * @param userStats - Array of user stats containing top artists
+ * @param chartSize - Number of artists to return (default: 10)
  */
 export function aggregateTopArtists(
-  userStats: Array<{ topArtists: TopItem[] }>
+  userStats: Array<{ topArtists: TopItem[] }>,
+  chartSize: number = 10
 ): TopItem[] {
   const artistMap = new Map<string, { name: string; playcount: number }>()
 
@@ -66,15 +72,18 @@ export function aggregateTopArtists(
 
   return Array.from(artistMap.values())
     .sort((a, b) => b.playcount - a.playcount)
-    .slice(0, 10)
+    .slice(0, chartSize)
 }
 
 /**
  * Aggregate top albums from multiple users
  * Combines playcounts for the same album (same name + artist)
+ * @param userStats - Array of user stats containing top albums
+ * @param chartSize - Number of albums to return (default: 10)
  */
 export function aggregateTopAlbums(
-  userStats: Array<{ topAlbums: TopItem[] }>
+  userStats: Array<{ topAlbums: TopItem[] }>,
+  chartSize: number = 10
 ): TopItem[] {
   const albumMap = new Map<string, { name: string; artist: string; playcount: number }>()
 
@@ -97,23 +106,26 @@ export function aggregateTopAlbums(
 
   return Array.from(albumMap.values())
     .sort((a, b) => b.playcount - a.playcount)
-    .slice(0, 10)
+    .slice(0, chartSize)
 }
 
 /**
  * Aggregate all stats from multiple users
+ * @param userStats - Array of user stats
+ * @param chartSize - Number of items to return for each category (default: 10)
  */
 export function aggregateGroupStats(
   userStats: Array<{
     topTracks: TopItem[]
     topArtists: TopItem[]
     topAlbums: TopItem[]
-  }>
+  }>,
+  chartSize: number = 10
 ): AggregatedStats {
   return {
-    topTracks: aggregateTopTracks(userStats),
-    topArtists: aggregateTopArtists(userStats),
-    topAlbums: aggregateTopAlbums(userStats),
+    topTracks: aggregateTopTracks(userStats, chartSize),
+    topArtists: aggregateTopArtists(userStats, chartSize),
+    topAlbums: aggregateTopAlbums(userStats, chartSize),
   }
 }
 

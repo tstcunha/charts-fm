@@ -190,7 +190,7 @@ export async function getWeeklyTopAlbums(
 
 /**
  * Fetch all weekly stats (tracks, artists, albums) for a user
- * Returns top 10 for each category
+ * Returns top 100 for each category
  */
 export async function getWeeklyStats(
   username: string,
@@ -210,9 +210,9 @@ export async function getWeeklyStats(
   ])
 
   return {
-    topTracks: topTracks.slice(0, 10),
-    topArtists: topArtists.slice(0, 10),
-    topAlbums: topAlbums.slice(0, 10),
+    topTracks: topTracks.slice(0, 100),
+    topArtists: topArtists.slice(0, 100),
+    topAlbums: topAlbums.slice(0, 100),
   }
 }
 

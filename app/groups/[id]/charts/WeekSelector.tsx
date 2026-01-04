@@ -8,9 +8,10 @@ import WeekCalendar from './WeekCalendar'
 interface WeekSelectorProps {
   weeks: { weekStart: Date }[]
   currentWeek: Date
+  trackingDayOfWeek: number
 }
 
-export default function WeekSelector({ weeks, currentWeek }: WeekSelectorProps) {
+export default function WeekSelector({ weeks, currentWeek, trackingDayOfWeek }: WeekSelectorProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { triggerPulse } = useNavigation()
@@ -50,7 +51,11 @@ export default function WeekSelector({ weeks, currentWeek }: WeekSelectorProps) 
           )
         })}
       </div>
-      <WeekCalendar availableWeeks={weeks} currentWeek={currentWeek} />
+      <WeekCalendar 
+        availableWeeks={weeks} 
+        currentWeek={currentWeek}
+        trackingDayOfWeek={trackingDayOfWeek}
+      />
     </div>
   )
 }

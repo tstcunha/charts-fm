@@ -90,3 +90,65 @@ export function formatWeekLabel(date: Date): string {
   return `${month} ${day}, ${year}`
 }
 
+/**
+ * Get the start of a week for a specific day of week (00:00:00 UTC)
+ * @param date - The date to calculate the week start for
+ * @param dayOfWeek - Day of week (0=Sunday, 1=Monday, ..., 6=Saturday)
+ */
+export function getWeekStartForDay(date: Date = new Date(), dayOfWeek: number): Date {
+  const d = new Date(date)
+  d.setUTCHours(0, 0, 0, 0)
+  
+  // Get current day of week (0 = Sunday, 1 = Monday, etc.)
+  const currentDayOfWeek = d.getUTCDay()
+  
+  // Calculate days to subtract to get to the target day of week
+  let daysToSubtract = currentDayOfWeek - dayOfWeek
+  if (daysToSubtract < 0) {
+    daysToSubtract += 7
+  }
+  
+  d.setUTCDate(d.getUTCDate() - daysToSubtract)
+  
+  return d
+}
+
+/**
+ * Get the end of a week for a specific day of week (next week start, 00:00:00 UTC)
+ * @param date - The date to calculate the week end for
+ * @param dayOfWeek - Day of week (0=Sunday, 1=Monday, ..., 6=Saturday)
+ */
+export function getWeekEndForDay(date: Date = new Date(), dayOfWeek: number): Date {
+  const weekStart = getWeekStartForDay(date, dayOfWeek)
+  const weekEnd = new Date(weekStart)
+  weekEnd.setUTCDate(weekEnd.getUTCDate() + 7)
+  return weekEnd
+}
+
+/**
+ * Get the start date for N weeks ago for a specific tracking day
+ * @param weeksAgo - Number of weeks ago
+ * @param dayOfWeek - Day of week (0=Sunday, 1=Monday, ..., 6=Saturday)
+ */
+export function getWeekStartNWeeksAgoForDay(weeksAgo: number, dayOfWeek: number): Date {
+  const weekStart = getWeekStartForDay(new Date(), dayOfWeek)
+  const targetDate = new Date(weekStart)
+  targetDate.setUTCDate(targetDate.getUTCDate() - (weeksAgo * 7))
+  return targetDate
+}
+
+/**
+ * Get an array of week start dates for the last N finished weeks for a specific tracking day
+ * Excludes the current week (which is still in progress)
+ * @param n - Number of weeks to get
+ * @param dayOfWeek - Day of week (0=Sunday, 1=Monday, ..., 6=Saturday)
+ */
+export function getLastNFinishedWeeksForDay(n: number, dayOfWeek: number): Date[] {
+  const weeks: Date[] = []
+  // Start from 1 week ago (skip current week, which is 0)
+  for (let i = 1; i <= n; i++) {
+    weeks.push(getWeekStartNWeeksAgoForDay(i, dayOfWeek))
+  }
+  return weeks
+}
+

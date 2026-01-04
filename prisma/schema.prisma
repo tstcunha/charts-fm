@@ -67,14 +67,16 @@ model ListeningStat {
 }
 
 model Group {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  image       String?  // Group icon/image URL
-  creatorId   String
-  isPrivate   Boolean  @default(false) // If true, group is private and not viewable publicly
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  image            String?  // Group icon/image URL
+  creatorId        String
+  isPrivate        Boolean  @default(false) // If true, group is private and not viewable publicly
+  chartSize        Int      @default(10) // Chart size: 10, 20, 50, or 100
+  trackingDayOfWeek Int    @default(0) // Day of week for tracking (0=Sunday, 1=Monday, ..., 6=Saturday)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
   
   creator     User            @relation("GroupCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   members     GroupMember[]

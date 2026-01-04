@@ -108,12 +108,25 @@ export async function cacheChartMetrics(
   const normalizedWeekStart = new Date(weekStart)
   normalizedWeekStart.setUTCHours(0, 0, 0, 0)
 
-  // Get all weekly stats for this group up to and including this week
-  const allWeeksStats = await prisma.groupWeeklyStats.findMany({
+  // Get group settings to determine the correct previous week
+  const group = await prisma.group.findUnique({
+    where: { id: groupId },
+    select: { trackingDayOfWeek: true },
+  })
+
+  const trackingDayOfWeek = group?.trackingDayOfWeek ?? 0
+
+  // Calculate what the previous week should be based on the group's tracking day
+  // The previous week should be exactly 7 days before the current week
+  const previousWeekStart = new Date(normalizedWeekStart)
+  previousWeekStart.setUTCDate(previousWeekStart.getUTCDate() - 7)
+
+  // Get all weekly stats for this group, excluding the current week (for finding previous week)
+  const previousWeeksStats = await prisma.groupWeeklyStats.findMany({
     where: {
       groupId,
       weekStart: {
-        lte: normalizedWeekStart,
+        lt: normalizedWeekStart,
       },
     },
     orderBy: {
@@ -121,32 +134,37 @@ export async function cacheChartMetrics(
     },
   })
 
-  // Get previous week's stats
-  const previousWeekStats = allWeeksStats
-    .filter((stats) => {
-      const statsWeekStart = new Date(stats.weekStart)
-      statsWeekStart.setUTCHours(0, 0, 0, 0)
-      return statsWeekStart.getTime() < normalizedWeekStart.getTime()
-    })
-    .sort((a, b) => b.weekStart.getTime() - a.weekStart.getTime())[0]
+  // Get previous week's stats - look for the week that matches the calculated previous week start
+  // or find the most recent week before the current week
+  const previousWeekStats = previousWeeksStats.find((stats) => {
+    const statsWeekStart = new Date(stats.weekStart)
+    statsWeekStart.setUTCHours(0, 0, 0, 0)
+    // Try to find exact match first (previous week based on tracking day)
+    return statsWeekStart.getTime() === previousWeekStart.getTime()
+  }) || (previousWeeksStats.length > 0
+    ? previousWeeksStats.sort((a, b) => b.weekStart.getTime() - a.weekStart.getTime())[0]
+    : undefined)
 
-  // Get all charts of this type from all weeks
-  const allWeeksCharts = allWeeksStats.map((stats) => {
-    if (chartType === 'artists') {
-      return (stats.topArtists as TopItem[]) || []
-    } else if (chartType === 'tracks') {
-      return (stats.topTracks as TopItem[]) || []
-    } else {
-      return (stats.topAlbums as TopItem[]) || []
-    }
-  })
+  // Get all charts of this type from all weeks (including current week for metrics calculation)
+  const allWeeksCharts = [
+    ...previousWeeksStats.map((stats) => {
+      if (chartType === 'artists') {
+        return (stats.topArtists as unknown as TopItem[]) || []
+      } else if (chartType === 'tracks') {
+        return (stats.topTracks as unknown as TopItem[]) || []
+      } else {
+        return (stats.topAlbums as unknown as TopItem[]) || []
+      }
+    }),
+    chartData, // Include current week's chart data
+  ]
 
   const previousWeekChart = previousWeekStats
     ? chartType === 'artists'
-      ? (previousWeekStats.topArtists as TopItem[]) || []
+      ? (previousWeekStats.topArtists as unknown as TopItem[]) || []
       : chartType === 'tracks'
-      ? (previousWeekStats.topTracks as TopItem[]) || []
-      : (previousWeekStats.topAlbums as TopItem[]) || []
+      ? (previousWeekStats.topTracks as unknown as TopItem[]) || []
+      : (previousWeekStats.topAlbums as unknown as TopItem[]) || []
     : null
 
   // Calculate and cache metrics for each entry in current week's chart
@@ -234,45 +252,5 @@ export async function getCachedChartEntries(
     totalWeeksAppeared: entry.totalWeeksAppeared,
     highestPosition: entry.highestPosition,
   }))
-}
-
-/**
- * Backfill cached metrics for a group (for existing data)
- */
-export async function backfillGroupChartMetrics(groupId: string): Promise<void> {
-  const allWeeksStats = await prisma.groupWeeklyStats.findMany({
-    where: { groupId },
-    orderBy: {
-      weekStart: 'asc',
-    },
-  })
-
-  for (const weekStats of allWeeksStats) {
-    // Cache metrics for each chart type
-    if (weekStats.topArtists) {
-      await cacheChartMetrics(
-        groupId,
-        weekStats.weekStart,
-        'artists',
-        weekStats.topArtists as TopItem[]
-      )
-    }
-    if (weekStats.topTracks) {
-      await cacheChartMetrics(
-        groupId,
-        weekStats.weekStart,
-        'tracks',
-        weekStats.topTracks as TopItem[]
-      )
-    }
-    if (weekStats.topAlbums) {
-      await cacheChartMetrics(
-        groupId,
-        weekStats.weekStart,
-        'albums',
-        weekStats.topAlbums as TopItem[]
-      )
-    }
-  }
 }
 

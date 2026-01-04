@@ -106,7 +106,11 @@ export default async function ChartsPage({
         <div className="grid grid-cols-12 gap-6">
           {/* Left: Week Selector */}
           <div className="col-span-12 md:col-span-3">
-            <WeekSelector weeks={availableWeeks} currentWeek={selectedWeek} />
+            <WeekSelector 
+              weeks={availableWeeks} 
+              currentWeek={selectedWeek}
+              trackingDayOfWeek={group.trackingDayOfWeek ?? 0}
+            />
           </div>
 
           {/* Right: Chart Table and Type Selector */}

@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import { DayPicker } from 'react-day-picker'
-import { getWeekStart, formatWeekDate, utcToLocalDate } from '@/lib/weekly-utils'
+import { getWeekStart, getWeekStartForDay, formatWeekDate, utcToLocalDate } from '@/lib/weekly-utils'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useNavigation } from '@/contexts/NavigationContext'
 
 interface WeekCalendarProps {
   availableWeeks: { weekStart: Date }[]
   currentWeek: Date
+  trackingDayOfWeek: number
 }
 
-export default function WeekCalendar({ availableWeeks, currentWeek }: WeekCalendarProps) {
+export default function WeekCalendar({ availableWeeks, currentWeek, trackingDayOfWeek }: WeekCalendarProps) {
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -31,7 +32,7 @@ export default function WeekCalendar({ availableWeeks, currentWeek }: WeekCalend
   )
 
   // Create a Set of all dates that belong to available weeks
-  // Each week spans 7 days (Sunday to Saturday)
+  // Each week spans 7 days based on the group's tracking day
   const availableDates = new Set<string>()
   availableWeeks.forEach(week => {
     const weekStart = new Date(week.weekStart)
@@ -45,8 +46,8 @@ export default function WeekCalendar({ availableWeeks, currentWeek }: WeekCalend
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) return
 
-    // Calculate the week start for the selected date
-    const weekStart = getWeekStart(date)
+    // Calculate the week start for the selected date using the group's tracking day
+    const weekStart = getWeekStartForDay(date, trackingDayOfWeek)
     const weekStartStr = formatWeekDate(weekStart)
 
     // Check if this week has chart data
@@ -71,8 +72,8 @@ export default function WeekCalendar({ availableWeeks, currentWeek }: WeekCalend
 
   // Check if a date is in the current selected week
   const isDateInCurrentWeek = (date: Date): boolean => {
-    const dateWeekStart = getWeekStart(date)
-    const currentWeekStart = getWeekStart(currentWeek)
+    const dateWeekStart = getWeekStartForDay(date, trackingDayOfWeek)
+    const currentWeekStart = getWeekStartForDay(currentWeek, trackingDayOfWeek)
     return formatWeekDate(dateWeekStart) === formatWeekDate(currentWeekStart)
   }
 
