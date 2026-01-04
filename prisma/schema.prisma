@@ -16,8 +16,8 @@ model User {
   name          String?
   password      String?   // For email/password auth (hashed)
   image         String?
-  lastfmUsername String?  @unique
-  lastfmApiKey  String?  // Encrypted Last.fm API key
+  lastfmUsername String   @unique // Required - same as Last.fm username
+  lastfmSessionKey String? // Last.fm session key for authenticated API calls
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   

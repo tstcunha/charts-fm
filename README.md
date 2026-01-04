@@ -48,7 +48,8 @@ A web application for visualizing your Last.fm listening statistics with beautif
    - `DATABASE_URL`: Your PostgreSQL connection string
    - `NEXTAUTH_SECRET`: Generate with `openssl rand -base64 32`
    - `NEXTAUTH_URL`: Your app URL (http://localhost:3000 for local dev)
-   - `LASTFM_API_KEY`: Your Last.fm API key
+   - `LASTFM_API_KEY`: Your Last.fm API key (from https://www.last.fm/api/account/create)
+   - `LASTFM_API_SECRET`: Your Last.fm API secret (found on your Last.fm API account page)
 
 3. **Set up the database:**
    ```bash
