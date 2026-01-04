@@ -5,6 +5,7 @@ import { getWeeklyStats } from './lastfm-weekly'
 import { getWeekStart, getLastNFinishedWeeks } from './weekly-utils'
 import { aggregateGroupStats } from './group-stats'
 import { TopItem } from './lastfm-weekly'
+import { cacheChartMetrics } from './group-chart-metrics'
 
 const API_KEY = process.env.LASTFM_API_KEY!
 const API_SECRET = process.env.LASTFM_API_SECRET!
@@ -127,6 +128,13 @@ export async function calculateGroupWeeklyStats(
       topAlbums: aggregated.topAlbums,
     },
   })
+
+  // Cache metrics for all chart types
+  await Promise.all([
+    cacheChartMetrics(groupId, weekStart, 'artists', aggregated.topArtists),
+    cacheChartMetrics(groupId, weekStart, 'tracks', aggregated.topTracks),
+    cacheChartMetrics(groupId, weekStart, 'albums', aggregated.topAlbums),
+  ])
 }
 
 /**

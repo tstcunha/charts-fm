@@ -7,6 +7,7 @@ import { formatWeekDate } from '@/lib/weekly-utils'
 import LeaveGroupButton from './LeaveGroupButton'
 import EditGroupIconButton from './EditGroupIconButton'
 import SafeImage from '@/components/SafeImage'
+import GroupTabs from './GroupTabs'
 
 export default async function GroupPage({ params }: { params: { id: string } }) {
   const session = await getSession()
@@ -94,88 +95,107 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
           </div>
         </div>
 
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Members</h2>
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="space-y-2">
-              {group.members.map((member: any) => (
-                <div key={member.id} className="flex justify-between items-center py-2 border-b last:border-0">
-                  <div>
-                    <p className="font-medium">{member.user.name || member.user.lastfmUsername}</p>
-                    <p className="text-sm text-gray-500">@{member.user.lastfmUsername}</p>
-                  </div>
-                  {member.user.id === group.creatorId && (
-                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                      Creator
-                    </span>
+        <GroupTabs
+          defaultTab="charts"
+          membersContent={
+            <div>
+              <h2 className="text-2xl font-semibold mb-4">Members</h2>
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <div className="space-y-2">
+                  {group.members.map((member: any) => (
+                    <div key={member.id} className="flex justify-between items-center py-2 border-b last:border-0">
+                      <div>
+                        <p className="font-medium">{member.user.name || member.user.lastfmUsername}</p>
+                        <p className="text-sm text-gray-500">@{member.user.lastfmUsername}</p>
+                      </div>
+                      {member.user.id === group.creatorId && (
+                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                          Creator
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          }
+          chartsContent={
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-semibold">Weekly Charts</h2>
+                {weeklyStats.length > 1 && (
+                  <Link
+                    href={`/groups/${group.id}/charts`}
+                    className="px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold"
+                  >
+                    Explore Charts
+                  </Link>
+                )}
+              </div>
+              {weeklyStats.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+                  <p className="text-gray-600 mb-4">No charts available yet.</p>
+                  {isCreator && (
+                    <Link
+                      href={`/groups/${group.id}/generate`}
+                      className="text-yellow-600 hover:underline"
+                    >
+                      Generate charts
+                    </Link>
                   )}
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Weekly Charts</h2>
-          {weeklyStats.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-              <p className="text-gray-600 mb-4">No charts available yet.</p>
-              {isCreator && (
-                <Link
-                  href={`/groups/${group.id}/generate`}
-                  className="text-yellow-600 hover:underline"
-                >
-                  Generate charts
-                </Link>
+              ) : (
+                <div className="space-y-6">
+                  {(() => {
+                    const latestWeek = weeklyStats[0]
+                    return (
+                      <div className="bg-white rounded-lg shadow-lg p-6">
+                        <h3 className="text-xl font-semibold mb-4">
+                          Week of {formatWeekDate(latestWeek.weekStart)}
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div>
+                            <h4 className="font-semibold mb-2">Top Artists</h4>
+                            <ol className="list-decimal list-inside space-y-1">
+                              {(latestWeek.topArtists as any[]).map((artist: any, idx: number) => (
+                                <li key={idx} className="text-sm">
+                                  {artist.name} ({artist.playcount} plays)
+                                </li>
+                              ))}
+                            </ol>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-semibold mb-2">Top Tracks</h4>
+                            <ol className="list-decimal list-inside space-y-1">
+                              {(latestWeek.topTracks as any[]).map((track: any, idx: number) => (
+                                <li key={idx} className="text-sm">
+                                  {track.name} by {track.artist} ({track.playcount} plays)
+                                </li>
+                              ))}
+                            </ol>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-semibold mb-2">Top Albums</h4>
+                            <ol className="list-decimal list-inside space-y-1">
+                              {(latestWeek.topAlbums as any[]).map((album: any, idx: number) => (
+                                <li key={idx} className="text-sm">
+                                  {album.name} by {album.artist} ({album.playcount} plays)
+                                </li>
+                              ))}
+                            </ol>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })()}
+                </div>
               )}
             </div>
-          ) : (
-            <div className="space-y-6">
-              {weeklyStats.map((week: any) => (
-                <div key={week.id} className="bg-white rounded-lg shadow-lg p-6">
-                  <h3 className="text-xl font-semibold mb-4">
-                    Week of {formatWeekDate(week.weekStart)}
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <h4 className="font-semibold mb-2">Top Artists</h4>
-                      <ol className="list-decimal list-inside space-y-1">
-                        {(week.topArtists as any[]).map((artist: any, idx: number) => (
-                          <li key={idx} className="text-sm">
-                            {artist.name} ({artist.playcount} plays)
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-semibold mb-2">Top Tracks</h4>
-                      <ol className="list-decimal list-inside space-y-1">
-                        {(week.topTracks as any[]).map((track: any, idx: number) => (
-                          <li key={idx} className="text-sm">
-                            {track.name} by {track.artist} ({track.playcount} plays)
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-semibold mb-2">Top Albums</h4>
-                      <ol className="list-decimal list-inside space-y-1">
-                        {(week.topAlbums as any[]).map((album: any, idx: number) => (
-                          <li key={idx} className="text-sm">
-                            {album.name} by {album.artist} ({album.playcount} plays)
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+          }
+        />
       </div>
     </main>
   )

@@ -89,3 +89,81 @@ export async function getGroupWeeklyStats(groupId: string) {
   })
 }
 
+export async function getPublicGroupById(groupId: string) {
+  const group = await prisma.group.findFirst({
+    where: {
+      id: groupId,
+      isPrivate: false, // Only return public groups
+    },
+    include: {
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          lastfmUsername: true,
+        },
+      },
+      // Do NOT include members list for privacy
+      _count: {
+        select: {
+          members: true,
+        },
+      },
+    },
+  })
+
+  return group
+}
+
+/**
+ * Get cached chart entries for a specific week and chart type
+ */
+export async function getGroupChartEntries(
+  groupId: string,
+  weekStart: Date,
+  chartType: 'artists' | 'tracks' | 'albums'
+) {
+  return await prisma.groupChartEntry.findMany({
+    where: {
+      groupId,
+      weekStart,
+      chartType,
+    },
+    orderBy: {
+      position: 'asc',
+    },
+  })
+}
+
+/**
+ * Get all chart entries for a specific week (all chart types)
+ */
+export async function getGroupChartEntriesForWeek(groupId: string, weekStart: Date) {
+  return await prisma.groupChartEntry.findMany({
+    where: {
+      groupId,
+      weekStart,
+    },
+    orderBy: [
+      { chartType: 'asc' },
+      { position: 'asc' },
+    ],
+  })
+}
+
+/**
+ * Get all available weeks for a group (for week selector)
+ */
+export async function getGroupAvailableWeeks(groupId: string) {
+  return await prisma.groupWeeklyStats.findMany({
+    where: { groupId },
+    select: {
+      weekStart: true,
+    },
+    orderBy: {
+      weekStart: 'desc',
+    },
+    distinct: ['weekStart'],
+  })
+}
+

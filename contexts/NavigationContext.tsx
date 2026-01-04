@@ -1,19 +1,47 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 
 interface NavigationContextType {
   isLoading: boolean
+  triggerPulse: () => void
+  stopPulse: () => void
 }
 
 const NavigationContext = createContext<NavigationContextType>({
   isLoading: false,
+  triggerPulse: () => {},
+  stopPulse: () => {},
 })
 
 export function NavigationProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true) // Start with true for initial load
   const pathname = usePathname()
+  const pulseTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  const triggerPulse = useCallback(() => {
+    // Clear any existing timer
+    if (pulseTimerRef.current) {
+      clearTimeout(pulseTimerRef.current)
+    }
+    
+    setIsLoading(true)
+    // Set a fallback timeout in case stopPulse is never called
+    pulseTimerRef.current = setTimeout(() => {
+      setIsLoading(false)
+      pulseTimerRef.current = null
+    }, 3000)
+  }, [])
+
+  const stopPulse = useCallback(() => {
+    // Clear any existing timer
+    if (pulseTimerRef.current) {
+      clearTimeout(pulseTimerRef.current)
+      pulseTimerRef.current = null
+    }
+    setIsLoading(false)
+  }, [])
 
   useEffect(() => {
     // Handle navigation loading state - pulse on every page load/navigation
@@ -54,7 +82,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   }, [])
 
   return (
-    <NavigationContext.Provider value={{ isLoading }}>
+    <NavigationContext.Provider value={{ isLoading, triggerPulse, stopPulse }}>
       {children}
     </NavigationContext.Provider>
   )

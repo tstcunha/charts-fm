@@ -71,12 +71,14 @@ model Group {
   description String?
   image       String?  // Group icon/image URL
   creatorId   String
+  isPrivate   Boolean  @default(false) // If true, group is private and not viewable publicly
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
   creator     User            @relation("GroupCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   members     GroupMember[]
   weeklyStats GroupWeeklyStats[]
+  chartEntries GroupChartEntry[]
   
   @@map("groups")
 }
@@ -128,5 +130,30 @@ model GroupWeeklyStats {
   @@unique([groupId, weekStart])
   @@index([groupId, weekStart])
   @@map("group_weekly_stats")
+}
+
+model GroupChartEntry {
+  id                String   @id @default(cuid())
+  groupId           String
+  weekStart         DateTime // Sunday 00:00 UTC
+  chartType         String   // "artists" | "tracks" | "albums"
+  entryKey          String   // Normalized key: name for artists, "name|artist" for tracks/albums
+  name              String
+  artist            String?   // For tracks and albums
+  position          Int      // 1-10
+  playcount         Int
+  positionChange    Int?     // null for new entries, negative = moved up, positive = moved down
+  playsChange       Int?     // null for new entries
+  totalWeeksAppeared Int     // Count of weeks this entry appears in up to this week
+  highestPosition   Int      // Best position across all weeks up to this week
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  @@unique([groupId, weekStart, chartType, entryKey])
+  @@index([groupId, weekStart, chartType])
+  @@index([groupId, chartType, entryKey])
+  @@map("group_chart_entries")
 }
 
