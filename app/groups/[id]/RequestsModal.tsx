@@ -16,7 +16,7 @@ interface RequestsModalProps {
   groupId: string
   isOpen: boolean
   onClose: () => void
-  onRequestProcessed: () => void
+  onRequestProcessed?: () => void
 }
 
 export default function RequestsModal({
@@ -76,7 +76,8 @@ export default function RequestsModal({
 
       // Remove the accepted request from the list
       setRequests((prev) => prev.filter((r) => r.id !== requestId))
-      onRequestProcessed()
+      // Optionally notify parent (without forcing page reload)
+      onRequestProcessed?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to accept request')
     } finally {
@@ -104,7 +105,8 @@ export default function RequestsModal({
 
       // Remove the rejected request from the list
       setRequests((prev) => prev.filter((r) => r.id !== requestId))
-      onRequestProcessed()
+      // Optionally notify parent (without forcing page reload)
+      onRequestProcessed?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reject request')
     } finally {

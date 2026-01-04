@@ -10,19 +10,41 @@ interface RequestsButtonProps {
 
 export default function RequestsButton({
   groupId,
-  requestCount,
+  requestCount: initialRequestCount,
 }: RequestsButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [requestCount, setRequestCount] = useState(initialRequestCount)
 
-  const handleRequestProcessed = () => {
-    // Refresh the page to update the count
-    window.location.reload()
+  const updateRequestCount = async () => {
+    // Update the request count by fetching the current count
+    try {
+      const response = await fetch(`/api/groups/${groupId}/requests`)
+      if (response.ok) {
+        const data = await response.json()
+        const currentCount = data.requests?.length || 0
+        setRequestCount(currentCount)
+      }
+    } catch (err) {
+      // If fetch fails, just decrement the count locally
+      setRequestCount((prev) => Math.max(0, prev - 1))
+    }
+  }
+
+  const handleRequestProcessed = async () => {
+    // Update count asynchronously without closing modal
+    await updateRequestCount()
+  }
+
+  const handleModalOpen = () => {
+    setIsModalOpen(true)
+    // Refresh count when opening modal to ensure accuracy
+    updateRequestCount()
   }
 
   return (
     <>
       <button
-        onClick={() => setIsModalOpen(true)}
+        onClick={handleModalOpen}
         disabled={requestCount === 0}
         className={`
           px-4 py-2 rounded-lg font-semibold transition-colors

@@ -1,7 +1,5 @@
-import { redirect } from 'next/navigation'
-import { getSession } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { getGroupById, getGroupChartEntries, getGroupAvailableWeeks } from '@/lib/group-queries'
+import { requireGroupMembership } from '@/lib/group-auth'
+import { getGroupChartEntries, getGroupAvailableWeeks } from '@/lib/group-queries'
 import { formatWeekDate, formatWeekLabel } from '@/lib/weekly-utils'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
@@ -18,21 +16,7 @@ export default async function ChartsPage({
   params: { id: string }
   searchParams: { week?: string; type?: string }
 }) {
-  const session = await getSession()
-
-  if (!session?.user?.email) {
-    redirect('/auth/signin')
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  })
-
-  if (!user) {
-    redirect('/auth/signin')
-  }
-
-  const group = await getGroupById(params.id, user.id)
+  const { user, group } = await requireGroupMembership(params.id)
 
   if (!group) {
     return (

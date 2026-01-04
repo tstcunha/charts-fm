@@ -1,33 +1,21 @@
 import { redirect } from 'next/navigation'
-import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getGroupById, getGroupWeeklyStats, getGroupAllTimeStats } from '@/lib/group-queries'
+import { getGroupWeeklyStats, getGroupAllTimeStats } from '@/lib/group-queries'
+import { requireGroupMembership } from '@/lib/group-auth'
 import Link from 'next/link'
-import { formatWeekDate } from '@/lib/weekly-utils'
+import { formatWeekDate, getWeekStartForDay, getWeekEndForDay, formatWeekLabel } from '@/lib/weekly-utils'
 import LeaveGroupButton from './LeaveGroupButton'
 import EditGroupIconButton from './EditGroupIconButton'
+import RemoveMemberButton from './RemoveMemberButton'
+import AddMemberButton from './AddMemberButton'
 import SafeImage from '@/components/SafeImage'
 import GroupTabs from './GroupTabs'
 import { recalculateAllTimeStats } from '@/lib/group-alltime-stats'
 import RequestsButton from './RequestsButton'
 
 export default async function GroupPage({ params }: { params: { id: string } }) {
-  const session = await getSession()
-  
-  if (!session?.user?.email) {
-    redirect('/auth/signin')
-  }
+  const { user, group } = await requireGroupMembership(params.id)
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  })
-
-  if (!user) {
-    redirect('/auth/signin')
-  }
-
-  const group = await getGroupById(params.id, user.id)
-  
   if (!group) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-24">
@@ -64,6 +52,16 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
     allTimeStats = await getGroupAllTimeStats(group.id)
   }
 
+  // Calculate tracking day info and next chart date
+  const trackingDayOfWeek = group.trackingDayOfWeek ?? 0
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const trackingDayName = dayNames[trackingDayOfWeek]
+  
+  // Calculate when the next charts will be available (when current week ends)
+  const currentWeekStart = getWeekStartForDay(new Date(), trackingDayOfWeek)
+  const nextChartDate = getWeekEndForDay(currentWeekStart, trackingDayOfWeek)
+  const nextChartDateFormatted = formatWeekLabel(nextChartDate)
+
   return (
     <main className="flex min-h-screen flex-col p-24">
       <div className="max-w-6xl w-full mx-auto">
@@ -88,6 +86,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
                 <div className="text-sm text-gray-500">
                   <p>Creator: {group.creator.name || group.creator.lastfmUsername}</p>
                   <p>Members: {group._count.members}</p>
+                  <p className="mt-2">Tracking day: {trackingDayName} • Next charts: {nextChartDateFormatted}</p>
                 </div>
               </div>
             </div>
@@ -206,12 +205,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
                 <h2 className="text-2xl font-semibold">Members</h2>
                 {isCreator && (
                   <div className="flex gap-2">
-                    <Link
-                      href={`/groups/${group.id}/add-member`}
-                      className="px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold"
-                    >
-                      Add Member
-                    </Link>
+                    <AddMemberButton groupId={group.id} />
                     <RequestsButton groupId={group.id} requestCount={requestCount} />
                   </div>
                 )}
@@ -224,11 +218,20 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
                         <p className="font-medium">{member.user.name || member.user.lastfmUsername}</p>
                         <p className="text-sm text-gray-500">@{member.user.lastfmUsername}</p>
                       </div>
-                      {member.user.id === group.creatorId && (
-                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                          Creator
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {member.user.id === group.creatorId && (
+                          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                            Creator
+                          </span>
+                        )}
+                        {isCreator && member.user.id !== group.creatorId && (
+                          <RemoveMemberButton
+                            groupId={group.id}
+                            userId={member.user.id}
+                            memberName={member.user.name || member.user.lastfmUsername}
+                          />
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -1,34 +1,9 @@
-import { redirect } from 'next/navigation'
-import { getSession } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { requireGroupCreator } from '@/lib/group-auth'
 import Link from 'next/link'
 import GroupSettingsForm from './GroupSettingsForm'
 
 export default async function GroupSettingsPage({ params }: { params: { id: string } }) {
-  const session = await getSession()
-  
-  if (!session?.user?.email) {
-    redirect('/auth/signin')
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  })
-
-  if (!user) {
-    redirect('/auth/signin')
-  }
-
-  const group = await prisma.group.findUnique({
-    where: { id: params.id },
-    select: {
-      id: true,
-      name: true,
-      creatorId: true,
-      chartSize: true,
-      trackingDayOfWeek: true,
-    },
-  })
+  const { user, group } = await requireGroupCreator(params.id)
 
   if (!group) {
     return (
@@ -41,11 +16,6 @@ export default async function GroupSettingsPage({ params }: { params: { id: stri
         </div>
       </main>
     )
-  }
-
-  // Only owner can access settings
-  if (group.creatorId !== user.id) {
-    redirect(`/groups/${group.id}`)
   }
 
   return (
