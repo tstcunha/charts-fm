@@ -29,7 +29,7 @@ export default async function GroupsPage() {
           <h1 className="text-4xl font-bold">My Groups</h1>
           <Link
             href="/groups/create"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-6 py-3 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold"
           >
             Create Group
           </Link>
@@ -40,7 +40,7 @@ export default async function GroupsPage() {
             <p className="text-gray-600 mb-4">You don't have any groups yet.</p>
             <Link
               href="/groups/create"
-              className="text-blue-600 hover:underline"
+              className="text-yellow-600 hover:underline"
             >
               Create your first group
             </Link>

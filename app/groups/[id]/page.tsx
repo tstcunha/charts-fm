@@ -30,7 +30,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
       <main className="flex min-h-screen flex-col items-center justify-center p-24">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Group not found</h1>
-          <Link href="/groups" className="text-blue-600 hover:underline">
+          <Link href="/groups" className="text-yellow-600 hover:underline">
             Back to Groups
           </Link>
         </div>
@@ -46,7 +46,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
     <main className="flex min-h-screen flex-col p-24">
       <div className="max-w-6xl w-full mx-auto">
         <div className="mb-8">
-          <Link href="/groups" className="text-blue-600 hover:underline mb-4 inline-block">
+          <Link href="/groups" className="text-yellow-600 hover:underline mb-4 inline-block">
             ← Back to Groups
           </Link>
           <div className="flex justify-between items-start">
@@ -75,7 +75,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
                   <EditGroupIconButton groupId={group.id} currentImage={group.image} />
                   <Link
                     href={`/groups/${group.id}/add-member`}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold"
                   >
                     Add Member
                   </Link>
@@ -105,7 +105,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
                     <p className="text-sm text-gray-500">@{member.user.lastfmUsername}</p>
                   </div>
                   {member.user.id === group.creatorId && (
-                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
                       Creator
                     </span>
                   )}
@@ -123,7 +123,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
               {isCreator && (
                 <Link
                   href={`/groups/${group.id}/generate`}
-                  className="text-blue-600 hover:underline"
+                  className="text-yellow-600 hover:underline"
                 >
                   Generate charts
                 </Link>

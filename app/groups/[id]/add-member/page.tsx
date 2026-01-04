@@ -73,7 +73,7 @@ export default function AddMemberPage({ params }: { params: { id: string } }) {
                 required
                 value={lastfmUsername}
                 onChange={(e) => setLastfmUsername(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 placeholder="username"
                 disabled={isLoading}
               />
@@ -86,7 +86,7 @@ export default function AddMemberPage({ params }: { params: { id: string } }) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3 px-6 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Adding...' : 'Add Member'}
               </button>

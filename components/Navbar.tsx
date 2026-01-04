@@ -55,11 +55,11 @@ export default function Navbar() {
 
   if (status === 'loading') {
     return (
-      <nav className="bg-white border-b border-gray-200">
+      <nav className="bg-black border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center">
-              <Link href="/" className="text-xl font-bold text-blue-600">
+              <Link href="/" className="text-xl font-bold text-yellow-500">
                 ChartsFM
               </Link>
             </div>
@@ -70,13 +70,13 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white border-b border-gray-200">
+    <nav className="bg-black border-b border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center space-x-8">
             <Link 
               href="/" 
-              className={`text-xl font-bold text-blue-600 transition-all ${isLoading ? 'animate-pulse-scale' : ''}`}
+              className={`text-xl font-bold text-yellow-500 transition-all ${isLoading ? 'animate-pulse-scale' : ''}`}
             >
               ChartsFM
             </Link>
@@ -85,8 +85,8 @@ export default function Navbar() {
                 href="/dashboard"
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   pathname === '/dashboard'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-yellow-500 text-black'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                 }`}
               >
                 Main Page
@@ -95,8 +95,8 @@ export default function Navbar() {
                 href="/groups"
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   pathname?.startsWith('/groups')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-yellow-500 text-black'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                 }`}
               >
                 Groups
@@ -107,9 +107,9 @@ export default function Navbar() {
           <div className="relative">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
             >
-              <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+              <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border-2 border-yellow-500">
                 <SafeImage
                   src={userData?.image}
                   alt={userData?.name || 'User'}
@@ -140,28 +140,28 @@ export default function Navbar() {
                   className="fixed inset-0 z-10"
                   onClick={() => setIsDropdownOpen(false)}
                 />
-                <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
+                <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-gray-900 ring-1 ring-gray-700 z-20">
                   <div className="py-1">
-                    <div className="px-4 py-2 border-b border-gray-200">
-                      <p className="text-sm font-medium text-gray-900">
+                    <div className="px-4 py-2 border-b border-gray-700">
+                      <p className="text-sm font-medium text-white">
                         {userData?.name || session?.user?.name || 'User'}
                       </p>
                       {userData?.lastfmUsername && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-400">
                           @{userData.lastfmUsername}
                         </p>
                       )}
                     </div>
                     <Link
                       href="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white"
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       Edit Profile
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white"
                     >
                       Sign out
                     </button>

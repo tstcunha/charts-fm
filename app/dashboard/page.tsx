@@ -43,7 +43,7 @@ export default async function DashboardPage() {
               <h1 className="text-4xl font-bold mb-2">Welcome to ChartsFM</h1>
               <Link
                 href="/profile"
-                className="text-blue-600 hover:underline text-sm"
+                className="text-yellow-600 hover:underline text-sm"
               >
                 Edit Profile
               </Link>
@@ -65,7 +65,7 @@ export default async function DashboardPage() {
           <div className="pt-6 border-t">
             <Link
               href="/groups"
-              className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-block px-6 py-3 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold"
             >
               View My Groups
             </Link>

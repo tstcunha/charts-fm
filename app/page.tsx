@@ -11,7 +11,7 @@ export default function Home() {
         <div className="flex justify-center gap-4">
           <a
             href="/auth/signin"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-6 py-3 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold"
           >
             Sign In
           </a>
