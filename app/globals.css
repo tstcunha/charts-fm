@@ -100,3 +100,16 @@ svg.rdp-chevron {
   animation: dots 1.4s ease-in-out 0.4s infinite;
 }
 
+@keyframes race-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100vw);
+  }
+}
+
+.animate-race-bar {
+  animation: race-bar 1.5s ease-in-out infinite;
+}
+
