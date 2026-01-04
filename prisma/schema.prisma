@@ -69,6 +69,7 @@ model Group {
   id          String   @id @default(cuid())
   name        String
   description String?
+  image       String?  // Group icon/image URL
   creatorId   String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

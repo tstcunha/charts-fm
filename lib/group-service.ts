@@ -2,7 +2,7 @@
 
 import { prisma } from './prisma'
 import { getWeeklyStats } from './lastfm-weekly'
-import { getWeekStart, getLastNWeeks } from './weekly-utils'
+import { getWeekStart, getLastNFinishedWeeks } from './weekly-utils'
 import { aggregateGroupStats } from './group-stats'
 import { TopItem } from './lastfm-weekly'
 
@@ -130,10 +130,10 @@ export async function calculateGroupWeeklyStats(
 }
 
 /**
- * Initialize group with historical data (last 5 weeks)
+ * Initialize group with historical data (last 5 finished weeks)
  */
 export async function initializeGroupWithHistory(groupId: string): Promise<void> {
-  const weeks = getLastNWeeks(5)
+  const weeks = getLastNFinishedWeeks(5)
   
   // Process weeks sequentially to avoid overwhelming the API
   for (const weekStart of weeks) {

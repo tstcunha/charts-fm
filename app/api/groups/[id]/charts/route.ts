@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { calculateGroupWeeklyStats } from '@/lib/group-service'
-import { getWeekStart, getLastNWeeks } from '@/lib/weekly-utils'
+import { getLastNFinishedWeeks } from '@/lib/weekly-utils'
 
 // GET - Get group charts (weekly stats)
 export async function GET(
@@ -94,8 +94,8 @@ export async function POST(
     )
   }
 
-  // Calculate stats for last 5 weeks
-  const weeks = getLastNWeeks(5)
+  // Calculate stats for last 5 finished weeks (excluding current week)
+  const weeks = getLastNFinishedWeeks(5)
   
   // Process sequentially to avoid API rate limits
   for (const weekStart of weeks) {

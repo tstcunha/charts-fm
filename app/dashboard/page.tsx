@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getDefaultGroupImage } from '@/lib/default-images'
 import Link from 'next/link'
+import SafeImage from '@/components/SafeImage'
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -17,6 +19,7 @@ export default async function DashboardPage() {
       name: true,
       email: true,
       lastfmUsername: true,
+      image: true,
     },
   })
 
@@ -28,7 +31,24 @@ export default async function DashboardPage() {
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="z-10 max-w-4xl w-full">
         <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-4xl font-bold mb-6">Welcome to ChartsFM</h1>
+          <div className="flex items-center gap-6 mb-6">
+            <div className="relative w-24 h-24 flex-shrink-0">
+              <SafeImage
+                src={user.image}
+                alt={user.name || 'Profile'}
+                className="rounded-full object-cover w-24 h-24"
+              />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold mb-2">Welcome to ChartsFM</h1>
+              <Link
+                href="/profile"
+                className="text-blue-600 hover:underline text-sm"
+              >
+                Edit Profile
+              </Link>
+            </div>
+          </div>
           
           <div className="space-y-4 mb-6">
             <div className="p-4 bg-gray-50 rounded-lg">

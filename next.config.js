@@ -2,6 +2,16 @@
 const nextConfig = {
   images: {
     domains: ['lastfm.freetls.fastly.net', 'i.scdn.co'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: '**',
+      },
+    ],
   },
 }
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import SafeImage from '@/components/SafeImage'
 
 export default function Navbar() {
   const { data: session, status } = useSession()
@@ -14,6 +15,7 @@ export default function Navbar() {
   const [userData, setUserData] = useState<{
     name: string | null
     lastfmUsername: string
+    image: string | null
   } | null>(null)
 
   useEffect(() => {
@@ -23,25 +25,29 @@ export default function Navbar() {
         .then(res => res.json())
         .then(data => {
           if (data.user) {
-            setUserData({
-              name: data.user.name,
-              lastfmUsername: data.user.lastfmUsername,
-            })
+          setUserData({
+            name: data.user.name,
+            lastfmUsername: data.user.lastfmUsername,
+            image: data.user.image,
+          })
           }
         })
         .catch(console.error)
     }
   }, [session])
 
-  // Handle navigation loading state
+  // Handle navigation loading state - pulse on every page load/navigation
   useEffect(() => {
-    // Reset loading when pathname changes (navigation complete)
-    setIsLoading(false)
-  }, [pathname])
-
-  const handleLinkClick = () => {
+    // Show loading when pathname changes (navigation started)
     setIsLoading(true)
-  }
+    
+    // Hide loading after a brief delay (simulates page load)
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [pathname])
 
   const handleLogout = async () => {
     await signOut({ redirect: false })
@@ -82,7 +88,6 @@ export default function Navbar() {
           <div className="flex items-center space-x-8">
             <Link 
               href="/" 
-              onClick={handleLinkClick}
               className={`text-xl font-bold text-blue-600 ${isLoading ? 'animate-pulse' : ''}`}
             >
               ChartsFM
@@ -90,7 +95,6 @@ export default function Navbar() {
             <div className="flex space-x-4">
               <Link
                 href="/dashboard"
-                onClick={handleLinkClick}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   pathname === '/dashboard'
                     ? 'bg-blue-100 text-blue-700'
@@ -101,7 +105,6 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/groups"
-                onClick={handleLinkClick}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   pathname?.startsWith('/groups')
                     ? 'bg-blue-100 text-blue-700'
@@ -118,6 +121,13 @@ export default function Navbar() {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
+              <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                <SafeImage
+                  src={userData?.image}
+                  alt={userData?.name || 'User'}
+                  className="object-cover w-8 h-8 rounded-full"
+                />
+              </div>
               <span>{userData?.name || session?.user?.name || 'User'}</span>
               <svg
                 className={`w-4 h-4 transition-transform ${
@@ -154,6 +164,13 @@ export default function Navbar() {
                         </p>
                       )}
                     </div>
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      Edit Profile
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

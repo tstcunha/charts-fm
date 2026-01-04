@@ -48,6 +48,19 @@ export function getLastNWeeks(n: number): Date[] {
 }
 
 /**
+ * Get an array of week start dates for the last N finished weeks
+ * Excludes the current week (which is still in progress)
+ */
+export function getLastNFinishedWeeks(n: number): Date[] {
+  const weeks: Date[] = []
+  // Start from 1 week ago (skip current week, which is 0)
+  for (let i = 1; i <= n; i++) {
+    weeks.push(getWeekStartNWeeksAgo(i))
+  }
+  return weeks
+}
+
+/**
  * Format a date as YYYY-MM-DD for display
  */
 export function formatWeekDate(date: Date): string {

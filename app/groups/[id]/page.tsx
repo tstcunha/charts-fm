@@ -5,6 +5,8 @@ import { getGroupById, getGroupWeeklyStats } from '@/lib/group-queries'
 import Link from 'next/link'
 import { formatWeekDate } from '@/lib/weekly-utils'
 import LeaveGroupButton from './LeaveGroupButton'
+import EditGroupIconButton from './EditGroupIconButton'
+import SafeImage from '@/components/SafeImage'
 
 export default async function GroupPage({ params }: { params: { id: string } }) {
   const session = await getSession()
@@ -48,19 +50,29 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
             ← Back to Groups
           </Link>
           <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">{group.name}</h1>
-              {group.description && (
-                <p className="text-gray-600 mb-4">{group.description}</p>
-              )}
-              <div className="text-sm text-gray-500">
-                <p>Creator: {group.creator.name || group.creator.lastfmUsername}</p>
-                <p>Members: {group._count.members}</p>
+            <div className="flex items-start gap-4">
+              <div className="relative w-24 h-24 flex-shrink-0">
+                <SafeImage
+                  src={group.image}
+                  alt={group.name}
+                  className="rounded-lg object-cover w-24 h-24"
+                />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold mb-2">{group.name}</h1>
+                {group.description && (
+                  <p className="text-gray-600 mb-4">{group.description}</p>
+                )}
+                <div className="text-sm text-gray-500">
+                  <p>Creator: {group.creator.name || group.creator.lastfmUsername}</p>
+                  <p>Members: {group._count.members}</p>
+                </div>
               </div>
             </div>
             <div className="flex gap-2">
               {isCreator && (
                 <>
+                  <EditGroupIconButton groupId={group.id} currentImage={group.image} />
                   <Link
                     href={`/groups/${group.id}/add-member`}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getUserGroups } from '@/lib/group-queries'
 import Link from 'next/link'
+import SafeImage from '@/components/SafeImage'
 
 export default async function GroupsPage() {
   const session = await getSession()
@@ -52,10 +53,19 @@ export default async function GroupsPage() {
                 href={`/groups/${group.id}`}
                 className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
               >
-                <h2 className="text-2xl font-semibold mb-2">{group.name}</h2>
-                {group.description && (
-                  <p className="text-gray-600 mb-4">{group.description}</p>
-                )}
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="relative w-16 h-16 flex-shrink-0">
+                    <SafeImage
+                      src={group.image}
+                      alt={group.name}
+                      className="rounded-lg object-cover w-16 h-16"
+                    />
+                  </div>
+                  <h2 className="text-2xl font-semibold">{group.name}</h2>
+                </div>
+                  {group.description && (
+                    <p className="text-gray-600 mb-4">{group.description}</p>
+                  )}
                 <div className="text-sm text-gray-500">
                   <p>Creator: {group.creator.name || group.creator.lastfmUsername}</p>
                   <p>Members: {group._count.members}</p>

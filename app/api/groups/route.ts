@@ -56,6 +56,7 @@ export async function POST(request: Request) {
     data: {
       name: name.trim(),
       description: description?.trim() || null,
+      image: body.image?.trim() || null,
       creatorId: user.id,
       members: {
         create: {
