@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?   // For email/password auth (hashed)
+  image         String?
+  lastfmUsername String?  @unique
+  lastfmApiKey  String?  // Encrypted Last.fm API key
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  friendshipsAsUser   Friendship[] @relation("UserFriendships")
+  friendshipsAsFriend Friendship[] @relation("FriendFriendships")
+  listeningStats      ListeningStat[]
+  
+  @@map("users")
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  userId    String
+  friendId  String
+  status    String   @default("pending") // pending, accepted, blocked
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user   User @relation("UserFriendships", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("FriendFriendships", fields: [friendId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, friendId])
+  @@map("friendships")
+}
+
+model ListeningStat {
+  id          String   @id @default(cuid())
+  userId      String
+  trackName   String
+  artistName  String
+  albumName   String?
+  playCount   Int      @default(1)
+  lastPlayed  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([trackName, artistName])
+  @@map("listening_stats")
+}
+
