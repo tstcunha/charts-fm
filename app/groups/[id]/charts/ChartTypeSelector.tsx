@@ -7,18 +7,25 @@ type ChartType = 'artists' | 'tracks' | 'albums'
 
 interface ChartTypeSelectorProps {
   currentType: ChartType
+  onTypeChange?: (type: ChartType) => void
 }
 
-export default function ChartTypeSelector({ currentType }: ChartTypeSelectorProps) {
+export default function ChartTypeSelector({ currentType, onTypeChange }: ChartTypeSelectorProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { triggerPulse } = useNavigation()
 
   const handleTypeChange = (type: ChartType) => {
-    triggerPulse()
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('type', type)
-    router.push(`?${params.toString()}`)
+    if (onTypeChange) {
+      // Use local state change for instant switching
+      onTypeChange(type)
+    } else {
+      // Fallback to URL navigation for backwards compatibility
+      triggerPulse()
+      const params = new URLSearchParams(searchParams.toString())
+      params.set('type', type)
+      router.push(`?${params.toString()}`)
+    }
   }
 
   const types: { value: ChartType; label: string }[] = [

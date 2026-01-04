@@ -6,8 +6,7 @@ import { formatWeekDate, formatWeekLabel } from '@/lib/weekly-utils'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
 import WeekSelector from './WeekSelector'
-import ChartTypeSelector from './ChartTypeSelector'
-import ChartTable from './ChartTable'
+import ChartDisplay from './ChartDisplay'
 import { getCachedChartEntries } from '@/lib/group-chart-metrics'
 
 type ChartType = 'artists' | 'tracks' | 'albums'
@@ -75,8 +74,12 @@ export default async function ChartsPage({
   // Parse selected chart type (default to artists)
   const selectedType = (searchParams.type || 'artists') as ChartType
 
-  // Get cached chart entries
-  const chartEntries = await getCachedChartEntries(group.id, selectedWeek, selectedType)
+  // Load all three chart types for instant switching
+  const [artists, tracks, albums] = await Promise.all([
+    getCachedChartEntries(group.id, selectedWeek, 'artists'),
+    getCachedChartEntries(group.id, selectedWeek, 'tracks'),
+    getCachedChartEntries(group.id, selectedWeek, 'albums'),
+  ])
 
   return (
     <main className="flex min-h-screen flex-col p-24">
@@ -108,12 +111,12 @@ export default async function ChartsPage({
 
           {/* Right: Chart Table and Type Selector */}
           <div className="col-span-12 md:col-span-9">
-            {/* Chart Type Selector above table */}
-            <div className="mb-4">
-              <ChartTypeSelector currentType={selectedType} />
-            </div>
-            {/* Chart Table */}
-            <ChartTable items={chartEntries} chartType={selectedType} />
+            <ChartDisplay
+              initialType={selectedType}
+              artists={artists}
+              tracks={tracks}
+              albums={albums}
+            />
           </div>
         </div>
       </div>
