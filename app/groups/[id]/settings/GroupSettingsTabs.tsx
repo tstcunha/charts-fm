@@ -2,18 +2,20 @@
 
 import { useState } from 'react'
 
-type TabId = 'regenerate' | 'chart-creation' | 'group-details'
+type TabId = 'regenerate' | 'chart-creation' | 'group-details' | 'delete'
 
 interface GroupSettingsTabsProps {
   regenerateChartsContent: React.ReactNode
   chartCreationContent: React.ReactNode
   groupDetailsContent: React.ReactNode
+  deleteGroupContent: React.ReactNode
 }
 
 export default function GroupSettingsTabs({
   regenerateChartsContent,
   chartCreationContent,
   groupDetailsContent,
+  deleteGroupContent,
 }: GroupSettingsTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>('regenerate')
 
@@ -21,6 +23,7 @@ export default function GroupSettingsTabs({
     { id: 'regenerate' as TabId, label: 'Regenerate Charts' },
     { id: 'chart-creation' as TabId, label: 'Chart Creation' },
     { id: 'group-details' as TabId, label: 'Group Details' },
+    { id: 'delete' as TabId, label: 'Delete Group' },
   ]
 
   const getTabContent = () => {
@@ -31,6 +34,8 @@ export default function GroupSettingsTabs({
         return chartCreationContent
       case 'group-details':
         return groupDetailsContent
+      case 'delete':
+        return deleteGroupContent
       default:
         return null
     }
@@ -47,7 +52,11 @@ export default function GroupSettingsTabs({
               onClick={() => setActiveTab(tab.id)}
               className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-yellow-500 text-black font-semibold'
+                  ? tab.id === 'delete'
+                    ? 'bg-red-500 text-white font-semibold'
+                    : 'bg-yellow-500 text-black font-semibold'
+                  : tab.id === 'delete'
+                  ? 'text-red-600 hover:bg-red-50'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >

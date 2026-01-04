@@ -4,6 +4,7 @@ import GroupSettingsTabs from './GroupSettingsTabs'
 import RegenerateChartsTab from './RegenerateChartsTab'
 import GroupSettingsForm from './GroupSettingsForm'
 import GroupDetailsTab from './GroupDetailsTab'
+import DeleteGroupTab from './DeleteGroupTab'
 
 export default async function GroupSettingsPage({ params }: { params: { id: string } }) {
   const { user, group } = await requireGroupCreator(params.id)
@@ -49,6 +50,12 @@ export default async function GroupSettingsPage({ params }: { params: { id: stri
               initialImage={group.image}
               initialIsPrivate={group.isPrivate}
               initialAllowFreeJoin={group.allowFreeJoin ?? false}
+            />
+          }
+          deleteGroupContent={
+            <DeleteGroupTab
+              groupId={group.id}
+              groupName={group.name}
             />
           }
         />
