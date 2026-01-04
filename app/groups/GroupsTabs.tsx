@@ -8,7 +8,6 @@ import SafeImage from '@/components/SafeImage'
 interface Group {
   id: string
   name: string
-  description: string | null
   image: string | null
   creator: {
     id: string
@@ -106,9 +105,6 @@ export default function GroupsTabs({ ownedGroups, memberGroups, invites, userId 
             <h3 className="text-2xl font-semibold">{group.name}</h3>
           </div>
         </div>
-        {group.description && (
-          <p className="text-gray-600 mb-4">{group.description}</p>
-        )}
         <div className="text-sm text-gray-500">
           <p className="flex items-center gap-2">
             Owner: {group.creator.name || group.creator.lastfmUsername}
@@ -150,9 +146,6 @@ export default function GroupsTabs({ ownedGroups, memberGroups, invites, userId 
             </div>
             <h3 className="text-2xl font-semibold">{invite.group.name}</h3>
           </div>
-          {invite.group.description && (
-            <p className="text-gray-600 mb-4">{invite.group.description}</p>
-          )}
           <div className="text-sm text-gray-500">
             <p>Owner: {invite.group.creator.name || invite.group.creator.lastfmUsername}</p>
             <p>Members: {invite.group._count.members}</p>

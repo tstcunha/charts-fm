@@ -155,9 +155,6 @@ export default async function PublicGroupPage({ params }: { params: { id: string
               </div>
               <div>
                 <h1 className="text-4xl font-bold mb-2">{group.name}</h1>
-                {group.description && (
-                  <p className="text-gray-600 mb-4">{group.description}</p>
-                )}
                 <div className="text-sm text-gray-500">
                   <p>Owner: {group.creator.name || group.creator.lastfmUsername}</p>
                   <p>Members: {group._count.members}</p>

@@ -72,7 +72,6 @@ model ListeningStat {
 model Group {
   id               String   @id @default(cuid())
   name             String
-  description      String?
   image            String?  // Group icon/image URL
   creatorId        String
   isPrivate        Boolean  @default(false) // If true, group is private and not viewable publicly

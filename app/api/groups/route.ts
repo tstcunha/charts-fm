@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json()
-  const { name, description, image, chartSize, trackingDayOfWeek, chartMode, isPrivate, allowFreeJoin } = body
+  const { name, image, chartSize, trackingDayOfWeek, chartMode, isPrivate, allowFreeJoin } = body
 
   if (!name || typeof name !== 'string' || name.trim().length === 0) {
     return NextResponse.json(
@@ -78,7 +78,6 @@ export async function POST(request: Request) {
   const group = await prisma.group.create({
     data: {
       name: name.trim(),
-      description: description?.trim() || null,
       image: image?.trim() || null,
       chartSize: chartSize !== undefined ? Number(chartSize) : 10,
       trackingDayOfWeek: trackingDayOfWeek !== undefined ? Number(trackingDayOfWeek) : 0,
