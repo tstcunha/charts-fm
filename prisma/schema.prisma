@@ -18,6 +18,7 @@ model User {
   image         String?
   lastfmUsername String   @unique // Required - same as Last.fm username
   lastfmSessionKey String? // Last.fm session key for authenticated API calls
+  isSuperuser   Boolean  @default(false) // Superuser/admin access
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
