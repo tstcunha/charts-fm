@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 interface GroupSettingsFormProps {
   groupId: string
   initialChartSize: number
+  initialChartMode: string
   initialTrackingDayOfWeek: number
 }
 
@@ -21,20 +22,42 @@ const DAYS_OF_WEEK = [
 
 const CHART_SIZES = [10, 20, 50, 100]
 
+const CHART_MODES = [
+  {
+    value: 'vs',
+    label: 'VS Mode',
+    description: 'Rank-based scoring. Each user\'s top items are scored based on position (1.00 for #1, decreasing). Charts are ranked by the sum of VS across all users.',
+  },
+  {
+    value: 'vs_weighted',
+    label: 'VS Weighted',
+    description: 'Rank-based scoring weighted by play count. VS is multiplied by play count for each user, then summed. Balances ranking importance with listening volume.',
+  },
+  {
+    value: 'plays_only',
+    label: 'Plays Only',
+    description: 'Traditional mode. Charts are ranked by total play count across all users. VS equals total plays for consistency.',
+  },
+]
+
 export default function GroupSettingsForm({
   groupId,
   initialChartSize,
+  initialChartMode,
   initialTrackingDayOfWeek,
 }: GroupSettingsFormProps) {
   const router = useRouter()
   const [chartSize, setChartSize] = useState(initialChartSize)
+  const [chartMode, setChartMode] = useState(initialChartMode)
   const [trackingDayOfWeek, setTrackingDayOfWeek] = useState(initialTrackingDayOfWeek)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
   const hasChanges =
-    chartSize !== initialChartSize || trackingDayOfWeek !== initialTrackingDayOfWeek
+    chartSize !== initialChartSize ||
+    chartMode !== initialChartMode ||
+    trackingDayOfWeek !== initialTrackingDayOfWeek
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,6 +73,7 @@ export default function GroupSettingsForm({
         },
         body: JSON.stringify({
           chartSize,
+          chartMode,
           trackingDayOfWeek,
         }),
       })
@@ -113,6 +137,40 @@ export default function GroupSettingsForm({
                   className="sr-only"
                 />
                 <span className="font-medium">Top {size}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="chartMode" className="block text-sm font-medium text-gray-700 mb-2">
+            Chart Mode
+          </label>
+          <p className="text-sm text-gray-500 mb-4">
+            How charts are calculated and ranked. Changing this only affects future charts.
+          </p>
+          <div className="space-y-3">
+            {CHART_MODES.map((mode) => (
+              <label
+                key={mode.value}
+                className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                  chartMode === mode.value
+                    ? 'border-yellow-500 bg-yellow-50'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="chartMode"
+                  value={mode.value}
+                  checked={chartMode === mode.value}
+                  onChange={(e) => setChartMode(e.target.value)}
+                  className="sr-only"
+                />
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900 mb-1">{mode.label}</div>
+                  <div className="text-sm text-gray-600">{mode.description}</div>
+                </div>
               </label>
             ))}
           </div>

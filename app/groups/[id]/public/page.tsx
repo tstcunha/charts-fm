@@ -7,6 +7,31 @@ import Link from 'next/link'
 import RequestToJoinButton from './RequestToJoinButton'
 import InviteNotification from './InviteNotification'
 
+// Helper function to get entry key for matching
+function getEntryKey(item: { name: string; artist?: string }, chartType: string): string {
+  if (chartType === 'artists') {
+    return item.name.toLowerCase()
+  }
+  return `${item.name}|${item.artist || ''}`.toLowerCase()
+}
+
+// Helper function to format display value (VS or plays)
+function formatDisplayValue(
+  item: { name: string; artist?: string; playcount: number },
+  chartType: string,
+  showVS: boolean,
+  vsMap: Map<string, number>
+): string {
+  if (showVS) {
+    const entryKey = getEntryKey(item, chartType)
+    const vs = vsMap.get(`${chartType}|${entryKey}`)
+    if (vs !== undefined && vs !== null) {
+      return `${vs.toFixed(2)} VS`
+    }
+  }
+  return `${item.playcount} plays`
+}
+
 export default async function PublicGroupPage({ params }: { params: { id: string } }) {
   const group = await getPublicGroupById(params.id)
   
@@ -24,6 +49,41 @@ export default async function PublicGroupPage({ params }: { params: { id: string
   }
 
   const weeklyStats = await getGroupWeeklyStats(group.id)
+  
+  // Get group's chart mode
+  // @ts-ignore - Prisma client will be regenerated after migration
+  const chartMode = (group.chartMode || 'plays_only') as string
+  const showVS = chartMode === 'vs' || chartMode === 'vs_weighted'
+
+  // Get VS data for all weeks if we have stats
+  const vsMapsByWeek = new Map<string, Map<string, number>>()
+  if (weeklyStats.length > 0 && showVS) {
+    for (const week of weeklyStats) {
+      // Normalize weekStart to start of day in UTC for comparison
+      const normalizedWeekStart = new Date(week.weekStart)
+      normalizedWeekStart.setUTCHours(0, 0, 0, 0)
+      
+      const chartEntries = await prisma.groupChartEntry.findMany({
+        where: {
+          groupId: group.id,
+          weekStart: normalizedWeekStart,
+        },
+        select: {
+          chartType: true,
+          entryKey: true,
+          vibeScore: true,
+        },
+      })
+      
+      const vsMap = new Map<string, number>()
+      chartEntries.forEach((entry) => {
+        if (entry.vibeScore !== null && entry.vibeScore !== undefined) {
+          vsMap.set(`${entry.chartType}|${entry.entryKey}`, entry.vibeScore)
+        }
+      })
+      vsMapsByWeek.set(week.weekStart.toISOString(), vsMap)
+    }
+  }
   
   // Check if user is logged in and is a member (for optional "View as Member" link)
   const session = await getSession()
@@ -133,33 +193,45 @@ export default async function PublicGroupPage({ params }: { params: { id: string
                     <div>
                       <h4 className="font-semibold mb-2">Top Artists</h4>
                       <ol className="list-decimal list-inside space-y-1">
-                        {(week.topArtists as any[]).map((artist: any, idx: number) => (
-                          <li key={idx} className="text-sm">
-                            {artist.name} ({artist.playcount} plays)
-                          </li>
-                        ))}
+                        {(week.topArtists as any[]).map((artist: any, idx: number) => {
+                          const weekKey = week.weekStart.toISOString()
+                          const vsMap = vsMapsByWeek.get(weekKey) || new Map()
+                          return (
+                            <li key={idx} className="text-sm">
+                              {artist.name} ({formatDisplayValue(artist, 'artists', showVS, vsMap)})
+                            </li>
+                          )
+                        })}
                       </ol>
                     </div>
                     
                     <div>
                       <h4 className="font-semibold mb-2">Top Tracks</h4>
                       <ol className="list-decimal list-inside space-y-1">
-                        {(week.topTracks as any[]).map((track: any, idx: number) => (
-                          <li key={idx} className="text-sm">
-                            {track.name} by {track.artist} ({track.playcount} plays)
-                          </li>
-                        ))}
+                        {(week.topTracks as any[]).map((track: any, idx: number) => {
+                          const weekKey = week.weekStart.toISOString()
+                          const vsMap = vsMapsByWeek.get(weekKey) || new Map()
+                          return (
+                            <li key={idx} className="text-sm">
+                              {track.name} by {track.artist} ({formatDisplayValue(track, 'tracks', showVS, vsMap)})
+                            </li>
+                          )
+                        })}
                       </ol>
                     </div>
                     
                     <div>
                       <h4 className="font-semibold mb-2">Top Albums</h4>
                       <ol className="list-decimal list-inside space-y-1">
-                        {(week.topAlbums as any[]).map((album: any, idx: number) => (
-                          <li key={idx} className="text-sm">
-                            {album.name} by {album.artist} ({album.playcount} plays)
-                          </li>
-                        ))}
+                        {(week.topAlbums as any[]).map((album: any, idx: number) => {
+                          const weekKey = week.weekStart.toISOString()
+                          const vsMap = vsMapsByWeek.get(weekKey) || new Map()
+                          return (
+                            <li key={idx} className="text-sm">
+                              {album.name} by {album.artist} ({formatDisplayValue(album, 'albums', showVS, vsMap)})
+                            </li>
+                          )
+                        })}
                       </ol>
                     </div>
                   </div>

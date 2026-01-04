@@ -32,6 +32,7 @@ export async function GET(
       id: true,
       creatorId: true,
       chartSize: true,
+      chartMode: true,
       trackingDayOfWeek: true,
     },
   })
@@ -50,6 +51,7 @@ export async function GET(
 
   return NextResponse.json({
     chartSize: group.chartSize || 10,
+    chartMode: group.chartMode || 'plays_only',
     trackingDayOfWeek: group.trackingDayOfWeek ?? 0,
   })
 }
@@ -82,6 +84,7 @@ export async function PATCH(
       id: true,
       creatorId: true,
       chartSize: true,
+      chartMode: true,
       trackingDayOfWeek: true,
     },
   })
@@ -99,13 +102,23 @@ export async function PATCH(
   }
 
   const body = await request.json()
-  const { chartSize, trackingDayOfWeek } = body
+  const { chartSize, chartMode, trackingDayOfWeek } = body
 
   // Validate chartSize
   if (chartSize !== undefined) {
     if (![10, 20, 50, 100].includes(chartSize)) {
       return NextResponse.json(
         { error: 'chartSize must be 10, 20, 50, or 100' },
+        { status: 400 }
+      )
+    }
+  }
+
+  // Validate chartMode
+  if (chartMode !== undefined) {
+    if (!['vs', 'vs_weighted', 'plays_only'].includes(chartMode)) {
+      return NextResponse.json(
+        { error: 'chartMode must be "vs", "vs_weighted", or "plays_only"' },
         { status: 400 }
       )
     }
@@ -173,16 +186,19 @@ export async function PATCH(
     where: { id: groupId },
     data: {
       ...(chartSize !== undefined && { chartSize }),
+      ...(chartMode !== undefined && { chartMode }),
       ...(trackingDayOfWeek !== undefined && { trackingDayOfWeek: newTrackingDayOfWeek }),
     },
     select: {
       chartSize: true,
+      chartMode: true,
       trackingDayOfWeek: true,
     },
   })
 
   return NextResponse.json({
     chartSize: updatedGroup.chartSize || 10,
+    chartMode: updatedGroup.chartMode || 'plays_only',
     trackingDayOfWeek: updatedGroup.trackingDayOfWeek ?? 0,
   })
 }

@@ -3,7 +3,7 @@ import { getGroupAllTimeStats } from '@/lib/group-queries'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
 import ChartTypeSelector from '../charts/ChartTypeSelector'
-import ChartTable from '../charts/ChartTable'
+import AllTimeChartTable from './AllTimeChartTable'
 import { recalculateAllTimeStats } from '@/lib/group-alltime-stats'
 import { TopItem } from '@/lib/lastfm-weekly'
 import { EnrichedChartItem } from '@/lib/group-chart-metrics'
@@ -59,9 +59,11 @@ export default async function AllTimePage({
       name: item.name,
       artist: 'artist' in item ? item.artist : undefined,
       playcount: item.playcount,
+      vibeScore: null, // All-time stats don't use VS, always use plays
       position: index + 1,
       positionChange: null, // All-time stats don't have position changes
       playsChange: null, // All-time stats don't have plays changes
+      vibeScoreChange: null, // All-time stats don't have VS changes
       totalWeeksAppeared: 0, // Not applicable for all-time stats
       highestPosition: index + 1, // Current position is highest for all-time
     }))
@@ -98,7 +100,7 @@ export default async function AllTimePage({
             </div>
             {/* Chart Table */}
             {chartEntries.length > 0 ? (
-              <ChartTable items={chartEntries} chartType={selectedType} />
+              <AllTimeChartTable items={chartEntries} chartType={selectedType} />
             ) : (
               <div className="bg-white rounded-lg shadow-lg p-8 text-center">
                 <p className="text-gray-600">No all-time stats available yet.</p>

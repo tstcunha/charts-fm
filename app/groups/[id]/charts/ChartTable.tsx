@@ -32,6 +32,13 @@ export default function ChartTable({ items, chartType }: ChartTableProps) {
     return `(↓${Math.abs(change)})`
   }
 
+  const formatVSChange = (change: number | null): string => {
+    if (change === null) return ''
+    if (change === 0) return ''
+    if (change > 0) return `(↑${change.toFixed(2)})`
+    return `(↓${Math.abs(change).toFixed(2)})`
+  }
+
   const getPositionChangeColor = (change: number | null): string => {
     if (change === null) return 'text-blue-600 font-semibold'
     if (change < 0) return 'text-green-600'
@@ -40,6 +47,13 @@ export default function ChartTable({ items, chartType }: ChartTableProps) {
   }
 
   const getPlaysChangeColor = (change: number | null): string => {
+    if (change === null) return 'text-gray-500'
+    if (change > 0) return 'text-green-600'
+    if (change < 0) return 'text-red-600'
+    return 'text-gray-600'
+  }
+
+  const getVSChangeColor = (change: number | null): string => {
     if (change === null) return 'text-gray-500'
     if (change > 0) return 'text-green-600'
     if (change < 0) return 'text-red-600'
@@ -59,6 +73,9 @@ export default function ChartTable({ items, chartType }: ChartTableProps) {
             </th>
             <th className="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider w-32">
               Plays
+            </th>
+            <th className="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider w-32">
+              VS
             </th>
             <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider w-32">
               Weeks on Chart
@@ -98,6 +115,20 @@ export default function ChartTable({ items, chartType }: ChartTableProps) {
                   <span className={`ml-2 ${getPlaysChangeColor(item.playsChange)}`}>
                     {formatPlaysChange(item.playsChange)}
                   </span>
+                )}
+              </td>
+              <td className="px-6 py-5 text-sm text-right">
+                {item.vibeScore !== null && item.vibeScore !== undefined ? (
+                  <>
+                    <span className="text-gray-900 font-medium">{item.vibeScore.toFixed(2)}</span>
+                    {item.vibeScoreChange !== null && item.vibeScoreChange !== 0 && (
+                      <span className={`ml-2 ${getVSChangeColor(item.vibeScoreChange)}`}>
+                        {formatVSChange(item.vibeScoreChange)}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-gray-400">—</span>
                 )}
               </td>
               <td className="px-6 py-5 text-sm text-center text-gray-600">

@@ -31,6 +31,7 @@ model User {
   groupJoinRequests   GroupJoinRequest[]
   groupInvites         GroupInvite[]
   weeklyStats         UserWeeklyStats[]
+  chartEntryVS        UserChartEntryVS[]
   
   @@map("users")
 }
@@ -77,6 +78,7 @@ model Group {
   isPrivate        Boolean  @default(false) // If true, group is private and not viewable publicly
   allowFreeJoin    Boolean  @default(false) // If true, users can join freely without approval (only for public groups)
   chartSize        Int      @default(10) // Chart size: 10, 20, 50, or 100
+  chartMode        String   @default("plays_only") // Chart mode: "vs", "vs_weighted", or "plays_only"
   trackingDayOfWeek Int    @default(0) // Day of week for tracking (0=Sunday, 1=Monday, ..., 6=Saturday)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -88,6 +90,7 @@ model Group {
   weeklyStats GroupWeeklyStats[]
   chartEntries GroupChartEntry[]
   allTimeStats GroupAllTimeStats?
+  userChartEntryVS UserChartEntryVS[]
   
   @@map("groups")
 }
@@ -151,6 +154,7 @@ model GroupChartEntry {
   artist            String?   // For tracks and albums
   position          Int      // 1-10
   playcount         Int
+  vibeScore         Float?   // Aggregated Vibe Score for this entry
   positionChange    Int?     // null for new entries, negative = moved up, positive = moved down
   playsChange       Int?     // null for new entries
   totalWeeksAppeared Int     // Count of weeks this entry appears in up to this week
@@ -212,5 +216,27 @@ model GroupInvite {
   @@index([groupId, status])
   @@index([userId, status])
   @@map("group_invites")
+}
+
+model UserChartEntryVS {
+  id        String   @id @default(cuid())
+  userId    String
+  groupId   String
+  weekStart DateTime // Sunday 00:00 UTC
+  chartType String   // "artists" | "tracks" | "albums"
+  entryKey  String   // Normalized key: name for artists, "name|artist" for tracks/albums
+  vibeScore Float    // User's VS contribution for this entry
+  playcount Int      // User's playcount for this entry, for reference
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, groupId, weekStart, chartType, entryKey])
+  @@index([groupId, weekStart])
+  @@index([userId, groupId, weekStart])
+  @@index([groupId, weekStart, chartType])
+  @@map("user_chart_entry_vs")
 }
 

@@ -102,9 +102,13 @@ chartsfm/
 │   ├── layout.tsx        # Root layout
 │   └── page.tsx          # Home page
 ├── components/            # React components
+├── docs/                  # Documentation files
+│   ├── VIBE_SCORE_SYSTEM.md
+│   └── SIGNUP_IMPLEMENTATION.md
 ├── lib/                   # Utility functions
 │   ├── prisma.ts         # Prisma client
-│   └── lastfm.ts         # Last.fm API client
+│   ├── lastfm.ts         # Last.fm API client
+│   └── vibe-score.ts     # Vibe Score calculation
 ├── prisma/
 │   └── schema.prisma     # Database schema
 └── public/               # Static assets
@@ -129,6 +133,13 @@ chartsfm/
 4. Build chart components for listening stats
 5. Add friend system
 6. Create comparison visualizations
+
+## Documentation
+
+Detailed documentation for major features and systems:
+
+- [Vibe Score System](./docs/VIBE_SCORE_SYSTEM.md) - Customizable chart ranking system
+- [Signup Implementation](./docs/SIGNUP_IMPLEMENTATION.md) - Last.fm-based account creation flow
 
 ## Resources
 

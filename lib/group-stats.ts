@@ -1,11 +1,19 @@
 // Functions to aggregate group statistics from user statistics
 
 import { TopItem } from './lastfm-weekly'
+import { aggregateGroupStatsVS, ChartMode, PerUserVSData } from './vibe-score'
 
 export interface AggregatedStats {
   topTracks: TopItem[]
   topArtists: TopItem[]
   topAlbums: TopItem[]
+}
+
+export interface AggregatedStatsWithVS {
+  topTracks: Array<TopItem & { vibeScore: number }>
+  topArtists: Array<TopItem & { vibeScore: number }>
+  topAlbums: Array<TopItem & { vibeScore: number }>
+  perUserVS: PerUserVSData
 }
 
 /**
@@ -110,7 +118,7 @@ export function aggregateTopAlbums(
 }
 
 /**
- * Aggregate all stats from multiple users
+ * Aggregate all stats from multiple users (legacy playcount-only method)
  * @param userStats - Array of user stats
  * @param chartSize - Number of items to return for each category (default: 10)
  */
@@ -127,5 +135,24 @@ export function aggregateGroupStats(
     topArtists: aggregateTopArtists(userStats, chartSize),
     topAlbums: aggregateTopAlbums(userStats, chartSize),
   }
+}
+
+/**
+ * Aggregate all stats from multiple users using VS calculation
+ * @param userStats - Array of user stats with userId
+ * @param chartSize - Number of items to return for each category
+ * @param mode - Chart mode: 'vs', 'vs_weighted', or 'plays_only'
+ */
+export function aggregateGroupStatsWithVS(
+  userStats: Array<{
+    userId: string
+    topTracks: TopItem[]
+    topArtists: TopItem[]
+    topAlbums: TopItem[]
+  }>,
+  chartSize: number,
+  mode: ChartMode
+): AggregatedStatsWithVS {
+  return aggregateGroupStatsVS(userStats, chartSize, mode)
 }
 

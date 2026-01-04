@@ -9,9 +9,11 @@ export interface EnrichedChartItem {
   name: string
   artist?: string
   playcount: number
+  vibeScore: number | null
   position: number
   positionChange: number | null
   playsChange: number | null
+  vibeScoreChange: number | null
   totalWeeksAppeared: number
   highestPosition: number
 }
@@ -30,10 +32,10 @@ function getEntryKey(item: { name: string; artist?: string }, chartType: ChartTy
  * Find item in chart by entry key
  */
 function findItemInChart(
-  chart: TopItem[],
+  chart: Array<TopItem | (TopItem & { vibeScore?: number })>,
   entryKey: string,
   chartType: ChartType
-): { item: TopItem; position: number } | null {
+): { item: TopItem | (TopItem & { vibeScore?: number }); position: number } | null {
   for (let i = 0; i < chart.length; i++) {
     const item = chart[i]
     const key = getEntryKey(item, chartType)
@@ -48,28 +50,37 @@ function findItemInChart(
  * Calculate metrics for a single chart entry
  */
 function calculateEntryMetrics(
-  currentItem: TopItem,
+  currentItem: TopItem | (TopItem & { vibeScore?: number }),
   currentPosition: number,
-  previousWeekChart: TopItem[] | null,
-  allWeeksCharts: TopItem[][],
+  previousWeekChart: Array<TopItem | (TopItem & { vibeScore?: number })> | null,
+  allWeeksCharts: Array<Array<TopItem | (TopItem & { vibeScore?: number })>>,
   chartType: ChartType
 ): {
   positionChange: number | null
   playsChange: number | null
+  vibeScoreChange: number | null
   totalWeeksAppeared: number
   highestPosition: number
 } {
   const entryKey = getEntryKey(currentItem, chartType)
 
-  // Calculate position change and plays change from previous week
+  // Calculate position change, plays change, and VS change from previous week
   let positionChange: number | null = null
   let playsChange: number | null = null
+  let vibeScoreChange: number | null = null
 
   if (previousWeekChart) {
     const previousEntry = findItemInChart(previousWeekChart, entryKey, chartType)
     if (previousEntry) {
       positionChange = currentPosition - previousEntry.position
       playsChange = currentItem.playcount - previousEntry.item.playcount
+      
+      // Calculate VS change if both items have vibeScore
+      const currentVS = 'vibeScore' in currentItem && currentItem.vibeScore !== undefined ? currentItem.vibeScore : null
+      const previousVS = 'vibeScore' in previousEntry.item && previousEntry.item.vibeScore !== undefined ? previousEntry.item.vibeScore : null
+      if (currentVS !== null && previousVS !== null) {
+        vibeScoreChange = currentVS - previousVS
+      }
     }
   }
 
@@ -90,6 +101,7 @@ function calculateEntryMetrics(
   return {
     positionChange,
     playsChange,
+    vibeScoreChange,
     totalWeeksAppeared,
     highestPosition,
   }
@@ -102,7 +114,7 @@ export async function cacheChartMetrics(
   groupId: string,
   weekStart: Date,
   chartType: ChartType,
-  chartData: TopItem[]
+  chartData: Array<TopItem | (TopItem & { vibeScore?: number })>
 ): Promise<void> {
   // Normalize weekStart to start of day in UTC for comparison
   const normalizedWeekStart = new Date(weekStart)
@@ -149,11 +161,11 @@ export async function cacheChartMetrics(
   const allWeeksCharts = [
     ...previousWeeksStats.map((stats) => {
       if (chartType === 'artists') {
-        return (stats.topArtists as unknown as TopItem[]) || []
+        return (stats.topArtists as unknown as Array<TopItem | (TopItem & { vibeScore?: number })>) || []
       } else if (chartType === 'tracks') {
-        return (stats.topTracks as unknown as TopItem[]) || []
+        return (stats.topTracks as unknown as Array<TopItem | (TopItem & { vibeScore?: number })>) || []
       } else {
-        return (stats.topAlbums as unknown as TopItem[]) || []
+        return (stats.topAlbums as unknown as Array<TopItem | (TopItem & { vibeScore?: number })>) || []
       }
     }),
     chartData, // Include current week's chart data
@@ -161,10 +173,10 @@ export async function cacheChartMetrics(
 
   const previousWeekChart = previousWeekStats
     ? chartType === 'artists'
-      ? (previousWeekStats.topArtists as unknown as TopItem[]) || []
+      ? (previousWeekStats.topArtists as unknown as Array<TopItem | (TopItem & { vibeScore?: number })>) || []
       : chartType === 'tracks'
-      ? (previousWeekStats.topTracks as unknown as TopItem[]) || []
-      : (previousWeekStats.topAlbums as unknown as TopItem[]) || []
+      ? (previousWeekStats.topTracks as unknown as Array<TopItem | (TopItem & { vibeScore?: number })>) || []
+      : (previousWeekStats.topAlbums as unknown as Array<TopItem | (TopItem & { vibeScore?: number })>) || []
     : null
 
   // Calculate and cache metrics for each entry in current week's chart
@@ -172,6 +184,7 @@ export async function cacheChartMetrics(
     const item = chartData[i]
     const position = i + 1
     const entryKey = getEntryKey(item, chartType)
+    const vibeScore = 'vibeScore' in item && item.vibeScore !== undefined ? item.vibeScore : null
 
     const metrics = calculateEntryMetrics(
       item,
@@ -200,6 +213,7 @@ export async function cacheChartMetrics(
         artist: 'artist' in item ? item.artist : null,
         position,
         playcount: item.playcount,
+        vibeScore: vibeScore ?? undefined,
         positionChange: metrics.positionChange,
         playsChange: metrics.playsChange,
         totalWeeksAppeared: metrics.totalWeeksAppeared,
@@ -210,6 +224,7 @@ export async function cacheChartMetrics(
         artist: 'artist' in item ? item.artist : null,
         position,
         playcount: item.playcount,
+        vibeScore: vibeScore ?? undefined,
         positionChange: metrics.positionChange,
         playsChange: metrics.playsChange,
         totalWeeksAppeared: metrics.totalWeeksAppeared,
@@ -242,15 +257,41 @@ export async function getCachedChartEntries(
     },
   })
 
-  return entries.map((entry) => ({
-    name: entry.name,
-    artist: entry.artist || undefined,
-    playcount: entry.playcount,
-    position: entry.position,
-    positionChange: entry.positionChange,
-    playsChange: entry.playsChange,
-    totalWeeksAppeared: entry.totalWeeksAppeared,
-    highestPosition: entry.highestPosition,
-  }))
+  // Get previous week's entries to calculate vibeScoreChange
+  const previousWeekStart = new Date(normalizedWeekStart)
+  previousWeekStart.setUTCDate(previousWeekStart.getUTCDate() - 7)
+
+  const previousEntries = await prisma.groupChartEntry.findMany({
+    where: {
+      groupId,
+      weekStart: previousWeekStart,
+      chartType,
+    },
+  })
+
+  const previousEntriesMap = new Map(
+    previousEntries.map((e) => [e.entryKey, e])
+  )
+
+  return entries.map((entry) => {
+    const previousEntry = previousEntriesMap.get(entry.entryKey)
+    const vibeScoreChange =
+      entry.vibeScore !== null && entry.vibeScore !== undefined && previousEntry && previousEntry.vibeScore !== null && previousEntry.vibeScore !== undefined
+        ? entry.vibeScore - previousEntry.vibeScore
+        : null
+
+    return {
+      name: entry.name,
+      artist: entry.artist || undefined,
+      playcount: entry.playcount,
+      vibeScore: entry.vibeScore ?? null,
+      position: entry.position,
+      positionChange: entry.positionChange,
+      playsChange: entry.playsChange,
+      vibeScoreChange,
+      totalWeeksAppeared: entry.totalWeeksAppeared,
+      highestPosition: entry.highestPosition,
+    }
+  })
 }
 

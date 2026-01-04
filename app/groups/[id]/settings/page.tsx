@@ -38,6 +38,7 @@ export default async function GroupSettingsPage({ params }: { params: { id: stri
             <GroupSettingsForm
               groupId={group.id}
               initialChartSize={group.chartSize || 10}
+              initialChartMode={group.chartMode || 'plays_only'}
               initialTrackingDayOfWeek={group.trackingDayOfWeek ?? 0}
             />
           }

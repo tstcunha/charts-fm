@@ -14,6 +14,31 @@ import GroupTabs from './GroupTabs'
 import { recalculateAllTimeStats } from '@/lib/group-alltime-stats'
 import RequestsButton from './RequestsButton'
 
+// Helper function to get entry key for matching
+function getEntryKey(item: { name: string; artist?: string }, chartType: string): string {
+  if (chartType === 'artists') {
+    return item.name.toLowerCase()
+  }
+  return `${item.name}|${item.artist || ''}`.toLowerCase()
+}
+
+// Helper function to format display value (VS or plays)
+function formatDisplayValue(
+  item: { name: string; artist?: string; playcount: number },
+  chartType: string,
+  showVS: boolean,
+  vsMap: Map<string, number>
+): string {
+  if (showVS) {
+    const entryKey = getEntryKey(item, chartType)
+    const vs = vsMap.get(`${chartType}|${entryKey}`)
+    if (vs !== undefined && vs !== null) {
+      return `${vs.toFixed(2)} VS`
+    }
+  }
+  return `${item.playcount} plays`
+}
+
 export default async function GroupPage({ params }: { params: { id: string } }) {
   const { user, group } = await requireGroupMembership(params.id)
 
@@ -33,6 +58,39 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
   const weeklyStats = await getGroupWeeklyStats(group.id)
   const isOwner = user.id === group.creatorId
   const isMember = group.members.some((m: any) => m.userId === user.id)
+
+  // Get group's chart mode
+  // @ts-ignore - Prisma client will be regenerated after migration
+  const chartMode = (group.chartMode || 'plays_only') as string
+  const showVS = chartMode === 'vs' || chartMode === 'vs_weighted'
+
+  // Get VS data for latest week if we have stats
+  let vsMap: Map<string, number> = new Map()
+  if (weeklyStats.length > 0 && showVS) {
+    const latestWeek = weeklyStats[0]
+    // Normalize weekStart to start of day in UTC for comparison
+    const normalizedWeekStart = new Date(latestWeek.weekStart)
+    normalizedWeekStart.setUTCHours(0, 0, 0, 0)
+    
+    const chartEntries = await prisma.groupChartEntry.findMany({
+      where: {
+        groupId: group.id,
+        weekStart: normalizedWeekStart,
+      },
+      select: {
+        chartType: true,
+        entryKey: true,
+        vibeScore: true,
+      },
+    })
+    
+    // Create map: "chartType|entryKey" -> vibeScore
+    chartEntries.forEach((entry) => {
+      if (entry.vibeScore !== null && entry.vibeScore !== undefined) {
+        vsMap.set(`${entry.chartType}|${entry.entryKey}`, entry.vibeScore)
+      }
+    })
+  }
 
   // Get pending invites for the group (owner only)
   let pendingInvites: any[] = []
@@ -316,7 +374,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
                             <ol className="list-decimal list-inside space-y-1">
                               {(latestWeek.topArtists as any[]).map((artist: any, idx: number) => (
                                 <li key={idx} className="text-sm">
-                                  {artist.name} ({artist.playcount} plays)
+                                  {artist.name} ({formatDisplayValue(artist, 'artists', showVS, vsMap)})
                                 </li>
                               ))}
                             </ol>
@@ -327,7 +385,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
                             <ol className="list-decimal list-inside space-y-1">
                               {(latestWeek.topTracks as any[]).map((track: any, idx: number) => (
                                 <li key={idx} className="text-sm">
-                                  {track.name} by {track.artist} ({track.playcount} plays)
+                                  {track.name} by {track.artist} ({formatDisplayValue(track, 'tracks', showVS, vsMap)})
                                 </li>
                               ))}
                             </ol>
@@ -338,7 +396,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
                             <ol className="list-decimal list-inside space-y-1">
                               {(latestWeek.topAlbums as any[]).map((album: any, idx: number) => (
                                 <li key={idx} className="text-sm">
-                                  {album.name} by {album.artist} ({album.playcount} plays)
+                                  {album.name} by {album.artist} ({formatDisplayValue(album, 'albums', showVS, vsMap)})
                                 </li>
                               ))}
                             </ol>
