@@ -91,6 +91,7 @@ export default async function PublicGroupPage({ params }: { params: { id: string
               <RequestToJoinButton
                 groupId={group.id}
                 hasPendingRequest={hasPendingRequest}
+                allowFreeJoin={group.allowFreeJoin ?? false}
               />
             )}
           </div>

@@ -74,6 +74,7 @@ model Group {
   image            String?  // Group icon/image URL
   creatorId        String
   isPrivate        Boolean  @default(false) // If true, group is private and not viewable publicly
+  allowFreeJoin    Boolean  @default(false) // If true, users can join freely without approval (only for public groups)
   chartSize        Int      @default(10) // Chart size: 10, 20, 50, or 100
   trackingDayOfWeek Int    @default(0) // Day of week for tracking (0=Sunday, 1=Monday, ..., 6=Saturday)
   createdAt        DateTime @default(now())

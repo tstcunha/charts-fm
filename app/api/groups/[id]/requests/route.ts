@@ -81,7 +81,32 @@ export async function POST(
     )
   }
 
-  // Create the request
+  // If group allows free join, add user directly as a member
+  if (group.allowFreeJoin) {
+    // Delete any existing request first (in case there was a rejected one)
+    if (existingRequest) {
+      await prisma.groupJoinRequest.delete({
+        where: {
+          groupId_userId: {
+            groupId,
+            userId: user.id,
+          },
+        },
+      })
+    }
+
+    // Add user as a member directly
+    await prisma.groupMember.create({
+      data: {
+        groupId,
+        userId: user.id,
+      },
+    })
+
+    return NextResponse.json({ success: true, joined: true })
+  }
+
+  // Otherwise, create a join request
   await prisma.groupJoinRequest.create({
     data: {
       groupId,
@@ -90,7 +115,7 @@ export async function POST(
     },
   })
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, joined: false })
 }
 
 // GET - Get all pending requests for a group (owner only)
