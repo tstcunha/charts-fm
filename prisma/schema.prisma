@@ -79,6 +79,7 @@ model Group {
   members     GroupMember[]
   weeklyStats GroupWeeklyStats[]
   chartEntries GroupChartEntry[]
+  allTimeStats GroupAllTimeStats?
   
   @@map("groups")
 }
@@ -155,5 +156,20 @@ model GroupChartEntry {
   @@index([groupId, weekStart, chartType])
   @@index([groupId, chartType, entryKey])
   @@map("group_chart_entries")
+}
+
+model GroupAllTimeStats {
+  id          String   @id @default(cuid())
+  groupId     String   @unique
+  topArtists  Json     // Array of {name: string, playcount: number}
+  topTracks   Json     // Array of {name: string, artist: string, playcount: number}
+  topAlbums   Json     // Array of {name: string, artist: string, playcount: number}
+  lastUpdated DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  @@map("group_all_time_stats")
 }
 

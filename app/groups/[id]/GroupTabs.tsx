@@ -2,18 +2,20 @@
 
 import { useState } from 'react'
 
-type Tab = 'charts' | 'members'
+type Tab = 'charts' | 'members' | 'alltime'
 
 interface GroupTabsProps {
   defaultTab?: Tab
   membersContent: React.ReactNode
   chartsContent: React.ReactNode
+  allTimeContent: React.ReactNode
 }
 
 export default function GroupTabs({ 
   defaultTab = 'charts', 
   membersContent, 
-  chartsContent 
+  chartsContent,
+  allTimeContent
 }: GroupTabsProps) {
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab)
 
@@ -36,6 +38,19 @@ export default function GroupTabs({
             Weekly Charts
           </button>
           <button
+            onClick={() => setActiveTab('alltime')}
+            className={`
+              py-4 px-1 border-b-2 font-medium text-sm transition-colors
+              ${
+                activeTab === 'alltime'
+                  ? 'border-yellow-500 text-yellow-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }
+            `}
+          >
+            All-Time Stats
+          </button>
+          <button
             onClick={() => setActiveTab('members')}
             className={`
               py-4 px-1 border-b-2 font-medium text-sm transition-colors
@@ -54,6 +69,7 @@ export default function GroupTabs({
       {/* Tab Content */}
       <div>
         {activeTab === 'charts' && chartsContent}
+        {activeTab === 'alltime' && allTimeContent}
         {activeTab === 'members' && membersContent}
       </div>
     </div>

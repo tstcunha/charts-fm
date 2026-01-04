@@ -1,13 +1,14 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getGroupById, getGroupWeeklyStats } from '@/lib/group-queries'
+import { getGroupById, getGroupWeeklyStats, getGroupAllTimeStats } from '@/lib/group-queries'
 import Link from 'next/link'
 import { formatWeekDate } from '@/lib/weekly-utils'
 import LeaveGroupButton from './LeaveGroupButton'
 import EditGroupIconButton from './EditGroupIconButton'
 import SafeImage from '@/components/SafeImage'
 import GroupTabs from './GroupTabs'
+import { recalculateAllTimeStats } from '@/lib/group-alltime-stats'
 
 export default async function GroupPage({ params }: { params: { id: string } }) {
   const session = await getSession()
@@ -42,6 +43,14 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
   const weeklyStats = await getGroupWeeklyStats(group.id)
   const isCreator = user.id === group.creatorId
   const isMember = group.members.some((m: any) => m.userId === user.id)
+
+  // Get all-time stats, recalculate if missing
+  let allTimeStats = await getGroupAllTimeStats(group.id)
+  if (!allTimeStats && weeklyStats.length > 0) {
+    // Recalculate on first access if missing but we have weekly stats
+    await recalculateAllTimeStats(group.id)
+    allTimeStats = await getGroupAllTimeStats(group.id)
+  }
 
   return (
     <main className="flex min-h-screen flex-col p-24">
@@ -97,6 +106,88 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
 
         <GroupTabs
           defaultTab="charts"
+          allTimeContent={
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-semibold">All-Time Stats</h2>
+                {allTimeStats && (
+                  <Link
+                    href={`/groups/${group.id}/alltime`}
+                    className="px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold"
+                  >
+                    View All-Time Stats
+                  </Link>
+                )}
+              </div>
+              {!allTimeStats || (allTimeStats.topArtists as any[]).length === 0 ? (
+                <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+                  <p className="text-gray-600 mb-4">No all-time stats available yet.</p>
+                  {weeklyStats.length === 0 && isCreator && (
+                    <Link
+                      href={`/groups/${group.id}/generate`}
+                      className="text-yellow-600 hover:underline"
+                    >
+                      Generate charts to see all-time stats
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <h3 className="text-xl font-semibold mb-4">Top 100 All-Time</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <h4 className="font-semibold mb-2">Top Artists</h4>
+                      <ol className="list-decimal list-inside space-y-1">
+                        {((allTimeStats.topArtists as any[]).slice(0, 10)).map((artist: any, idx: number) => (
+                          <li key={idx} className="text-sm">
+                            {artist.name} ({artist.playcount} plays)
+                          </li>
+                        ))}
+                      </ol>
+                      {(allTimeStats.topArtists as any[]).length > 10 && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          ...and {(allTimeStats.topArtists as any[]).length - 10} more
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold mb-2">Top Tracks</h4>
+                      <ol className="list-decimal list-inside space-y-1">
+                        {((allTimeStats.topTracks as any[]).slice(0, 10)).map((track: any, idx: number) => (
+                          <li key={idx} className="text-sm">
+                            {track.name} by {track.artist} ({track.playcount} plays)
+                          </li>
+                        ))}
+                      </ol>
+                      {(allTimeStats.topTracks as any[]).length > 10 && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          ...and {(allTimeStats.topTracks as any[]).length - 10} more
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold mb-2">Top Albums</h4>
+                      <ol className="list-decimal list-inside space-y-1">
+                        {((allTimeStats.topAlbums as any[]).slice(0, 10)).map((album: any, idx: number) => (
+                          <li key={idx} className="text-sm">
+                            {album.name} by {album.artist} ({album.playcount} plays)
+                          </li>
+                        ))}
+                      </ol>
+                      {(allTimeStats.topAlbums as any[]).length > 10 && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          ...and {(allTimeStats.topAlbums as any[]).length - 10} more
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          }
           membersContent={
             <div>
               <h2 className="text-2xl font-semibold mb-4">Members</h2>

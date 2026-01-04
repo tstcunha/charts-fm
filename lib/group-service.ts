@@ -6,6 +6,7 @@ import { getWeekStart, getLastNFinishedWeeks } from './weekly-utils'
 import { aggregateGroupStats } from './group-stats'
 import { TopItem } from './lastfm-weekly'
 import { cacheChartMetrics } from './group-chart-metrics'
+import { recalculateAllTimeStats } from './group-alltime-stats'
 
 const API_KEY = process.env.LASTFM_API_KEY!
 const API_SECRET = process.env.LASTFM_API_SECRET!
@@ -135,6 +136,9 @@ export async function calculateGroupWeeklyStats(
     cacheChartMetrics(groupId, weekStart, 'tracks', aggregated.topTracks),
     cacheChartMetrics(groupId, weekStart, 'albums', aggregated.topAlbums),
   ])
+
+  // Recalculate all-time stats from all weekly charts
+  await recalculateAllTimeStats(groupId)
 }
 
 /**

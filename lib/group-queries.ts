@@ -167,3 +167,12 @@ export async function getGroupAvailableWeeks(groupId: string) {
   })
 }
 
+/**
+ * Get all-time stats for a group
+ */
+export async function getGroupAllTimeStats(groupId: string) {
+  return await prisma.groupAllTimeStats.findUnique({
+    where: { groupId },
+  })
+}
+
