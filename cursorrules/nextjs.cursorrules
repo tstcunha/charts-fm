@@ -1,0 +1,96 @@
+---
+globs: app/**/*.{ts,tsx},components/**/*.{ts,tsx},lib/**/*.ts,contexts/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+You are an expert in TypeScript, Next.js, React, and scalable web application development.
+
+Key Principles
+
+- Write clear, technical responses with precise Next.js and React examples.
+- Use Next.js built-in features and App Router capabilities wherever possible to leverage its full potential.
+- Prioritize readability and maintainability; follow TypeScript and React best practices.
+- Use descriptive variable and function names; adhere to naming conventions (e.g., camelCase for variables/functions, PascalCase for components).
+- Structure your project in a modular way using Next.js App Router conventions to promote reusability and separation of concerns.
+
+Next.js/React/TypeScript
+
+- Use Next.js App Router for routing and file-based routing conventions.
+- Leverage Server Components by default; use Client Components only when necessary (interactivity, hooks, browser APIs).
+- Use Next.js API Routes (route.ts files) for backend logic and data mutations.
+- Utilize React Server Components for data fetching and rendering to optimize performance.
+- Follow the component-based architecture pattern for clear separation of concerns.
+- Use Next.js middleware judiciously to handle cross-cutting concerns like authentication, logging, and request modification.
+- Prefer TypeScript strict mode and type safety throughout the codebase.
+
+Error Handling and Validation
+
+- Implement error handling at the API route level and use Next.js error boundaries for UI errors.
+- Use TypeScript types and Zod (or similar) for runtime validation of API request/response data.
+- Prefer try-catch blocks for handling exceptions in API routes and async operations.
+- Customize error pages (error.tsx, not-found.tsx) to improve user experience and provide helpful information.
+- Use React Error Boundaries for component-level error handling.
+- Return consistent error responses from API routes (e.g., `{ error: string }` with appropriate HTTP status codes).
+
+Dependencies
+
+- Next.js 14+ (App Router)
+- React 18+
+- TypeScript
+- Prisma (for database ORM)
+- NextAuth (for authentication)
+- Tailwind CSS (for styling)
+
+Next.js-Specific Guidelines
+
+- Use Server Components by default; mark components with 'use client' only when needed.
+- Keep business logic in lib/ utilities and service files; keep API routes focused on request handling.
+- Use Next.js file-based routing (app directory) to define clear and RESTful URL patterns.
+- Apply Next.js security best practices (e.g., CSRF protection via Next.js, SQL injection protection via Prisma, XSS prevention via React).
+- Use TypeScript for type safety and leverage Prisma's generated types.
+- Leverage Next.js caching strategies (fetch cache, route segment config) to optimize performance.
+- Use Next.js middleware for common tasks such as authentication, logging, and request modification.
+- Prefer async Server Components and API routes for data fetching.
+
+Performance Optimization
+
+- Optimize query performance using Prisma's include, select, and relation loading features.
+- Use Next.js caching (fetch cache, route segment config) to reduce database load and API calls.
+- Implement database indexing via Prisma schema for better query performance.
+- Use Server Components for data fetching to reduce client-side JavaScript and improve initial load.
+- Leverage Next.js Image component for optimized image handling.
+- Use dynamic imports and code splitting for large components or libraries.
+- Implement ISR (Incremental Static Regeneration) or SSG (Static Site Generation) where appropriate.
+
+Key Conventions
+
+1. Follow Next.js "Convention Over Configuration" principle for routing and file structure.
+2. Prioritize security and performance optimization in every stage of development.
+3. Maintain a clear and logical project structure following Next.js App Router conventions.
+4. Use TypeScript strict mode and avoid `any` types; prefer proper type definitions.
+5. Keep API routes in app/api/ directory following RESTful conventions.
+
+Additional Rule for API Routes and Client Components
+
+- When working on a Next.js API route (route.ts) or a Client Component handling user interactions, always ensure:
+  - Proper authentication checks using `getSession()` from `@/lib/auth` before accessing protected resources.
+  - Input validation and error handling are robust and user-friendly.
+  - API responses are consistent and follow a clear structure (e.g., always return JSON with `success`, `error`, and `data` keys where appropriate).
+  - Proper HTTP status codes are used (200, 201, 400, 401, 403, 404, 500).
+  - Database operations use Prisma with proper error handling and transaction support when needed.
+  - If the API route or component introduces new UI elements or user interactions, consider adding data attributes for testing purposes.
+  - For data-changing operations, ensure proper authorization checks (e.g., verify user owns the resource or has permission).
+  - Use NextResponse.json() for consistent JSON responses in API routes.
+  - Handle edge cases (e.g., missing data, invalid IDs, unauthorized access) gracefully.
+
+Database and Prisma
+
+- Use Prisma Client for all database operations; avoid raw SQL queries unless necessary for performance.
+- Leverage Prisma's type safety and generated types throughout the application.
+- Use Prisma transactions for operations that require atomicity.
+- Implement proper error handling for database operations (e.g., unique constraint violations, foreign key errors).
+- Use Prisma's include and select to optimize queries and avoid N+1 problems.
+- Follow the Prisma schema conventions and keep migrations version-controlled.
+
+Refer to Next.js documentation for best practices in routing, data fetching, and security considerations.
+

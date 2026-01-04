@@ -1,3 +1,8 @@
+---
+globs: lib/lastfm*.ts,app/api/auth/lastfm/**/*.ts,lib/group-service.ts,lib/group-stats.ts,lib/weekly-utils.ts
+alwaysApply: false
+---
+
 # Cursor Rules for ChartsFM Project
 
 ## Last.fm API Integration
