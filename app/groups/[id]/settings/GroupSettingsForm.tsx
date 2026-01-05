@@ -25,18 +25,21 @@ const CHART_SIZES = [10, 20, 50, 100]
 const CHART_MODES = [
   {
     value: 'vs',
-    label: 'VS Mode',
-    description: 'Rank-based scoring. Each user\'s top items are scored based on position (1.00 for #1, decreasing). Charts are ranked by the sum of VS across all users.',
+    label: 'Vibe Score (VS)',
+    icon: '/icons/icon_vs.png',
+    description: '✨ Recommended! Every member\'s top picks get equal love. Your #1 track scores 1.00, and we sum everyone\'s scores together. Perfect for groups where everyone\'s taste matters equally!',
   },
   {
     value: 'vs_weighted',
     label: 'VS Weighted',
-    description: 'Rank-based scoring weighted by play count. VS is multiplied by play count for each user, then summed. Balances ranking importance with listening volume.',
+    icon: '/icons/icon_vs_weighted.png',
+    description: 'The best of both worlds! We multiply your VS by how many times you actually played it. Great for balancing what\'s important to you with how much you listened.',
   },
   {
     value: 'plays_only',
     label: 'Plays Only',
-    description: 'Traditional mode. Charts are ranked by total play count across all users. VS equals total plays for consistency.',
+    icon: '/icons/icon_plays.png',
+    description: 'Classic and simple! Just add up all the play counts. If you want the traditional "most played wins" approach, this is your jam.',
   },
 ]
 
@@ -53,6 +56,10 @@ export default function GroupSettingsForm({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  
+  // Find initial carousel index
+  const initialIndex = CHART_MODES.findIndex(mode => mode.value === initialChartMode)
+  const [carouselIndex, setCarouselIndex] = useState(initialIndex >= 0 ? initialIndex : 0)
 
   const hasChanges =
     chartSize !== initialChartSize ||
@@ -112,7 +119,7 @@ export default function GroupSettingsForm({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="chartSize" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="chartSize" className="block text-lg font-bold text-gray-900 mb-2">
             Chart Size
           </label>
           <p className="text-sm text-gray-500 mb-4">
@@ -143,41 +150,109 @@ export default function GroupSettingsForm({
         </div>
 
         <div>
-          <label htmlFor="chartMode" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="chartMode" className="block text-lg font-bold text-gray-900 mb-2">
             Chart Mode
           </label>
           <p className="text-sm text-gray-500 mb-4">
             How charts are calculated and ranked. Changing this only affects future charts.
           </p>
-          <div className="space-y-3">
-            {CHART_MODES.map((mode) => (
-              <label
-                key={mode.value}
-                className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                  chartMode === mode.value
-                    ? 'border-yellow-500 bg-yellow-50'
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
+          
+          {/* Carousel Selector */}
+          <div className="relative">
+            <div className="flex items-center justify-center gap-4">
+              {/* Previous Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  const newIndex = carouselIndex === 0 ? CHART_MODES.length - 1 : carouselIndex - 1
+                  setCarouselIndex(newIndex)
+                  setChartMode(CHART_MODES[newIndex].value)
+                }}
+                className="p-2 rounded-full hover:bg-yellow-100 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                aria-label="Previous mode"
               >
-                <input
-                  type="radio"
-                  name="chartMode"
-                  value={mode.value}
-                  checked={chartMode === mode.value}
-                  onChange={(e) => setChartMode(e.target.value)}
-                  className="sr-only"
-                />
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900 mb-1">{mode.label}</div>
-                  <div className="text-sm text-gray-600">{mode.description}</div>
+                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              {/* Carousel Card */}
+              <div className="flex-1 max-w-md">
+                <div className="relative bg-white border-2 border-yellow-500 rounded-2xl p-6 shadow-lg h-[420px] flex flex-col">
+                  <div className="flex flex-col items-center flex-1">
+                    {/* Icon */}
+                    <div className="mb-4 w-48 h-48 flex items-center justify-center bg-white rounded-xl p-2 flex-shrink-0">
+                      <img
+                        src={CHART_MODES[carouselIndex].icon}
+                        alt={CHART_MODES[carouselIndex].label}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    
+                    {/* Title (outside bubble) */}
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2 flex-shrink-0">
+                      {CHART_MODES[carouselIndex].label}
+                    </h3>
+                    
+                    {/* Description */}
+                    <p className="text-sm text-gray-600 text-center flex-1 flex items-center">
+                      {CHART_MODES[carouselIndex].description}
+                    </p>
+                  </div>
                 </div>
-              </label>
-            ))}
+              </div>
+
+              {/* Next Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  const newIndex = carouselIndex === CHART_MODES.length - 1 ? 0 : carouselIndex + 1
+                  setCarouselIndex(newIndex)
+                  setChartMode(CHART_MODES[newIndex].value)
+                }}
+                className="p-2 rounded-full hover:bg-yellow-100 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                aria-label="Next mode"
+              >
+                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Dots Indicator */}
+            <div className="flex justify-center gap-2 mt-4">
+              {CHART_MODES.map((mode, index) => (
+                <button
+                  key={mode.value}
+                  type="button"
+                  onClick={() => {
+                    setCarouselIndex(index)
+                    setChartMode(mode.value)
+                  }}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    carouselIndex === index
+                      ? 'bg-yellow-500 w-8'
+                      : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  aria-label={`Select ${mode.label}`}
+                />
+              ))}
+            </div>
+
+            {/* Hidden radio input for form submission */}
+            <input
+              type="radio"
+              name="chartMode"
+              value={chartMode}
+              checked={true}
+              readOnly
+              className="sr-only"
+            />
           </div>
         </div>
 
         <div>
-          <label htmlFor="trackingDayOfWeek" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="trackingDayOfWeek" className="block text-lg font-bold text-gray-900 mb-2">
             Tracking Day of Week
           </label>
           <p className="text-sm text-gray-500 mb-4">
