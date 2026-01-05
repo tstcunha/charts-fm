@@ -60,7 +60,7 @@ export default function GroupQuickStats({ groupId }: GroupQuickStatsProps) {
       <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
         <div className="text-sm text-gray-600 mb-1">Chart Mode</div>
         <div className="text-lg font-bold text-[var(--theme-text)] capitalize">
-          {chartMode === 'vs' ? 'VS' : chartMode === 'vs_weighted' ? 'VS Weighted' : 'Plays Only'}
+          {chartMode === 'vs' ? 'Vibe Score' : chartMode === 'vs_weighted' ? 'Vibe Score Weighted' : 'Plays Only'}
         </div>
       </div>
     </div>

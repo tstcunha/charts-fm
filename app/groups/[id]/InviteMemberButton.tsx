@@ -5,9 +5,10 @@ import InviteMemberModal from './InviteMemberModal'
 
 interface InviteMemberButtonProps {
   groupId: string
+  onInviteSent?: () => void
 }
 
-export default function InviteMemberButton({ groupId }: InviteMemberButtonProps) {
+export default function InviteMemberButton({ groupId, onInviteSent }: InviteMemberButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
@@ -23,6 +24,7 @@ export default function InviteMemberButton({ groupId }: InviteMemberButtonProps)
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         groupId={groupId}
+        onInviteSent={onInviteSent}
       />
     </>
   )

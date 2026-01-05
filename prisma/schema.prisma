@@ -82,6 +82,8 @@ model Group {
   dynamicIconEnabled Boolean @default(false) // Enable dynamic icon updates from weekly charts
   dynamicIconSource String? // Source type: 'top_artist', 'top_album', or 'top_track_artist'
   colorTheme        String? @default("white") // Color theme: 'yellow', 'royal_blue', 'cyan', 'bright_red', 'maroon', 'graphite', 'hot_pink', 'neon_green', 'white'
+  chartGenerationInProgress Boolean @default(false) // Lock flag to prevent concurrent chart updates
+  chartGenerationStartedAt DateTime? // Timestamp for timeout detection
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   

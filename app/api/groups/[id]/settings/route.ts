@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getLastChartWeek, deleteOverlappingCharts } from '@/lib/group-service'
-import { getWeekStartForDay, getWeekEndForDay, getLastNFinishedWeeksForDay } from '@/lib/weekly-utils'
 import { THEME_NAMES, type ThemeName } from '@/lib/group-themes'
 
 // GET - Get group settings
@@ -149,52 +147,7 @@ export async function PATCH(
     }
   }
 
-  const oldTrackingDayOfWeek = group.trackingDayOfWeek ?? 0
-  const newTrackingDayOfWeek = trackingDayOfWeek !== undefined ? trackingDayOfWeek : oldTrackingDayOfWeek
-  const trackingDayChanged = oldTrackingDayOfWeek !== newTrackingDayOfWeek
-
-  // If tracking day changed, handle overlap cleanup
-  if (trackingDayChanged) {
-    // Calculate what the next week would be with the new tracking day
-    const now = new Date()
-    const nextWeekStart = getWeekStartForDay(now, newTrackingDayOfWeek)
-    const nextWeekEnd = getWeekEndForDay(nextWeekStart, newTrackingDayOfWeek)
-
-    // Get the last existing chart
-    const lastChartWeek = await getLastChartWeek(groupId)
-
-    if (lastChartWeek) {
-      // Check if the next week with new tracking day overlaps with the last chart
-      const lastChartWeekEnd = getWeekEndForDay(lastChartWeek, oldTrackingDayOfWeek)
-      
-      // Check if they overlap
-      const overlaps = nextWeekStart < lastChartWeekEnd && lastChartWeek < nextWeekEnd
-
-      if (overlaps) {
-        // Delete the last chart
-        await prisma.groupWeeklyStats.deleteMany({
-          where: {
-            groupId,
-            weekStart: lastChartWeek,
-          },
-        })
-        // Also delete associated chart entries
-        await prisma.groupChartEntry.deleteMany({
-          where: {
-            groupId,
-            weekStart: lastChartWeek,
-          },
-        })
-      }
-
-      // Also clean up any overlapping charts for the last 5 weeks that would be recalculated
-      const weeksToRegenerate = getLastNFinishedWeeksForDay(5, newTrackingDayOfWeek)
-      for (const weekStart of weeksToRegenerate) {
-        const weekEnd = getWeekEndForDay(weekStart, newTrackingDayOfWeek)
-        await deleteOverlappingCharts(groupId, weekStart, weekEnd)
-      }
-    }
-  }
+  const newTrackingDayOfWeek = trackingDayOfWeek !== undefined ? trackingDayOfWeek : (group.trackingDayOfWeek ?? 0)
 
   // Update group settings
   const updatedGroup = await prisma.group.update({

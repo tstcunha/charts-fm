@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 interface RevokeInviteModalProps {
   isOpen: boolean
@@ -20,7 +19,6 @@ export default function RevokeInviteModal({
   inviteId,
   userName,
 }: RevokeInviteModalProps) {
-  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -40,9 +38,9 @@ export default function RevokeInviteModal({
 
       // Notify parent that revocation was successful
       onRevoked()
-      // Close modal and refresh the page to show updated invite list
+      // Close modal
       onClose()
-      router.refresh()
+      setIsLoading(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to revoke invite')
       setIsLoading(false)

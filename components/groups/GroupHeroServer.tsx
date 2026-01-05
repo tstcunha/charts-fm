@@ -2,6 +2,8 @@ import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
 import { prisma } from '@/lib/prisma'
 import { getWeekStartForDay, getWeekEndForDay, formatWeekLabel } from '@/lib/weekly-utils'
+import { getLastChartWeek } from '@/lib/group-service'
+import UpdateChartsButton from './UpdateChartsButton'
 
 interface GroupHeroServerProps {
   groupId: string
@@ -57,9 +59,35 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
   
   const now = new Date()
   const currentWeekStart = getWeekStartForDay(now, trackingDayOfWeek)
-  const nextChartDate = getWeekEndForDay(currentWeekStart, trackingDayOfWeek)
+  const currentWeekEnd = getWeekEndForDay(currentWeekStart, trackingDayOfWeek)
+  const nextChartDate = currentWeekEnd
   const nextChartDateFormatted = formatWeekLabel(nextChartDate)
   const daysUntilNextChart = Math.ceil((nextChartDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+
+  // Check if charts can be updated
+  const lastChartWeek = await getLastChartWeek(groupId)
+  let canUpdateCharts = false
+  
+  if (!lastChartWeek) {
+    // No charts exist, can update
+    canUpdateCharts = true
+  } else {
+    // Check if current week has finished (currentWeekEnd is in the past)
+    if (currentWeekEnd < now) {
+      // Check if we need to generate the current finished week
+      const nextExpectedWeek = new Date(lastChartWeek)
+      nextExpectedWeek.setUTCDate(nextExpectedWeek.getUTCDate() + 7)
+      
+      // If next expected week is before or equal to current finished week, we can update
+      if (nextExpectedWeek <= currentWeekStart) {
+        canUpdateCharts = true
+      }
+    }
+  }
+
+  const chartGenerationInProgress = group.chartGenerationInProgress || false
+  // Can only update if not already in progress
+  canUpdateCharts = canUpdateCharts && !chartGenerationInProgress
 
   const themeClass = `theme-${colorTheme.replace('_', '-')}`
 
@@ -137,11 +165,15 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
                 </div>
               )}
               
-              {/* Next Charts Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--theme-primary)] text-[var(--theme-button-text)] rounded-full font-semibold shadow-sm">
-                <span className="text-sm">Next charts in {daysUntilNextChart} {daysUntilNextChart === 1 ? 'day' : 'days'}</span>
-                <span className="text-xs opacity-80">({nextChartDateFormatted})</span>
-              </div>
+              {/* Next Charts Badge or Update Button */}
+              {canUpdateCharts || chartGenerationInProgress ? (
+                <UpdateChartsButton groupId={groupId} initialInProgress={chartGenerationInProgress} />
+              ) : (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--theme-primary)] text-[var(--theme-button-text)] rounded-full font-semibold shadow-sm">
+                  <span className="text-sm">Next charts in {daysUntilNextChart} {daysUntilNextChart === 1 ? 'day' : 'days'}</span>
+                  <span className="text-xs opacity-80">({nextChartDateFormatted})</span>
+                </div>
+              )}
             </div>
           </div>
           

@@ -11,13 +11,15 @@ interface GroupTabsProps {
   membersContent: React.ReactNode
   chartsContent: React.ReactNode
   allTimeContent: React.ReactNode
+  pendingRequestsCount?: number
 }
 
 export default function GroupTabs({ 
   defaultTab = 'charts', 
   membersContent, 
   chartsContent,
-  allTimeContent
+  allTimeContent,
+  pendingRequestsCount = 0
 }: GroupTabsProps) {
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab)
 
@@ -70,15 +72,26 @@ export default function GroupTabs({
           >
             <FontAwesomeIcon icon={faUsers} className="text-lg" />
             Members
+            {pendingRequestsCount > 0 && (
+              <span className="ml-1 px-2 py-0.5 bg-red-500 text-white rounded-full text-xs font-bold">
+                {pendingRequestsCount}
+              </span>
+            )}
           </button>
         </nav>
       </div>
 
       {/* Tab Content */}
       <div>
-        {activeTab === 'charts' && chartsContent}
-        {activeTab === 'alltime' && allTimeContent}
-        {activeTab === 'members' && membersContent}
+        <div style={{ display: activeTab === 'charts' ? 'block' : 'none' }}>
+          {chartsContent}
+        </div>
+        <div style={{ display: activeTab === 'alltime' ? 'block' : 'none' }}>
+          {allTimeContent}
+        </div>
+        <div style={{ display: activeTab === 'members' ? 'block' : 'none' }}>
+          {membersContent}
+        </div>
       </div>
     </div>
   )

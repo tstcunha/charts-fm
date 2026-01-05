@@ -19,6 +19,7 @@ export default function Navbar() {
     name: string | null
     lastfmUsername: string
     image: string | null
+    isSuperuser: boolean
   } | null>(null)
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function Navbar() {
             name: data.user.name,
             lastfmUsername: data.user.lastfmUsername,
             image: data.user.image,
+            isSuperuser: data.user.isSuperuser || false,
           })
           }
         })
@@ -165,6 +167,15 @@ export default function Navbar() {
                       >
                         Edit Profile
                       </Link>
+                      {userData?.isSuperuser && (
+                        <Link
+                          href="/admin/users/create"
+                          className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          Create User
+                        </Link>
+                      )}
                       <button
                         onClick={handleLogout}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white"

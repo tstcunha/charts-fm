@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireGroupMembership } from '@/lib/group-auth'
 import { prisma } from '@/lib/prisma'
 import { getWeekStartForDay, getWeekEndForDay, formatWeekLabel } from '@/lib/weekly-utils'
+import { getLastChartWeek } from '@/lib/group-service'
 
 export async function GET(
   request: Request,
@@ -43,9 +44,35 @@ export async function GET(
     
     const now = new Date()
     const currentWeekStart = getWeekStartForDay(now, trackingDayOfWeek)
-    const nextChartDate = getWeekEndForDay(currentWeekStart, trackingDayOfWeek)
+    const currentWeekEnd = getWeekEndForDay(currentWeekStart, trackingDayOfWeek)
+    const nextChartDate = currentWeekEnd
     const nextChartDateFormatted = formatWeekLabel(nextChartDate)
     const daysUntilNextChart = Math.ceil((nextChartDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+
+    // Check if charts can be updated
+    const lastChartWeek = await getLastChartWeek(group.id)
+    let canUpdateCharts = false
+    
+    if (!lastChartWeek) {
+      // No charts exist, can update
+      canUpdateCharts = true
+    } else {
+      // Check if current week has finished (currentWeekEnd is in the past)
+      if (currentWeekEnd < now) {
+        // Check if we need to generate the current finished week
+        const nextExpectedWeek = new Date(lastChartWeek)
+        nextExpectedWeek.setUTCDate(nextExpectedWeek.getUTCDate() + 7)
+        
+        // If next expected week is before or equal to current finished week, we can update
+        if (nextExpectedWeek <= currentWeekStart) {
+          canUpdateCharts = true
+        }
+      }
+    }
+
+    const chartGenerationInProgress = group.chartGenerationInProgress || false
+    // Can only update if not already in progress
+    canUpdateCharts = canUpdateCharts && !chartGenerationInProgress
 
     return NextResponse.json({
       group: {
@@ -77,6 +104,8 @@ export async function GET(
       })),
       daysUntilNextChart,
       nextChartDateFormatted,
+      canUpdateCharts,
+      chartGenerationInProgress,
     })
   } catch (error: any) {
     if (error.status === 401 || error.status === 403 || error.status === 404) {

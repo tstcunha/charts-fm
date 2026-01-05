@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import SafeImage from '@/components/SafeImage'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
@@ -19,23 +19,28 @@ export default function GroupMembersTab({ groupId }: GroupMembersTabProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetch(`/api/groups/${groupId}/members`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          setError(data.error)
-        } else {
-          setData(data)
-        }
-        setIsLoading(false)
-      })
-      .catch((err) => {
-        setError('Failed to load members')
-        setIsLoading(false)
-        console.error('Error fetching members:', err)
-      })
+  const fetchMembers = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const res = await fetch(`/api/groups/${groupId}/members`)
+      const data = await res.json()
+      if (data.error) {
+        setError(data.error)
+      } else {
+        setData(data)
+        setError(null)
+      }
+    } catch (err) {
+      setError('Failed to load members')
+      console.error('Error fetching members:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }, [groupId])
+
+  useEffect(() => {
+    fetchMembers()
+  }, [fetchMembers])
 
   if (isLoading) {
     return (
@@ -72,7 +77,7 @@ export default function GroupMembersTab({ groupId }: GroupMembersTabProps) {
         <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">Members</h2>
         {isOwner && (
           <div className="flex gap-2">
-            <InviteMemberButton groupId={groupId} />
+            <InviteMemberButton groupId={groupId} onInviteSent={fetchMembers} />
             <RequestsButton groupId={groupId} requestCount={requestCount} />
           </div>
         )}

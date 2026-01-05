@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import SafeImage from '@/components/SafeImage'
 
 interface Request {
   id: string
@@ -8,6 +11,7 @@ interface Request {
     id: string
     name: string | null
     lastfmUsername: string
+    image: string | null
   }
   createdAt: string
 }
@@ -143,7 +147,7 @@ export default function RequestsModal({
 
           {isLoading ? (
             <div className="flex-1 flex items-center justify-center">
-              <p className="text-gray-600">Loading requests...</p>
+              <FontAwesomeIcon icon={faSpinner} className="animate-spin text-4xl text-gray-500" />
             </div>
           ) : requests.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
@@ -155,28 +159,37 @@ export default function RequestsModal({
                 {requests.map((request) => (
                   <div
                     key={request.id}
-                    className="flex justify-between items-center py-3 border-b last:border-0"
+                    className="flex items-center justify-between p-4 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:bg-gradient-to-br hover:from-gray-100 hover:to-gray-200/50"
                   >
-                    <div>
-                      <p className="font-medium">
-                        {request.user.name || request.user.lastfmUsername}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        @{request.user.lastfmUsername}
-                      </p>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="relative w-12 h-12 rounded-full ring-2 ring-gray-300 bg-gray-200 flex-shrink-0 overflow-hidden">
+                        <SafeImage
+                          src={request.user.image}
+                          alt={request.user.name || request.user.lastfmUsername}
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-gray-900 truncate">
+                            {request.user.name || request.user.lastfmUsername}
+                          </p>
+                        </div>
+                        <p className="text-sm text-gray-600 truncate">@{request.user.lastfmUsername}</p>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2 ml-4 flex-shrink-0">
                       <button
                         onClick={() => handleAccept(request.id)}
                         disabled={processingId === request.id}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm shadow-sm"
                       >
                         {processingId === request.id ? 'Processing...' : 'Accept'}
                       </button>
                       <button
                         onClick={() => handleReject(request.id)}
                         disabled={processingId === request.id}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm shadow-sm"
                       >
                         {processingId === request.id ? 'Processing...' : 'Reject'}
                       </button>

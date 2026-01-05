@@ -7,6 +7,7 @@ import GroupQuickStats from '@/components/groups/GroupQuickStats'
 import GroupWeeklyChartsTab from '@/components/groups/GroupWeeklyChartsTab'
 import GroupAllTimeTab from '@/components/groups/GroupAllTimeTab'
 import GroupMembersTab from '@/components/groups/GroupMembersTab'
+import { prisma } from '@/lib/prisma'
 
 export default async function GroupPage({ params }: { params: { id: string } }) {
   const { user, group } = await requireGroupMembership(params.id)
@@ -28,6 +29,17 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
   const colorTheme = (group.colorTheme || 'yellow') as string
   const themeClass = `theme-${colorTheme.replace('_', '-')}`
 
+  // Get pending request count for group owner
+  let pendingRequestsCount = 0
+  if (isOwner) {
+    pendingRequestsCount = await prisma.groupJoinRequest.count({
+      where: {
+        groupId: group.id,
+        status: 'pending',
+      },
+    })
+  }
+
   return (
     <main 
       className={`flex min-h-screen flex-col pt-8 pb-24 px-6 md:px-12 lg:px-24 ${themeClass} bg-gradient-to-b from-[var(--theme-background-from)] to-[var(--theme-background-to)]`}
@@ -42,6 +54,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
         {/* Tabs with async loading content */}
         <GroupTabs
           defaultTab="charts"
+          pendingRequestsCount={pendingRequestsCount}
           chartsContent={
             <GroupWeeklyChartsTab groupId={group.id} isOwner={isOwner} />
           }

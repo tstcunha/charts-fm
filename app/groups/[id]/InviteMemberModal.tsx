@@ -1,23 +1,24 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 
 interface InviteMemberModalProps {
   isOpen: boolean
   onClose: () => void
   groupId: string
+  onInviteSent?: () => void
 }
 
 export default function InviteMemberModal({
   isOpen,
   onClose,
   groupId,
+  onInviteSent,
 }: InviteMemberModalProps) {
-  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [lastfmUsername, setLastfmUsername] = useState('')
   const [isValidatingUsername, setIsValidatingUsername] = useState(false)
   const [validatedUsername, setValidatedUsername] = useState<string | null>(null)
@@ -28,11 +29,23 @@ export default function InviteMemberModal({
       setIsLoading(false)
       setError(null)
       setSuccess(false)
+      setSuccessMessage(null)
       setLastfmUsername('')
       setIsValidatingUsername(false)
       setValidatedUsername(null)
     }
   }, [isOpen])
+
+  // Auto-dismiss success message after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccess(false)
+        setSuccessMessage(null)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [successMessage])
 
   // Validate username when it changes (debounced)
   useEffect(() => {
@@ -120,19 +133,17 @@ export default function InviteMemberModal({
         throw new Error(data.error || 'Failed to send invite')
       }
 
+      // Show success message with the invited username
       setSuccess(true)
+      setSuccessMessage(`Invite sent successfully to ${username}!`)
       setLastfmUsername('')
       setValidatedUsername(null)
       setIsLoading(false)
       
       // Refresh the members list
-      router.refresh()
-      
-      // Close modal after a short delay
-      setTimeout(() => {
-        onClose()
-        setSuccess(false)
-      }, 1000)
+      if (onInviteSent) {
+        onInviteSent()
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send invite')
       setIsLoading(false)
@@ -144,6 +155,7 @@ export default function InviteMemberModal({
       setLastfmUsername('')
       setError(null)
       setSuccess(false)
+      setSuccessMessage(null)
       onClose()
     }
   }
@@ -170,9 +182,9 @@ export default function InviteMemberModal({
             </button>
           </div>
 
-          {success && (
-            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm">
-              Invite sent successfully!
+          {success && successMessage && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm transition-opacity duration-300">
+              ✓ {successMessage}
             </div>
           )}
 

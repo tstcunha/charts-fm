@@ -5,6 +5,7 @@ import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import UpdateChartsButton from './UpdateChartsButton'
 
 interface GroupHeroProps {
   groupId: string
@@ -57,8 +58,22 @@ export default function GroupHero({ groupId }: GroupHeroProps) {
     )
   }
 
-  const { group, isOwner, members, daysUntilNextChart, nextChartDateFormatted } = data
+  const { group, isOwner, members, daysUntilNextChart, nextChartDateFormatted, canUpdateCharts, chartGenerationInProgress } = data
   const themeClass = `theme-${group.colorTheme.replace('_', '-')}`
+  
+  const handleUpdateComplete = () => {
+    // Refresh data after update completes
+    fetch(`/api/groups/${groupId}/hero`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) {
+          setData(data)
+        }
+      })
+      .catch((err) => {
+        console.error('Error refreshing group hero:', err)
+      })
+  }
 
   return (
     <div className={`mb-8 relative ${themeClass}`}>
@@ -134,11 +149,15 @@ export default function GroupHero({ groupId }: GroupHeroProps) {
                 </div>
               )}
               
-              {/* Next Charts Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--theme-primary)] text-[var(--theme-button-text)] rounded-full font-semibold shadow-sm">
-                <span className="text-sm">Next charts in {daysUntilNextChart} {daysUntilNextChart === 1 ? 'day' : 'days'}</span>
-                <span className="text-xs opacity-80">({nextChartDateFormatted})</span>
-              </div>
+              {/* Next Charts Badge or Update Button */}
+              {canUpdateCharts || chartGenerationInProgress ? (
+                <UpdateChartsButton groupId={groupId} initialInProgress={chartGenerationInProgress} onUpdateComplete={handleUpdateComplete} />
+              ) : (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--theme-primary)] text-[var(--theme-button-text)] rounded-full font-semibold shadow-sm">
+                  <span className="text-sm">Next charts in {daysUntilNextChart} {daysUntilNextChart === 1 ? 'day' : 'days'}</span>
+                  <span className="text-xs opacity-80">({nextChartDateFormatted})</span>
+                </div>
+              )}
             </div>
           </div>
           

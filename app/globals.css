@@ -264,3 +264,79 @@ svg.rdp-chevron {
   border-color: var(--theme-border);
 }
 
+/* Prevent Font Awesome icons from appearing gigantic before styles load */
+/* Target Font Awesome SVG icons directly */
+svg[data-icon],
+svg.svg-inline--fa {
+  width: 1em !important;
+  height: 1em !important;
+  display: inline-block;
+  vertical-align: -0.125em;
+  max-width: 1em;
+  max-height: 1em;
+}
+
+/* Ensure Font Awesome icons respect text size classes */
+svg[data-icon].text-lg,
+svg.svg-inline--fa.text-lg {
+  width: 1.125em !important;
+  height: 1.125em !important;
+  max-width: 1.125em;
+  max-height: 1.125em;
+}
+
+svg[data-icon].text-sm,
+svg.svg-inline--fa.text-sm {
+  width: 0.875em !important;
+  height: 0.875em !important;
+  max-width: 0.875em;
+  max-height: 0.875em;
+}
+
+svg[data-icon].text-xs,
+svg.svg-inline--fa.text-xs {
+  width: 0.75em !important;
+  height: 0.75em !important;
+  max-width: 0.75em;
+  max-height: 0.75em;
+}
+
+svg[data-icon].text-xl,
+svg.svg-inline--fa.text-xl {
+  width: 1.25em !important;
+  height: 1.25em !important;
+  max-width: 1.25em;
+  max-height: 1.25em;
+}
+
+svg[data-icon].text-2xl,
+svg.svg-inline--fa.text-2xl {
+  width: 1.5em !important;
+  height: 1.5em !important;
+  max-width: 1.5em;
+  max-height: 1.5em;
+}
+
+svg[data-icon].text-3xl,
+svg.svg-inline--fa.text-3xl {
+  width: 1.875em !important;
+  height: 1.875em !important;
+  max-width: 1.875em;
+  max-height: 1.875em;
+}
+
+svg[data-icon].text-4xl,
+svg.svg-inline--fa.text-4xl {
+  width: 2.25em !important;
+  height: 2.25em !important;
+  max-width: 2.25em;
+  max-height: 2.25em;
+}
+
+/* Handle size prop from FontAwesomeIcon component */
+svg[data-icon][style*="width"],
+svg.svg-inline--fa[style*="width"] {
+  max-width: var(--fa-width, 1em);
+  max-height: var(--fa-height, 1em);
+}
+

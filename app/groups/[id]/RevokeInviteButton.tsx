@@ -7,12 +7,14 @@ interface RevokeInviteButtonProps {
   groupId: string
   inviteId: string
   userName: string
+  onInviteRevoked?: () => void
 }
 
 export default function RevokeInviteButton({
   groupId,
   inviteId,
   userName,
+  onInviteRevoked,
 }: RevokeInviteButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isRevoked, setIsRevoked] = useState(false)

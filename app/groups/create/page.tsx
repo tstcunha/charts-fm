@@ -318,7 +318,7 @@ export default function CreateGroupPage() {
           Tracking Day of Week
         </label>
         <p className="text-sm text-gray-500 mb-4">
-          The day of the week when charts are calculated and when the week starts. For example, if set to Wednesday, weeks will run from Wednesday to Wednesday and charts will be calculated on Wednesdays.
+          The day of the week that marks the start of each tracking period. Each week runs from this day through the day before the next occurrence (e.g., if set to Monday, weeks run from Monday to Sunday). Charts can be calculated after each week ends, and this can be done on the day selected below.
         </p>
         <CustomSelect
           id="trackingDayOfWeek"
