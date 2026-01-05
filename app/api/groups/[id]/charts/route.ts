@@ -3,6 +3,8 @@ import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { calculateGroupWeeklyStats, deleteOverlappingCharts } from '@/lib/group-service'
 import { getLastNFinishedWeeks, getLastNFinishedWeeksForDay, getWeekEndForDay } from '@/lib/weekly-utils'
+import { recalculateAllTimeStats } from '@/lib/group-alltime-stats'
+import { ChartGenerationLogger } from '@/lib/chart-generation-logger'
 
 // GET - Get group charts (weekly stats)
 export async function GET(
@@ -95,6 +97,8 @@ export async function POST(
       creatorId: true,
       chartSize: true,
       trackingDayOfWeek: true,
+      // @ts-ignore - Prisma client will be regenerated after migration
+      chartMode: true,
     },
   })
 
@@ -111,9 +115,28 @@ export async function POST(
 
   const chartSize = group.chartSize || 10
   const trackingDayOfWeek = group.trackingDayOfWeek ?? 0
+  // @ts-ignore - Prisma client will be regenerated after migration
+  const chartMode = (group.chartMode || 'plays_only') as 'vs' | 'vs_weighted' | 'plays_only'
+
+  // Initialize logger (infrastructure kept for future use)
+  const logger = new ChartGenerationLogger(groupId)
 
   // Calculate stats for last 5 finished weeks using group's tracking day
   const weeks = getLastNFinishedWeeksForDay(5, trackingDayOfWeek)
+  
+  // Fetch group members once (to reuse across all weeks)
+  const members = await prisma.groupMember.findMany({
+    where: { groupId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          lastfmUsername: true,
+          lastfmSessionKey: true,
+        },
+      },
+    },
+  })
   
   // Before generating, delete any overlapping charts for the weeks we're about to regenerate
   for (const weekStart of weeks) {
@@ -125,11 +148,16 @@ export async function POST(
   const weeksInOrder = [...weeks].reverse()
   
   // Process sequentially to avoid API rate limits
-  for (const weekStart of weeksInOrder) {
-    await calculateGroupWeeklyStats(groupId, weekStart, chartSize, trackingDayOfWeek)
+  for (let i = 0; i < weeksInOrder.length; i++) {
+    const weekStart = weeksInOrder[i]
+    await calculateGroupWeeklyStats(groupId, weekStart, chartSize, trackingDayOfWeek, chartMode, logger, members)
+    
     // Small delay between weeks
     await new Promise(resolve => setTimeout(resolve, 500))
   }
+
+  // Recalculate all-time stats once after all weeks are processed
+  await recalculateAllTimeStats(groupId, logger)
 
   // Get updated stats
   const weeklyStats = await prisma.groupWeeklyStats.findMany({

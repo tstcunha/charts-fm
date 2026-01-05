@@ -8,6 +8,7 @@ import { TopItem } from './lastfm-weekly'
 import { cacheChartMetrics } from './group-chart-metrics'
 import { recalculateAllTimeStats } from './group-alltime-stats'
 import { ChartMode } from './vibe-score'
+import { ChartGenerationLogger } from './chart-generation-logger'
 
 const API_KEY = process.env.LASTFM_API_KEY!
 const API_SECRET = process.env.LASTFM_API_SECRET!
@@ -20,7 +21,8 @@ export async function fetchOrGetUserWeeklyStats(
   userId: string,
   lastfmUsername: string,
   sessionKey: string | null,
-  weekStart: Date
+  weekStart: Date,
+  logger?: ChartGenerationLogger
 ): Promise<{
   topTracks: TopItem[]
   topArtists: TopItem[]
@@ -95,44 +97,72 @@ export async function getLastChartWeek(groupId: string): Promise<Date | null> {
 
 /**
  * Delete charts that overlap with a given week range
+ * Optimized to use direct database queries instead of fetching all charts
  */
 export async function deleteOverlappingCharts(
   groupId: string,
   newWeekStart: Date,
   newWeekEnd: Date
 ): Promise<void> {
-  // Get all existing charts for this group
-  const existingCharts = await prisma.groupWeeklyStats.findMany({
-    where: { groupId },
+  // Find overlapping charts using a single query
+  // Two weeks overlap if: newWeekStart < chartWeekEnd AND chartWeekStart < newWeekEnd
+  const overlappingCharts = await prisma.groupWeeklyStats.findMany({
+    where: {
+      groupId,
+      AND: [
+        {
+          weekStart: {
+            lt: newWeekEnd,
+          },
+        },
+        {
+          weekEnd: {
+            gt: newWeekStart,
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      weekStart: true,
+    },
   })
 
-  // Find charts that overlap
-  const overlappingCharts = existingCharts.filter((chart) => {
-    const chartWeekStart = new Date(chart.weekStart)
-    const chartWeekEnd = new Date(chart.weekEnd)
-    return weeksOverlap(newWeekStart, newWeekEnd, chartWeekStart, chartWeekEnd)
-  })
+  // Delete overlapping charts and associated data in batches
+  if (overlappingCharts.length > 0) {
+    const weekStarts = overlappingCharts.map((chart) => chart.weekStart)
+    const chartIds = overlappingCharts.map((chart) => chart.id)
 
-  // Delete overlapping charts
-  for (const chart of overlappingCharts) {
-    await prisma.groupWeeklyStats.delete({
-      where: { id: chart.id },
-    })
-    // Also delete associated chart entries
-    await prisma.groupChartEntry.deleteMany({
-      where: {
-        groupId,
-        weekStart: chart.weekStart,
-      },
-    })
-    // Delete associated per-user VS entries
-    // @ts-ignore - Prisma client will be regenerated after migration
-    await prisma.userChartEntryVS.deleteMany({
-      where: {
-        groupId,
-        weekStart: chart.weekStart,
-      },
-    })
+    // Delete in parallel
+    await Promise.all([
+      // Delete group weekly stats
+      prisma.groupWeeklyStats.deleteMany({
+        where: {
+          id: {
+            in: chartIds,
+          },
+        },
+      }),
+      // Delete associated chart entries
+      prisma.groupChartEntry.deleteMany({
+        where: {
+          groupId,
+          weekStart: {
+            in: weekStarts,
+          },
+        },
+      }),
+      // Delete associated per-user VS entries
+      // @ts-ignore - Prisma client will be regenerated after migration
+      prisma.userChartEntryVS.deleteMany({
+        where: {
+          groupId,
+          weekStart: {
+            in: weekStarts,
+          },
+        },
+      }),
+    ])
   }
 }
 
@@ -146,7 +176,8 @@ async function storeUserChartEntryVS(
     topTracks: Array<{ userId: string; entryKey: string; vibeScore: number; playcount: number }>
     topArtists: Array<{ userId: string; entryKey: string; vibeScore: number; playcount: number }>
     topAlbums: Array<{ userId: string; entryKey: string; vibeScore: number; playcount: number }>
-  }
+  },
+  logger?: ChartGenerationLogger
 ): Promise<void> {
   // Normalize weekStart to start of day in UTC
   const normalizedWeekStart = new Date(weekStart)
@@ -227,48 +258,54 @@ async function storeUserChartEntryVS(
  * @param weekStart - The week start date (should already be calculated based on group's trackingDayOfWeek)
  * @param chartSize - The chart size to use (from group settings)
  * @param trackingDayOfWeek - The tracking day of week (for calculating weekEnd)
+ * @param chartMode - The chart mode to use (from group settings)
+ * @param logger - Optional logger for performance tracking
+ * @param members - Optional pre-fetched group members (to avoid redundant queries)
  */
 export async function calculateGroupWeeklyStats(
   groupId: string,
   weekStart: Date,
   chartSize: number,
-  trackingDayOfWeek: number
+  trackingDayOfWeek: number,
+  chartMode: ChartMode,
+  logger?: ChartGenerationLogger,
+  members?: Array<{
+    user: {
+      id: string
+      lastfmUsername: string
+      lastfmSessionKey: string | null
+    }
+  }>
 ): Promise<void> {
-  // Get group settings including chartMode
-  const group = await prisma.group.findUnique({
-    where: { id: groupId },
-    // @ts-ignore - Prisma client will be regenerated after migration
-    select: { chartMode: true },
-  })
-
-  // @ts-ignore - Prisma client will be regenerated after migration
-  const chartMode = (group?.chartMode || 'plays_only') as ChartMode
-
-  // Get all group members
-  const members = await prisma.groupMember.findMany({
-    where: { groupId },
-    include: {
-      user: {
-        select: {
-          id: true,
-          lastfmUsername: true,
-          lastfmSessionKey: true,
+  // Get all group members (use provided members if available)
+  let membersToUse = members
+  if (!membersToUse) {
+    membersToUse = await prisma.groupMember.findMany({
+      where: { groupId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            lastfmUsername: true,
+            lastfmSessionKey: true,
+          },
         },
       },
-    },
-  })
+    })
+  }
 
-  if (members.length === 0) {
+  if (membersToUse.length === 0) {
     return
   }
 
   // Fetch or get stats for all members
-  const userStatsPromises = members.map((member) =>
+  const userStatsPromises = membersToUse.map((member) =>
     fetchOrGetUserWeeklyStats(
       member.user.id,
       member.user.lastfmUsername,
       member.user.lastfmSessionKey,
-      weekStart
+      weekStart,
+      logger
     )
   )
 
@@ -276,7 +313,7 @@ export async function calculateGroupWeeklyStats(
 
   // Prepare user stats with userId for VS calculation
   const userStats = userStatsData.map((stats, index) => ({
-    userId: members[index].user.id,
+    userId: membersToUse[index].user.id,
     ...stats,
   }))
 
@@ -284,7 +321,7 @@ export async function calculateGroupWeeklyStats(
   const aggregated = aggregateGroupStatsWithVS(userStats, chartSize, chartMode)
 
   // Store per-user VS contributions
-  await storeUserChartEntryVS(groupId, weekStart, aggregated.perUserVS)
+  await storeUserChartEntryVS(groupId, weekStart, aggregated.perUserVS, logger)
 
   // Calculate week end based on tracking day
   const weekEnd = getWeekEndForDay(weekStart, trackingDayOfWeek)
@@ -320,15 +357,27 @@ export async function calculateGroupWeeklyStats(
     },
   })
 
-  // Cache metrics for all chart types (with vibeScore)
-  await Promise.all([
-    cacheChartMetrics(groupId, weekStart, 'artists', aggregated.topArtists),
-    cacheChartMetrics(groupId, weekStart, 'tracks', aggregated.topTracks),
-    cacheChartMetrics(groupId, weekStart, 'albums', aggregated.topAlbums),
-  ])
+  // Fetch previous weeks stats once (to share across all chart types)
+  const normalizedWeekStart = new Date(weekStart)
+  normalizedWeekStart.setUTCHours(0, 0, 0, 0)
+  const previousWeeksStats = await prisma.groupWeeklyStats.findMany({
+    where: {
+      groupId,
+      weekStart: {
+        lt: normalizedWeekStart,
+      },
+    },
+    orderBy: {
+      weekStart: 'asc',
+    },
+  })
 
-  // Recalculate all-time stats from all weekly charts
-  await recalculateAllTimeStats(groupId)
+  // Cache metrics for all chart types (with vibeScore) - share previousWeeksStats
+  await Promise.all([
+    cacheChartMetrics(groupId, weekStart, 'artists', aggregated.topArtists, trackingDayOfWeek, logger, previousWeeksStats),
+    cacheChartMetrics(groupId, weekStart, 'tracks', aggregated.topTracks, trackingDayOfWeek, logger, previousWeeksStats),
+    cacheChartMetrics(groupId, weekStart, 'albums', aggregated.topAlbums, trackingDayOfWeek, logger, previousWeeksStats),
+  ])
 }
 
 /**
@@ -338,7 +387,12 @@ export async function initializeGroupWithHistory(groupId: string): Promise<void>
   // Get group settings
   const group = await prisma.group.findUnique({
     where: { id: groupId },
-    select: { chartSize: true, trackingDayOfWeek: true },
+    select: { 
+      chartSize: true, 
+      trackingDayOfWeek: true,
+      // @ts-ignore - Prisma client will be regenerated after migration
+      chartMode: true,
+    },
   })
 
   if (!group) {
@@ -347,6 +401,8 @@ export async function initializeGroupWithHistory(groupId: string): Promise<void>
 
   const chartSize = group.chartSize || 10
   const trackingDayOfWeek = group.trackingDayOfWeek ?? 0
+  // @ts-ignore - Prisma client will be regenerated after migration
+  const chartMode = (group.chartMode || 'plays_only') as ChartMode
 
   // Use the group's tracking day to calculate weeks
   const weeks = getLastNFinishedWeeksForDay(5, trackingDayOfWeek)
@@ -354,11 +410,28 @@ export async function initializeGroupWithHistory(groupId: string): Promise<void>
   // Reverse to process from oldest to newest so previous week comparisons work correctly
   const weeksInOrder = [...weeks].reverse()
   
+  // Fetch group members once (to reuse across all weeks)
+  const members = await prisma.groupMember.findMany({
+    where: { groupId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          lastfmUsername: true,
+          lastfmSessionKey: true,
+        },
+      },
+    },
+  })
+
   // Process weeks sequentially to avoid overwhelming the API
   for (const weekStart of weeksInOrder) {
-    await calculateGroupWeeklyStats(groupId, weekStart, chartSize, trackingDayOfWeek)
+    await calculateGroupWeeklyStats(groupId, weekStart, chartSize, trackingDayOfWeek, chartMode, undefined, members)
     // Small delay between API calls
     await new Promise(resolve => setTimeout(resolve, 500))
   }
+
+  // Recalculate all-time stats once after all weeks are processed
+  await recalculateAllTimeStats(groupId)
 }
 

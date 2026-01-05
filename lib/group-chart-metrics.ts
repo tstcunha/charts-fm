@@ -2,6 +2,7 @@
 
 import { prisma } from './prisma'
 import { TopItem } from './lastfm-weekly'
+import { ChartGenerationLogger } from './chart-generation-logger'
 
 export type ChartType = 'artists' | 'tracks' | 'albums'
 
@@ -109,24 +110,31 @@ function calculateEntryMetrics(
 
 /**
  * Calculate and cache metrics for a chart type
+ * @param groupId - The group ID
+ * @param weekStart - The week start date
+ * @param chartType - The chart type ('artists', 'tracks', or 'albums')
+ * @param chartData - The chart data to cache
+ * @param trackingDayOfWeek - The tracking day of week (for calculating previous week)
+ * @param logger - Optional logger for performance tracking
+ * @param previousWeeksStats - Optional pre-fetched previous weeks stats (to avoid redundant queries)
  */
 export async function cacheChartMetrics(
   groupId: string,
   weekStart: Date,
   chartType: ChartType,
-  chartData: Array<TopItem | (TopItem & { vibeScore?: number })>
+  chartData: Array<TopItem | (TopItem & { vibeScore?: number })>,
+  trackingDayOfWeek: number,
+  logger?: ChartGenerationLogger,
+  previousWeeksStats?: Array<{
+    weekStart: Date
+    topArtists: any
+    topTracks: any
+    topAlbums: any
+  }>
 ): Promise<void> {
   // Normalize weekStart to start of day in UTC for comparison
   const normalizedWeekStart = new Date(weekStart)
   normalizedWeekStart.setUTCHours(0, 0, 0, 0)
-
-  // Get group settings to determine the correct previous week
-  const group = await prisma.group.findUnique({
-    where: { id: groupId },
-    select: { trackingDayOfWeek: true },
-  })
-
-  const trackingDayOfWeek = group?.trackingDayOfWeek ?? 0
 
   // Calculate what the previous week should be based on the group's tracking day
   // The previous week should be exactly 7 days before the current week
@@ -134,32 +142,36 @@ export async function cacheChartMetrics(
   previousWeekStart.setUTCDate(previousWeekStart.getUTCDate() - 7)
 
   // Get all weekly stats for this group, excluding the current week (for finding previous week)
-  const previousWeeksStats = await prisma.groupWeeklyStats.findMany({
-    where: {
-      groupId,
-      weekStart: {
-        lt: normalizedWeekStart,
+  // Use provided previousWeeksStats if available, otherwise fetch
+  let statsToUse = previousWeeksStats
+  if (!statsToUse) {
+    statsToUse = await prisma.groupWeeklyStats.findMany({
+      where: {
+        groupId,
+        weekStart: {
+          lt: normalizedWeekStart,
+        },
       },
-    },
-    orderBy: {
-      weekStart: 'asc',
-    },
-  })
+      orderBy: {
+        weekStart: 'asc',
+      },
+    })
+  }
 
   // Get previous week's stats - look for the week that matches the calculated previous week start
   // or find the most recent week before the current week
-  const previousWeekStats = previousWeeksStats.find((stats) => {
+  const previousWeekStats = statsToUse.find((stats) => {
     const statsWeekStart = new Date(stats.weekStart)
     statsWeekStart.setUTCHours(0, 0, 0, 0)
     // Try to find exact match first (previous week based on tracking day)
     return statsWeekStart.getTime() === previousWeekStart.getTime()
-  }) || (previousWeeksStats.length > 0
-    ? previousWeeksStats.sort((a, b) => b.weekStart.getTime() - a.weekStart.getTime())[0]
+  }) || (statsToUse.length > 0
+    ? statsToUse.sort((a, b) => b.weekStart.getTime() - a.weekStart.getTime())[0]
     : undefined)
 
   // Get all charts of this type from all weeks (including current week for metrics calculation)
   const allWeeksCharts = [
-    ...previousWeeksStats.map((stats) => {
+    ...statsToUse.map((stats) => {
       if (chartType === 'artists') {
         return (stats.topArtists as unknown as Array<TopItem | (TopItem & { vibeScore?: number })>) || []
       } else if (chartType === 'tracks') {
@@ -179,7 +191,9 @@ export async function cacheChartMetrics(
       : (previousWeekStats.topAlbums as unknown as Array<TopItem | (TopItem & { vibeScore?: number })>) || []
     : null
 
-  // Calculate and cache metrics for each entry in current week's chart
+  // Calculate metrics for all entries first
+  const entriesToCreate = []
+  
   for (let i = 0; i < chartData.length; i++) {
     const item = chartData[i]
     const position = i + 1
@@ -194,42 +208,37 @@ export async function cacheChartMetrics(
       chartType
     )
 
-    // Upsert the cached entry
-    await prisma.groupChartEntry.upsert({
-      where: {
-        groupId_weekStart_chartType_entryKey: {
-          groupId,
-          weekStart: normalizedWeekStart,
-          chartType,
-          entryKey,
-        },
-      },
-      create: {
-        groupId,
-        weekStart: normalizedWeekStart,
-        chartType,
-        entryKey,
-        name: item.name,
-        artist: 'artist' in item ? item.artist : null,
-        position,
-        playcount: item.playcount,
-        vibeScore: vibeScore ?? undefined,
-        positionChange: metrics.positionChange,
-        playsChange: metrics.playsChange,
-        totalWeeksAppeared: metrics.totalWeeksAppeared,
-        highestPosition: metrics.highestPosition,
-      },
-      update: {
-        name: item.name,
-        artist: 'artist' in item ? item.artist : null,
-        position,
-        playcount: item.playcount,
-        vibeScore: vibeScore ?? undefined,
-        positionChange: metrics.positionChange,
-        playsChange: metrics.playsChange,
-        totalWeeksAppeared: metrics.totalWeeksAppeared,
-        highestPosition: metrics.highestPosition,
-      },
+    entriesToCreate.push({
+      groupId,
+      weekStart: normalizedWeekStart,
+      chartType,
+      entryKey,
+      name: item.name,
+      artist: 'artist' in item ? item.artist : null,
+      position,
+      playcount: item.playcount,
+      vibeScore: vibeScore ?? undefined,
+      positionChange: metrics.positionChange,
+      playsChange: metrics.playsChange,
+      totalWeeksAppeared: metrics.totalWeeksAppeared,
+      highestPosition: metrics.highestPosition,
+    })
+  }
+
+  // Delete existing entries for this week/chartType, then batch insert
+  await prisma.groupChartEntry.deleteMany({
+    where: {
+      groupId,
+      weekStart: normalizedWeekStart,
+      chartType,
+    },
+  })
+
+  // Batch insert all entries
+  if (entriesToCreate.length > 0) {
+    await prisma.groupChartEntry.createMany({
+      data: entriesToCreate,
+      skipDuplicates: true,
     })
   }
 }

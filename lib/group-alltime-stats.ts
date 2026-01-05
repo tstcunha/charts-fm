@@ -2,6 +2,7 @@
 
 import { prisma } from './prisma'
 import { TopItem } from './lastfm-weekly'
+import { ChartGenerationLogger } from './chart-generation-logger'
 
 /**
  * Normalize entry key for matching (same logic as aggregation)
@@ -17,7 +18,7 @@ function getEntryKey(item: { name: string; artist?: string }, chartType: 'artist
  * Aggregate all-time stats from all weekly stats
  * Only uses top 10 items from each week (already stored in GroupWeeklyStats)
  */
-export async function recalculateAllTimeStats(groupId: string): Promise<void> {
+export async function recalculateAllTimeStats(groupId: string, logger?: ChartGenerationLogger): Promise<void> {
   // Fetch all weekly stats for this group
   const allWeeklyStats = await prisma.groupWeeklyStats.findMany({
     where: { groupId },
@@ -50,7 +51,7 @@ export async function recalculateAllTimeStats(groupId: string): Promise<void> {
   // Aggregate artists
   const artistMap = new Map<string, { name: string; playcount: number }>()
   for (const weekStats of allWeeklyStats) {
-    const topArtists = (weekStats.topArtists as TopItem[]) || []
+    const topArtists = (weekStats.topArtists as unknown as TopItem[]) || []
     // Only use top 10 (already limited in GroupWeeklyStats, but be safe)
     const top10Artists = topArtists.slice(0, 10)
     for (const artist of top10Artists) {
@@ -70,7 +71,7 @@ export async function recalculateAllTimeStats(groupId: string): Promise<void> {
   // Aggregate tracks
   const trackMap = new Map<string, { name: string; artist: string; playcount: number }>()
   for (const weekStats of allWeeklyStats) {
-    const topTracks = (weekStats.topTracks as TopItem[]) || []
+    const topTracks = (weekStats.topTracks as unknown as TopItem[]) || []
     const top10Tracks = topTracks.slice(0, 10)
     for (const track of top10Tracks) {
       const key = getEntryKey(track, 'tracks')
@@ -90,7 +91,7 @@ export async function recalculateAllTimeStats(groupId: string): Promise<void> {
   // Aggregate albums
   const albumMap = new Map<string, { name: string; artist: string; playcount: number }>()
   for (const weekStats of allWeeklyStats) {
-    const topAlbums = (weekStats.topAlbums as TopItem[]) || []
+    const topAlbums = (weekStats.topAlbums as unknown as TopItem[]) || []
     const top10Albums = topAlbums.slice(0, 10)
     for (const album of top10Albums) {
       const key = getEntryKey(album, 'albums')
