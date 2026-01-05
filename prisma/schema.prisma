@@ -81,7 +81,7 @@ model Group {
   trackingDayOfWeek Int    @default(0) // Day of week for tracking (0=Sunday, 1=Monday, ..., 6=Saturday)
   dynamicIconEnabled Boolean @default(false) // Enable dynamic icon updates from weekly charts
   dynamicIconSource String? // Source type: 'top_artist', 'top_album', or 'top_track_artist'
-  colorTheme        String? @default("yellow") // Color theme: 'yellow', 'royal_blue', 'cyan', 'bright_red', 'maroon', 'graphite', 'hot_pink', 'neon_green'
+  colorTheme        String? @default("white") // Color theme: 'yellow', 'royal_blue', 'cyan', 'bright_red', 'maroon', 'graphite', 'hot_pink', 'neon_green', 'white'
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   

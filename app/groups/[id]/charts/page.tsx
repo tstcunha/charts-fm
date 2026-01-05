@@ -35,7 +35,7 @@ export default async function ChartsPage({
 
   // Get color theme
   // @ts-ignore - Prisma client will be regenerated after migration
-  const colorTheme = (group?.colorTheme || 'yellow') as string
+  const colorTheme = (group?.colorTheme || 'white') as string
   const themeClass = `theme-${colorTheme.replace('_', '-')}`
 
   if (!group) {

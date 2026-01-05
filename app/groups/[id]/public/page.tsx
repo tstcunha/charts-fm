@@ -76,7 +76,7 @@ export default async function PublicGroupPage({ params }: { params: { id: string
 
   // Get color theme
   // @ts-ignore - Prisma client will be regenerated after migration
-  const colorTheme = (group.colorTheme || 'yellow') as string
+  const colorTheme = (group.colorTheme || 'white') as string
   const themeClass = `theme-${colorTheme.replace('_', '-')}`
 
   // Get VS data and position changes for all weeks if we have stats

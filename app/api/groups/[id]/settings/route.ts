@@ -56,7 +56,7 @@ export async function GET(
     chartSize: group.chartSize || 10,
     chartMode: group.chartMode || 'plays_only',
     trackingDayOfWeek: group.trackingDayOfWeek ?? 0,
-    colorTheme: (group as any).colorTheme || 'yellow',
+    colorTheme: (group as any).colorTheme || 'white',
   })
 }
 
@@ -221,7 +221,7 @@ export async function PATCH(
     chartSize: updatedGroup.chartSize || 10,
     chartMode: updatedGroup.chartMode || 'plays_only',
     trackingDayOfWeek: updatedGroup.trackingDayOfWeek ?? 0,
-    colorTheme: (updatedGroup as any).colorTheme || 'yellow',
+    colorTheme: (updatedGroup as any).colorTheme || 'white',
   })
 }
 

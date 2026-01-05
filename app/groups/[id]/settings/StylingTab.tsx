@@ -14,12 +14,12 @@ export default function StylingTab({
   initialColorTheme,
 }: StylingTabProps) {
   const router = useRouter()
-  const [colorTheme, setColorTheme] = useState<ThemeName>((initialColorTheme as ThemeName) || 'yellow')
+  const [colorTheme, setColorTheme] = useState<ThemeName>((initialColorTheme as ThemeName) || 'white')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  const hasChanges = colorTheme !== (initialColorTheme || 'yellow')
+  const hasChanges = colorTheme !== (initialColorTheme || 'white')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -113,7 +113,7 @@ export default function StylingTab({
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold text-gray-900">
                         {THEME_DISPLAY_NAMES[themeName]}
-                        {themeName === 'yellow' && <span className="ml-2 text-xs text-gray-500">(Default)</span>}
+                        {themeName === 'white' && <span className="ml-2 text-xs text-gray-500">(Default)</span>}
                       </h3>
                       {isSelected && (
                         <div className="w-5 h-5 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: theme.primary }}></div>

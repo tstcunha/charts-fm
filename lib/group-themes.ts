@@ -137,7 +137,7 @@ export const GROUP_THEMES: Record<ThemeName, ThemeColors> = {
   },
 }
 
-export const THEME_NAMES: ThemeName[] = ['yellow', 'royal_blue', 'cyan', 'bright_red', 'white', 'graphite', 'hot_pink', 'neon_green']
+export const THEME_NAMES: ThemeName[] = ['white', 'yellow', 'royal_blue', 'cyan', 'bright_red', 'graphite', 'hot_pink', 'neon_green']
 
 export const THEME_DISPLAY_NAMES: Record<ThemeName, string> = {
   yellow: 'Yellow',
