@@ -58,10 +58,21 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   // Global click handler for all links
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
+      // Don't trigger loading for modifier key clicks (command-click, ctrl-click)
+      // These open links in new tabs, so the current page doesn't navigate
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) {
+        return
+      }
+      
       const target = e.target as HTMLElement
       const link = target.closest('a')
       
       if (link && link.href) {
+        // Don't trigger loading for links that open in new tabs
+        if (link.target === '_blank' || link.getAttribute('target') === '_blank') {
+          return
+        }
+        
         // Check if it's an internal link (same origin)
         try {
           const url = new URL(link.href)

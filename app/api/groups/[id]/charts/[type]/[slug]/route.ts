@@ -6,6 +6,7 @@ import {
   getEntryMajorDriver,
   getEntryTotals,
   getArtistChartEntries,
+  getArtistNumberOnes,
 } from '@/lib/chart-deep-dive'
 import { ChartType } from '@/lib/chart-slugs'
 
@@ -44,11 +45,12 @@ export async function GET(
     }
 
     // Fetch all data in parallel
-    const [stats, majorDriver, totals, artistEntries] = await Promise.all([
+    const [stats, majorDriver, totals, artistEntries, numberOnes] = await Promise.all([
       getEntryStats(group.id, chartType, entry.entryKey),
       getEntryMajorDriver(group.id, chartType, entry.entryKey, group.chartMode || 'vs'),
       getEntryTotals(group.id, chartType, entry.entryKey),
       chartType === 'artists' ? getArtistChartEntries(group.id, entry.name) : Promise.resolve(null),
+      chartType === 'artists' ? getArtistNumberOnes(group.id, entry.name) : Promise.resolve(null),
     ])
 
     return NextResponse.json({
@@ -56,6 +58,7 @@ export async function GET(
       majorDriver,
       totals,
       artistEntries: chartType === 'artists' ? artistEntries : null,
+      numberOnes: chartType === 'artists' ? numberOnes : null,
     })
   } catch (error) {
     console.error('Error fetching deep dive data:', error)

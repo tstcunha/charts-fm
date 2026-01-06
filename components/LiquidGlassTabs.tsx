@@ -9,6 +9,7 @@ export interface TabItem {
   label: string
   icon?: IconDefinition
   badge?: number
+  count?: number
 }
 
 interface LiquidGlassTabsProps {
@@ -118,6 +119,11 @@ export default function LiquidGlassTabs({
         >
           {tab.icon && <FontAwesomeIcon icon={tab.icon} className="text-lg" />}
           <span>{tab.label}</span>
+          {tab.count !== undefined && (
+            <span className="ml-1 px-2 py-0.5 bg-gray-500/30 text-gray-700 rounded-full text-xs font-semibold">
+              {tab.count}
+            </span>
+          )}
           {tab.badge !== undefined && tab.badge > 0 && (
             <span className="ml-1 px-2 py-0.5 bg-red-500 text-white rounded-full text-xs font-bold">
               {tab.badge}

@@ -2,9 +2,8 @@ import { requireGroupMembership } from '@/lib/group-auth'
 import { prisma } from '@/lib/prisma'
 import { getEntryChartHistory } from '@/lib/chart-deep-dive'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import SafeImage from '@/components/SafeImage'
 import DeepDiveClient from '../../[type]/[slug]/DeepDiveClient'
+import DeepDiveHero from '@/components/charts/DeepDiveHero'
 
 export default async function ArtistDeepDivePage({
   params,
@@ -57,52 +56,18 @@ export default async function ArtistDeepDivePage({
   return (
     <main className={`flex min-h-screen flex-col pt-8 pb-24 px-6 md:px-12 lg:px-24 ${themeClass} bg-gradient-to-b from-[var(--theme-background-from)] to-[var(--theme-background-to)]`}>
       <div className="max-w-7xl w-full mx-auto">
-        {/* Hero Section */}
-        <div className="mb-6">
-          <div className="bg-[var(--theme-background-from)] rounded-xl shadow-lg p-4 border border-theme">
-            <nav className="mb-3 flex items-center gap-2 text-sm">
-              <Link
-                href="/groups"
-                className="text-gray-500 hover:text-[var(--theme-text)] transition-colors"
-              >
-                Groups
-              </Link>
-              <span className="text-gray-400">/</span>
-              <Link
-                href={`/groups/${group.id}`}
-                className="text-gray-500 hover:text-[var(--theme-text)] transition-colors"
-              >
-                {group.name}
-              </Link>
-              <span className="text-gray-400">/</span>
-              <Link
-                href={`/groups/${group.id}/charts`}
-                className="text-gray-500 hover:text-[var(--theme-text)] transition-colors"
-              >
-                Charts
-              </Link>
-              <span className="text-gray-400">/</span>
-              <span className="text-gray-900 font-medium">{entry.name}</span>
-            </nav>
-            <div className="flex items-center gap-3">
-              <div className="relative w-12 h-12 flex-shrink-0">
-                <div className="w-12 h-12 rounded-lg overflow-hidden shadow-md ring-2 ring-[var(--theme-ring)]/30 bg-[var(--theme-primary-lighter)]">
-                  <SafeImage
-                    src={group.image}
-                    alt={group.name}
-                    className="object-cover w-full h-full"
-                  />
-                </div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-2xl font-bold text-[var(--theme-primary-dark)] mb-1">
-                  {group.name}
-                </h1>
-                <p className="text-sm text-gray-600">Artist Chart History</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DeepDiveHero
+          group={{
+            id: group.id,
+            name: group.name,
+            image: group.image,
+          }}
+          entry={{
+            name: entry.name,
+            artist: null,
+          }}
+          chartType="artists"
+        />
 
         <DeepDiveClient
           groupId={group.id}
@@ -111,6 +76,7 @@ export default async function ArtistDeepDivePage({
           slug={entry.slug || params.slug}
           entryName={entry.name}
           entryArtist={null}
+          artistSlug={null}
           initialHistory={history}
           chartMode={group.chartMode || 'vs'}
           isArtist={true}

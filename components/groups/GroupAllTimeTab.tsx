@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMusic, faMicrophone, faCompactDisc, faTrophy, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { LiquidGlassLink } from '@/components/LiquidGlassButton'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+import { generateSlug } from '@/lib/chart-slugs'
 
 interface GroupAllTimeTabProps {
   groupId: string
@@ -101,17 +102,27 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
               Top Artists
             </h4>
             <ol className="space-y-2">
-              {topArtists.slice(0, 10).map((artist: any, idx: number) => (
-                <li key={idx} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--theme-primary-lighter)] transition-colors">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--theme-primary)] flex items-center justify-center text-white font-bold text-xs">
-                    {idx + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-gray-900 truncate">{artist.name}</div>
-                    <div className="text-sm text-[var(--theme-text)]">{artist.playcount.toLocaleString()} plays</div>
-                  </div>
-                </li>
-              ))}
+              {topArtists.slice(0, 10).map((artist: any, idx: number) => {
+                const entryKey = artist.name.toLowerCase()
+                return (
+                  <li key={idx} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--theme-primary-lighter)] transition-colors">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--theme-primary)] flex items-center justify-center text-white font-bold text-xs">
+                      {idx + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        href={`/groups/${groupId}/charts/artist/${generateSlug(entryKey, 'artists')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-gray-900 truncate hover:text-[var(--theme-primary)] transition-colors"
+                      >
+                        {artist.name}
+                      </Link>
+                      <div className="text-sm text-[var(--theme-text)]">{artist.playcount.toLocaleString()} plays</div>
+                    </div>
+                  </li>
+                )
+              })}
             </ol>
             {topArtists.length > 10 && (
               <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-[var(--theme-border)]">
@@ -126,18 +137,28 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
               Top Tracks
             </h4>
             <ol className="space-y-2">
-              {topTracks.slice(0, 10).map((track: any, idx: number) => (
-                <li key={idx} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--theme-primary-lighter)] transition-colors">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--theme-primary)] flex items-center justify-center text-white font-bold text-xs">
-                    {idx + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-gray-900 truncate">{track.name}</div>
-                    <div className="text-xs text-gray-600 truncate">by {track.artist}</div>
-                    <div className="text-sm text-[var(--theme-text)] mt-0.5">{track.playcount.toLocaleString()} plays</div>
-                  </div>
-                </li>
-              ))}
+              {topTracks.slice(0, 10).map((track: any, idx: number) => {
+                const entryKey = `${track.name}|${track.artist || ''}`.toLowerCase()
+                return (
+                  <li key={idx} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--theme-primary-lighter)] transition-colors">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--theme-primary)] flex items-center justify-center text-white font-bold text-xs">
+                      {idx + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        href={`/groups/${groupId}/charts/track/${generateSlug(entryKey, 'tracks')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-gray-900 truncate hover:text-[var(--theme-primary)] transition-colors"
+                      >
+                        {track.name}
+                      </Link>
+                      <div className="text-xs text-gray-600 truncate">by {track.artist}</div>
+                      <div className="text-sm text-[var(--theme-text)] mt-0.5">{track.playcount.toLocaleString()} plays</div>
+                    </div>
+                  </li>
+                )
+              })}
             </ol>
             {topTracks.length > 10 && (
               <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-[var(--theme-border)]">
@@ -152,18 +173,28 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
               Top Albums
             </h4>
             <ol className="space-y-2">
-              {topAlbums.slice(0, 10).map((album: any, idx: number) => (
-                <li key={idx} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--theme-primary-lighter)] transition-colors">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--theme-primary)] flex items-center justify-center text-white font-bold text-xs">
-                    {idx + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-gray-900 truncate">{album.name}</div>
-                    <div className="text-xs text-gray-600 truncate">by {album.artist}</div>
-                    <div className="text-sm text-[var(--theme-text)] mt-0.5">{album.playcount.toLocaleString()} plays</div>
-                  </div>
-                </li>
-              ))}
+              {topAlbums.slice(0, 10).map((album: any, idx: number) => {
+                const entryKey = `${album.name}|${album.artist || ''}`.toLowerCase()
+                return (
+                  <li key={idx} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--theme-primary-lighter)] transition-colors">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--theme-primary)] flex items-center justify-center text-white font-bold text-xs">
+                      {idx + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        href={`/groups/${groupId}/charts/album/${generateSlug(entryKey, 'albums')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-gray-900 truncate hover:text-[var(--theme-primary)] transition-colors"
+                      >
+                        {album.name}
+                      </Link>
+                      <div className="text-xs text-gray-600 truncate">by {album.artist}</div>
+                      <div className="text-sm text-[var(--theme-text)] mt-0.5">{album.playcount.toLocaleString()} plays</div>
+                    </div>
+                  </li>
+                )
+              })}
             </ol>
             {topAlbums.length > 10 && (
               <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-[var(--theme-border)]">

@@ -24,6 +24,7 @@ import Tooltip from '@/components/Tooltip'
 import { formatWeekDate } from '@/lib/weekly-utils'
 import { LiquidGlassLink } from '@/components/LiquidGlassButton'
 import LiquidGlassTabs, { TabItem } from '@/components/LiquidGlassTabs'
+import { generateSlug, ChartType } from '@/lib/chart-slugs'
 
 type CategoryTab = 'members' | 'artists' | 'tracks' | 'albums'
 
@@ -118,6 +119,19 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
     }
   }
 
+  const getChartTypePath = (chartType: string): string => {
+    switch (chartType) {
+      case 'artists':
+        return 'artist'
+      case 'tracks':
+        return 'track'
+      case 'albums':
+        return 'album'
+      default:
+        return 'artist'
+    }
+  }
+
   const renderCategoryContent = (category: 'artists' | 'tracks' | 'albums') => {
     const data = categoryData[category]
     
@@ -142,12 +156,17 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
         >
           <FontAwesomeIcon icon={getChartTypeIcon(entry.chartType)} className="text-lg text-[var(--theme-primary)]" />
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-gray-900 truncate">
+            <Link
+              href={`/groups/${groupId}/charts/${getChartTypePath(entry.chartType)}/${generateSlug(entry.entryKey, entry.chartType as ChartType)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-gray-900 truncate hover:text-[var(--theme-primary)] transition-colors"
+            >
               {entry.name}
               {entry.artist && (
                 <span className="text-sm font-normal text-gray-600"> by {entry.artist}</span>
               )}
-            </div>
+            </Link>
             <div className="text-sm text-gray-500">
               #{entry.position} • {entry.currentStreak} {entry.currentStreak === 1 ? 'week' : 'weeks'} streak
             </div>
@@ -170,12 +189,17 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
         >
           <FontAwesomeIcon icon={getChartTypeIcon(entry.chartType)} className="text-lg text-[var(--theme-primary)]" />
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-gray-900 truncate">
+            <Link
+              href={`/groups/${groupId}/charts/${getChartTypePath(entry.chartType)}/${generateSlug(entry.entryKey, entry.chartType as ChartType)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-gray-900 truncate hover:text-[var(--theme-primary)] transition-colors"
+            >
               {entry.name}
               {entry.artist && (
                 <span className="text-sm font-normal text-gray-600"> by {entry.artist}</span>
               )}
-            </div>
+            </Link>
             <div className="text-sm text-gray-500">
               #{entry.position} • Returned after {entry.weeksAway} {entry.weeksAway === 1 ? 'week' : 'weeks'} away
             </div>
@@ -211,12 +235,17 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
               className={`text-lg ${isNumberOne ? 'text-yellow-600' : 'text-[var(--theme-primary)]'}`} 
             />
             <div className="flex-1 min-w-0">
-              <div className={`font-semibold truncate ${isNumberOne ? 'text-yellow-900' : 'text-gray-900'}`}>
+              <Link
+                href={`/groups/${groupId}/charts/${getChartTypePath(entry.chartType)}/${generateSlug(entry.entryKey, entry.chartType as ChartType)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`font-semibold truncate ${isNumberOne ? 'text-yellow-900 hover:text-yellow-700' : 'text-gray-900 hover:text-[var(--theme-primary)]'} transition-colors`}
+              >
                 {entry.name}
                 {entry.artist && (
                   <span className={`text-sm font-normal ${isNumberOne ? 'text-yellow-700' : 'text-gray-600'}`}> by {entry.artist}</span>
                 )}
-              </div>
+              </Link>
               <div className={`text-sm ${isNumberOne ? 'text-yellow-700 font-semibold' : 'text-gray-500'}`}>#{entry.position}</div>
             </div>
           </div>
@@ -243,7 +272,7 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
           >
             {isPeakPosition && (
               <div className="absolute top-2 right-0 bg-blue-500 text-white text-xs font-bold px-8 py-1.5 transform rotate-12 translate-x-1 shadow-md z-10 whitespace-nowrap">
-                PEAK POSITION
+                NEW PEAK
               </div>
             )}
             <FontAwesomeIcon 
@@ -251,12 +280,17 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
               className={`text-lg ${isPeakPosition ? 'text-blue-600' : 'text-[var(--theme-primary)]'}`} 
             />
             <div className="flex-1 min-w-0">
-              <div className={`font-semibold truncate ${isPeakPosition ? 'text-blue-900' : 'text-gray-900'}`}>
+              <Link
+                href={`/groups/${groupId}/charts/${getChartTypePath(entry.chartType)}/${generateSlug(entry.entryKey, entry.chartType as ChartType)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`font-semibold truncate ${isPeakPosition ? 'text-blue-900 hover:text-blue-700' : 'text-gray-900 hover:text-[var(--theme-primary)]'} transition-colors`}
+              >
                 {entry.name}
                 {entry.artist && (
                   <span className={`text-sm font-normal ${isPeakPosition ? 'text-blue-700' : 'text-gray-600'}`}> by {entry.artist}</span>
                 )}
-              </div>
+              </Link>
               <div className={`text-sm font-semibold ${isPeakPosition ? 'text-blue-700' : 'text-green-600'}`}>
                 ↑ {Math.abs(entry.positionChange || 0)} positions
                 {entry.oldPosition && entry.newPosition && (
@@ -282,12 +316,17 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
         >
           <FontAwesomeIcon icon={getChartTypeIcon(entry.chartType)} className="text-lg text-[var(--theme-primary)]" />
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-gray-900 truncate">
+            <Link
+              href={`/groups/${groupId}/charts/${getChartTypePath(entry.chartType)}/${generateSlug(entry.entryKey, entry.chartType as ChartType)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-gray-900 truncate hover:text-[var(--theme-primary)] transition-colors"
+            >
               {entry.name}
               {entry.artist && (
                 <span className="text-sm font-normal text-gray-600"> by {entry.artist}</span>
               )}
-            </div>
+            </Link>
             <div className="text-sm text-red-600 font-semibold">
               ↓ {Math.abs(entry.positionChange || 0)} positions
               {entry.oldPosition && entry.newPosition && (
@@ -312,12 +351,17 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
         >
           <FontAwesomeIcon icon={getChartTypeIcon(entry.chartType)} className="text-lg text-[var(--theme-primary)]" />
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-gray-900 truncate">
+            <Link
+              href={`/groups/${groupId}/charts/${getChartTypePath(entry.chartType)}/${generateSlug(entry.entryKey, entry.chartType as ChartType)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-gray-900 truncate hover:text-[var(--theme-primary)] transition-colors"
+            >
               {entry.name}
               {entry.artist && (
                 <span className="text-sm font-normal text-gray-600"> by {entry.artist}</span>
               )}
-            </div>
+            </Link>
             <div className="text-sm text-gray-500">Last position: #{entry.lastPosition}</div>
           </div>
         </div>
@@ -364,12 +408,17 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
                           >
                             <FontAwesomeIcon icon={getChartTypeIcon(entry.chartType)} className="text-xs text-[var(--theme-primary)]" />
                             <div className="flex-1 min-w-0">
-                              <div className="text-xs font-medium text-gray-800 truncate">
+                              <Link
+                                href={`/groups/${groupId}/charts/${getChartTypePath(entry.chartType)}/${generateSlug(entry.entryKey, entry.chartType as ChartType)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs font-medium text-gray-800 truncate hover:text-[var(--theme-primary)] transition-colors"
+                              >
                                 {entry.name}
                                 {entry.artist && (
                                   <span className="text-xs font-normal text-gray-500"> by {entry.artist}</span>
                                 )}
-                              </div>
+                              </Link>
                               {entry.position && (
                                 <div className="text-xs text-gray-500">
                                   #{entry.position}
@@ -560,12 +609,17 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
                       >
                         <FontAwesomeIcon icon={getChartTypeIcon(contribution.chartType)} className="text-lg text-[var(--theme-primary)]" />
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900 truncate">
+                          <Link
+                            href={`/groups/${groupId}/charts/${getChartTypePath(contribution.chartType)}/${generateSlug(contribution.entryKey, contribution.chartType as ChartType)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-gray-900 truncate hover:text-[var(--theme-primary)] transition-colors"
+                          >
                             {contribution.name}
                             {contribution.artist && (
                               <span className="text-sm font-normal text-gray-600"> by {contribution.artist}</span>
                             )}
-                          </div>
+                          </Link>
                           <div className="text-sm text-[var(--theme-text)]">
                             #{contribution.position} • {contribution.percentage.toFixed(1)}% of group total
                           </div>
@@ -593,12 +647,17 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
                       >
                         <FontAwesomeIcon icon={getChartTypeIcon(entry.chartType)} className="text-lg text-[var(--theme-primary)]" />
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900 truncate">
+                          <Link
+                            href={`/groups/${groupId}/charts/${getChartTypePath(entry.chartType)}/${generateSlug(entry.entryKey, entry.chartType as ChartType)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-gray-900 truncate hover:text-[var(--theme-primary)] transition-colors"
+                          >
                             {entry.name}
                             {entry.artist && (
                               <span className="text-sm font-normal text-gray-600"> by {entry.artist}</span>
                             )}
-                          </div>
+                          </Link>
                           <div className="text-sm text-[var(--theme-text)]">
                             #{entry.position} • You contributed {entry.percentage.toFixed(1)}%
                           </div>
@@ -626,12 +685,17 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
                       >
                         <FontAwesomeIcon icon={faArrowUp} className="text-lg text-green-600" />
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900 truncate">
+                          <Link
+                            href={`/groups/${groupId}/charts/${getChartTypePath(mover.chartType)}/${generateSlug(mover.entryKey, mover.chartType as ChartType)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-gray-900 truncate hover:text-[var(--theme-primary)] transition-colors"
+                          >
                             {mover.name}
                             {mover.artist && (
                               <span className="text-sm font-normal text-gray-600"> by {mover.artist}</span>
                             )}
-                          </div>
+                          </Link>
                           <div className="text-sm text-green-600 font-semibold">
                             ↑ {Math.abs(mover.positionChange)} positions ({mover.oldPosition} → {mover.newPosition})
                           </div>

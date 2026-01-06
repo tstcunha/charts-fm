@@ -1,12 +1,13 @@
 'use client'
 
+import { memo, useMemo } from 'react'
 import { EntryStats } from '@/lib/chart-deep-dive'
 
 interface EntryStatsTableProps {
   stats: EntryStats
 }
 
-export default function EntryStatsTable({ stats }: EntryStatsTableProps) {
+function EntryStatsTable({ stats }: EntryStatsTableProps) {
   const formatDaysAgo = (date: Date | null): string => {
     if (!date) return 'Never'
     
@@ -78,7 +79,8 @@ export default function EntryStatsTable({ stats }: EntryStatsTableProps) {
     return `${startFormatted} - ${endFormatted}`
   }
 
-  const tableData = [
+  // Memoize table data to prevent recalculation on every render
+  const tableData = useMemo(() => [
     {
       label: 'Peak Position',
       value: `#${stats.peakPosition}${stats.weeksAtPeak > 1 ? ` (${stats.weeksAtPeak} weeks)` : ''}`,
@@ -116,10 +118,10 @@ export default function EntryStatsTable({ stats }: EntryStatsTableProps) {
       label: 'Latest Appearance',
       value: stats.currentlyCharting ? 'Currently charting' : formatDaysAgo(stats.latestAppearance),
     },
-  ]
+  ], [stats])
 
   return (
-    <div className="bg-white/40 backdrop-blur-xl rounded-xl p-6 border border-white/30">
+    <div className="bg-white/40 backdrop-blur-md rounded-xl p-6 border border-white/30" style={{ contain: 'layout style paint' }}>
       <h2 className="text-xl font-bold text-gray-900 mb-4">Statistics</h2>
       <table className="w-full">
         <tbody className="divide-y divide-gray-200/50">
@@ -138,4 +140,6 @@ export default function EntryStatsTable({ stats }: EntryStatsTableProps) {
     </div>
   )
 }
+
+export default memo(EntryStatsTable)
 

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFire, faSpinner, faArrowUp, faArrowDown, faMusic, faMicrophone, faCompactDisc, faTrophy } from '@fortawesome/free-solid-svg-icons'
 import { LiquidGlassLink } from '@/components/LiquidGlassButton'
+import { generateSlug, ChartType } from '@/lib/chart-slugs'
 
 interface GroupTrendsTabProps {
   groupId: string
@@ -137,7 +138,7 @@ export default function GroupTrendsTab({ groupId }: GroupTrendsTabProps) {
           }`}>
             {isPeakPosition && (
               <div className="absolute top-2 right-0 bg-blue-500 text-white text-xs font-bold px-8 py-1.5 transform rotate-12 translate-x-1 shadow-md z-10 whitespace-nowrap">
-                PEAK POSITION
+                NEW PEAK
               </div>
             )}
             <div className="flex items-center gap-3 mb-3">
@@ -147,12 +148,17 @@ export default function GroupTrendsTab({ groupId }: GroupTrendsTabProps) {
             <div className="flex items-center gap-4">
               <FontAwesomeIcon icon={getChartTypeIcon(biggestClimbers[0].chartType)} className={`text-3xl ${isPeakPosition ? 'text-blue-600' : 'text-[var(--theme-primary)]'}`} />
               <div className="flex-1">
-                <div className={`text-2xl font-bold mb-1 ${isPeakPosition ? 'text-blue-900' : 'text-gray-900'}`}>
+                <Link
+                  href={`/groups/${groupId}/charts/${biggestClimbers[0].chartType === 'artists' ? 'artist' : biggestClimbers[0].chartType === 'tracks' ? 'track' : 'album'}/${generateSlug(biggestClimbers[0].entryKey, biggestClimbers[0].chartType as ChartType)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`text-2xl font-bold mb-1 ${isPeakPosition ? 'text-blue-900 hover:text-blue-700' : 'text-gray-900 hover:text-[var(--theme-primary)]'} transition-colors`}
+                >
                   {biggestClimbers[0].name}
                   {biggestClimbers[0].artist && (
                     <span className={`text-lg font-normal ${isPeakPosition ? 'text-blue-700' : 'text-gray-600'}`}> by {biggestClimbers[0].artist}</span>
                   )}
-                </div>
+                </Link>
                 <div className={`text-lg font-semibold ${isPeakPosition ? 'text-blue-700' : 'text-[var(--theme-text)]'}`}>
                   Jumped {Math.abs(biggestClimbers[0].positionChange || 0)} position{Math.abs(biggestClimbers[0].positionChange || 0) !== 1 ? 's' : ''}!
                   {biggestClimbers[0].oldPosition && biggestClimbers[0].newPosition && (
@@ -193,12 +199,17 @@ export default function GroupTrendsTab({ groupId }: GroupTrendsTabProps) {
                     className={`text-lg ${isNumberOne ? 'text-yellow-600' : 'text-[var(--theme-primary)]'}`} 
                   />
                   <div className="flex-1 min-w-0">
-                    <div className={`font-semibold truncate ${isNumberOne ? 'text-yellow-900' : 'text-gray-900'}`}>
+                    <Link
+                      href={`/groups/${groupId}/charts/${entry.chartType === 'artists' ? 'artist' : entry.chartType === 'tracks' ? 'track' : 'album'}/${generateSlug(entry.entryKey, entry.chartType as ChartType)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`font-semibold truncate ${isNumberOne ? 'text-yellow-900 hover:text-yellow-700' : 'text-gray-900 hover:text-[var(--theme-primary)]'} transition-colors`}
+                    >
                       {entry.name}
                       {entry.artist && (
                         <span className={`text-sm font-normal ${isNumberOne ? 'text-yellow-700' : 'text-gray-600'}`}> by {entry.artist}</span>
                       )}
-                    </div>
+                    </Link>
                     <div className={`text-sm ${isNumberOne ? 'text-yellow-700 font-semibold' : 'text-gray-500'}`}>#{entry.position}</div>
                   </div>
                 </div>

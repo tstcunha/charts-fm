@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { ArtistChartEntry } from '@/lib/chart-deep-dive'
 import LiquidGlassTabs from '@/components/LiquidGlassTabs'
 import Link from 'next/link'
@@ -11,7 +11,7 @@ interface ArtistEntriesTableProps {
   groupId: string
 }
 
-export default function ArtistEntriesTable({ tracks, albums, groupId }: ArtistEntriesTableProps) {
+const ArtistEntriesTable = memo(function ArtistEntriesTable({ tracks, albums, groupId }: ArtistEntriesTableProps) {
   const [activeTab, setActiveTab] = useState<'tracks' | 'albums'>('tracks')
 
   const tabs = [
@@ -21,11 +21,56 @@ export default function ArtistEntriesTable({ tracks, albums, groupId }: ArtistEn
 
   const currentEntries = activeTab === 'tracks' ? tracks : albums
 
+  // Calculate total #1 weeks across all tracks and albums
+  const totalNumberOneWeeks = [...tracks, ...albums]
+    .filter((entry) => entry.peakPosition === 1)
+    .reduce((sum, entry) => sum + entry.weeksAtPeak, 0)
+
+  // Get row styling classes based on peak position
+  const getRowStyles = (peakPosition: number) => {
+    if (peakPosition === 1) {
+      return 'bg-gradient-to-r from-yellow-50 to-yellow-100/50'
+    }
+    return ''
+  }
+
+  // Render peak position with ribbon for top 3, blue text for top 10
+  const renderPeakPosition = (peakPosition: number) => {
+    if (peakPosition === 1) {
+      return (
+        <span className="relative inline-block" style={{ transform: 'rotate(-12deg)' }}>
+          <span className="bg-yellow-500 text-white px-2 py-1 rounded font-bold text-xs shadow-md">
+            #{peakPosition}
+          </span>
+        </span>
+      )
+    } else if (peakPosition === 2) {
+      return (
+        <span className="relative inline-block" style={{ transform: 'rotate(-12deg)' }}>
+          <span className="bg-gray-400 text-white px-2 py-1 rounded font-bold text-xs shadow-md">
+            #{peakPosition}
+          </span>
+        </span>
+      )
+    } else if (peakPosition === 3) {
+      return (
+        <span className="relative inline-block" style={{ transform: 'rotate(-12deg)' }}>
+          <span className="bg-amber-600 text-white px-2 py-1 rounded font-bold text-xs shadow-md">
+            #{peakPosition}
+          </span>
+        </span>
+      )
+    } else if (peakPosition <= 10) {
+      return <span className="text-blue-600 font-bold">#{peakPosition}</span>
+    }
+    return <span className="text-gray-900 font-bold">#{peakPosition}</span>
+  }
+
   return (
-    <div className="bg-white/40 backdrop-blur-xl rounded-xl p-6 border border-white/30">
+    <div className="bg-white/40 backdrop-blur-md rounded-xl p-6 border border-white/30" style={{ contain: 'layout style paint' }}>
       <h2 className="text-xl font-bold text-gray-900 mb-4">This Artist's Chart Entries</h2>
       
-      <div className="mb-6">
+      <div className="mb-6 flex justify-center">
         <LiquidGlassTabs
           tabs={tabs}
           activeTab={activeTab}
@@ -39,6 +84,11 @@ export default function ArtistEntriesTable({ tracks, albums, groupId }: ArtistEn
         </div>
       ) : (
         <div className="overflow-x-auto">
+          <div className="text-sm text-gray-600 mb-3 text-center">
+            Total: {currentEntries.length} {currentEntries.length === 1 ? 'entry' : 'entries'}
+            <span className="mx-2">•</span>
+            #1 weeks: {totalNumberOneWeeks}
+          </div>
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200/50">
@@ -59,10 +109,14 @@ export default function ArtistEntriesTable({ tracks, albums, groupId }: ArtistEn
             <tbody className="divide-y divide-gray-200/50">
               {currentEntries.map((entry) => {
                 const href = `/groups/${groupId}/charts/${entry.chartType.slice(0, -1)}/${entry.slug}`
+                const rowStyles = getRowStyles(entry.peakPosition)
                 return (
-                  <tr key={entry.entryKey} className="hover:bg-white/20 transition-colors">
-                    <td className="py-3 px-4 text-sm font-bold text-gray-900">
-                      #{entry.peakPosition}
+                  <tr 
+                    key={entry.entryKey} 
+                    className={`${rowStyles} hover:bg-white/20 transition-colors`}
+                  >
+                    <td className="py-3 px-4 text-sm">
+                      {renderPeakPosition(entry.peakPosition)}
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-700">
                       {entry.weeksAtPeak}
@@ -87,5 +141,7 @@ export default function ArtistEntriesTable({ tracks, albums, groupId }: ArtistEn
       )}
     </div>
   )
-}
+})
+
+export default ArtistEntriesTable
 

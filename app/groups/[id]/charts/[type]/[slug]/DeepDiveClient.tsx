@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, memo } from 'react'
+import Link from 'next/link'
 import ChartHistoryTimeline from '@/components/charts/ChartHistoryTimeline'
 import QuickStats from '@/components/charts/QuickStats'
 import EntryStatsTable from '@/components/charts/EntryStatsTable'
@@ -15,6 +16,7 @@ interface DeepDiveClientProps {
   slug: string
   entryName: string
   entryArtist: string | null
+  artistSlug: string | null
   initialHistory: ChartHistoryEntry[]
   chartMode: string
   isArtist?: boolean
@@ -27,14 +29,16 @@ export default function DeepDiveClient({
   slug,
   entryName,
   entryArtist,
+  artistSlug,
   initialHistory,
   chartMode,
   isArtist = false,
 }: DeepDiveClientProps) {
   const [stats, setStats] = useState<EntryStats | null>(null)
   const [majorDriver, setMajorDriver] = useState<MajorDriver | null>(null)
-  const [totals, setTotals] = useState<{ totalVS: number | null; totalPlays: number } | null>(null)
+  const [totals, setTotals] = useState<{ totalVS: number | null; totalPlays: number; weeksAtNumberOne: number } | null>(null)
   const [artistEntries, setArtistEntries] = useState<{ tracks: ArtistChartEntry[]; albums: ArtistChartEntry[] } | null>(null)
+  const [numberOnes, setNumberOnes] = useState<{ numberOneTracks: number; numberOneAlbums: number } | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -61,6 +65,7 @@ export default function DeepDiveClient({
         setTotals(data.totals)
         if (isArtist) {
           setArtistEntries(data.artistEntries)
+          setNumberOnes(data.numberOnes)
         }
       } catch (error) {
         console.error('Error loading deep dive data:', error)
@@ -91,7 +96,19 @@ export default function DeepDiveClient({
           {entryName}
         </h1>
         {entryArtist && (
-          <p className="text-xl sm:text-2xl text-gray-600 mt-2">by {entryArtist}</p>
+          <p className="text-xl sm:text-2xl text-gray-600 mt-2">
+            {chartType === 'tracks' ? 'Track' : chartType === 'albums' ? 'Album' : ''} by{' '}
+            {artistSlug ? (
+              <Link
+                href={`/groups/${groupId}/charts/artist/${artistSlug}`}
+                className="text-[var(--theme-primary)] hover:text-[var(--theme-primary-dark)] transition-colors"
+              >
+                {entryArtist}
+              </Link>
+            ) : (
+              entryArtist
+            )}
+          </p>
         )}
       </div>
 
@@ -104,7 +121,7 @@ export default function DeepDiveClient({
 
       {/* Quick Stats - loaded asynchronously */}
       {loading ? (
-        <div className="bg-white/40 backdrop-blur-xl rounded-xl p-6 border border-white/30">
+        <div className="bg-white/40 backdrop-blur-md rounded-xl p-6 border border-white/30" style={{ contain: 'layout style paint' }}>
           <div className="animate-pulse">
             <div className="h-6 bg-gray-200 rounded w-48 mb-4"></div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -120,12 +137,15 @@ export default function DeepDiveClient({
           totalPlays={totals.totalPlays}
           majorDriver={majorDriver}
           chartMode={chartMode}
+          numberOneTracks={numberOnes?.numberOneTracks}
+          numberOneAlbums={numberOnes?.numberOneAlbums}
+          weeksAtNumberOne={totals.weeksAtNumberOne}
         />
       )}
 
       {/* Stats Table - loaded asynchronously */}
       {loading ? (
-        <div className="bg-white/40 backdrop-blur-xl rounded-xl p-6 border border-white/30">
+        <div className="bg-white/40 backdrop-blur-md rounded-xl p-6 border border-white/30" style={{ contain: 'layout style paint' }}>
           <div className="animate-pulse">
             <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
             <div className="space-y-3">
@@ -142,7 +162,7 @@ export default function DeepDiveClient({
       {/* Artist Entries Table - only for artists, loaded asynchronously */}
       {isArtist && (
         loading ? (
-          <div className="bg-white/40 backdrop-blur-xl rounded-xl p-6 border border-white/30">
+          <div className="bg-white/40 backdrop-blur-md rounded-xl p-6 border border-white/30" style={{ contain: 'layout style paint' }}>
             <div className="animate-pulse">
               <div className="h-6 bg-gray-200 rounded w-48 mb-4"></div>
               <div className="h-10 bg-gray-200 rounded mb-4"></div>

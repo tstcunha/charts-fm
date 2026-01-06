@@ -543,7 +543,11 @@ export async function getEntryTotals(
   groupId: string,
   chartType: ChartType,
   entryKey: string
-): Promise<{ totalVS: number | null; totalPlays: number }> {
+): Promise<{ totalVS: number | null; totalPlays: number; weeksAtNumberOne: number }> {
+  // Get chart history to calculate weeks at #1
+  const history = await getEntryChartHistory(groupId, chartType, entryKey)
+  const weeksAtNumberOne = history.filter((h) => h.position === 1).length
+
   const stats = await prisma.chartEntryStats.findUnique({
     where: {
       groupId_chartType_entryKey: {
@@ -562,6 +566,7 @@ export async function getEntryTotals(
     return {
       totalVS: stats.totalVS,
       totalPlays: stats.totalPlays,
+      weeksAtNumberOne,
     }
   }
 
@@ -581,7 +586,64 @@ export async function getEntryTotals(
   return {
     totalVS: totals._sum.vibeScore,
     totalPlays: totals._sum.playcount || 0,
+    weeksAtNumberOne,
   }
+}
+
+/**
+ * Get number of #1 tracks and #1 albums for an artist
+ */
+export async function getArtistNumberOnes(
+  groupId: string,
+  artistName: string
+): Promise<{ numberOneTracks: number; numberOneAlbums: number }> {
+  // Get all chart entries for tracks and albums by this artist
+  const entries = await prisma.groupChartEntry.findMany({
+    where: {
+      groupId,
+      artist: artistName,
+      chartType: {
+        in: ['tracks', 'albums'],
+      },
+    },
+  })
+
+  // Group by entryKey and find peak positions
+  const entryMap = new Map<string, {
+    chartType: 'tracks' | 'albums'
+    peakPosition: number
+  }>()
+
+  for (const entry of entries) {
+    const existing = entryMap.get(entry.entryKey)
+    if (existing) {
+      // Update peak position if this entry has a better (lower) position
+      if (entry.position < existing.peakPosition) {
+        existing.peakPosition = entry.position
+      }
+    } else {
+      entryMap.set(entry.entryKey, {
+        chartType: entry.chartType as 'tracks' | 'albums',
+        peakPosition: entry.position,
+      })
+    }
+  }
+
+  // Count #1 entries
+  let numberOneTracks = 0
+  let numberOneAlbums = 0
+
+  for (const [, data] of entryMap.entries()) {
+    if (data.peakPosition === 1) {
+      if (data.chartType === 'tracks') {
+        numberOneTracks++
+      } else {
+        numberOneAlbums++
+      }
+    }
+  }
+
+  return { numberOneTracks, numberOneAlbums }
 }
 
 /**
