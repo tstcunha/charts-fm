@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'

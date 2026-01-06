@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo, memo, useCallback } from 'react'
 import Link from 'next/link'
 import { EnrichedChartItem } from '@/lib/group-chart-metrics'
 import { useNavigation } from '@/contexts/NavigationContext'
@@ -22,15 +22,19 @@ export default function ChartTable({ items, chartType, groupId }: ChartTableProp
   }, [items, stopPulse])
 
   // Get the route type (singular form: artist, track, album)
-  const routeType = chartType === 'artists' ? 'artist' : chartType === 'tracks' ? 'track' : 'album'
+  const routeType = useMemo(() => 
+    chartType === 'artists' ? 'artist' : chartType === 'tracks' ? 'track' : 'album',
+    [chartType]
+  )
   
   // Generate slug if not present (for backward compatibility)
-  const getSlug = (item: EnrichedChartItem): string => {
+  const getSlug = useCallback((item: EnrichedChartItem): string => {
     if (item.slug) return item.slug
     // Fallback: generate slug from entryKey
     return generateSlug(item.entryKey, chartType)
-  }
-  const formatPositionChange = (change: number | null, entryType?: string | null): string => {
+  }, [chartType])
+
+  const formatPositionChange = useCallback((change: number | null, entryType?: string | null): string => {
     if (change === null) {
       if (entryType === 'new') return 'NEW'
       if (entryType === 're-entry') return 'RE'
@@ -39,23 +43,23 @@ export default function ChartTable({ items, chartType, groupId }: ChartTableProp
     if (change === 0) return ''
     if (change < 0) return `(↑${Math.abs(change)})`
     return `(↓${change})`
-  }
+  }, [])
 
-  const formatPlaysChange = (change: number | null): string => {
+  const formatPlaysChange = useCallback((change: number | null): string => {
     if (change === null) return ''
     if (change === 0) return ''
     if (change > 0) return `(↑${change})`
     return `(↓${Math.abs(change)})`
-  }
+  }, [])
 
-  const formatVSChange = (change: number | null): string => {
+  const formatVSChange = useCallback((change: number | null): string => {
     if (change === null) return ''
     if (change === 0) return ''
     if (change > 0) return `(↑${change.toFixed(2)})`
     return `(↓${Math.abs(change).toFixed(2)})`
-  }
+  }, [])
 
-  const getPositionChangeColor = (change: number | null, entryType?: string | null): string => {
+  const getPositionChangeColor = useCallback((change: number | null, entryType?: string | null): string => {
     if (change === null) {
       if (entryType === 're-entry') return 'text-blue-400 font-semibold'
       return 'text-blue-600 font-semibold'
@@ -63,21 +67,77 @@ export default function ChartTable({ items, chartType, groupId }: ChartTableProp
     if (change < 0) return 'text-green-600'
     if (change > 0) return 'text-red-600'
     return 'text-gray-600'
-  }
+  }, [])
 
-  const getPlaysChangeColor = (change: number | null): string => {
+  const getPlaysChangeColor = useCallback((change: number | null): string => {
     if (change === null) return 'text-gray-500'
     if (change > 0) return 'text-green-600'
     if (change < 0) return 'text-red-600'
     return 'text-gray-600'
-  }
+  }, [])
 
-  const getVSChangeColor = (change: number | null): string => {
+  const getVSChangeColor = useCallback((change: number | null): string => {
     if (change === null) return 'text-gray-500'
     if (change > 0) return 'text-green-600'
     if (change < 0) return 'text-red-600'
     return 'text-gray-600'
-  }
+  }, [])
+
+  // Memoized table row component
+  const TableRow = memo(({ item }: { item: EnrichedChartItem }) => (
+    <tr className="hover:bg-gray-50 transition-colors">
+      <td className="px-6 py-5 text-sm">
+        <span className="font-bold text-gray-900">{item.position}</span>
+        {(item.positionChange !== null && item.positionChange !== 0) || item.positionChange === null ? (
+          <span className={`ml-2 ${getPositionChangeColor(item.positionChange, item.entryType)}`}>
+            {formatPositionChange(item.positionChange, item.entryType)}
+          </span>
+        ) : null}
+      </td>
+      <td className="px-6 py-5 text-sm">
+        <div>
+          <Link
+            href={`/groups/${groupId}/charts/${routeType}/${encodeURIComponent(getSlug(item))}`}
+            className="font-medium text-gray-900 hover:text-[var(--theme-primary-dark)] transition-colors"
+          >
+            {item.name}
+          </Link>
+          {item.artist && (
+            <div className="text-gray-500 text-xs mt-1">by {item.artist}</div>
+          )}
+        </div>
+      </td>
+      <td className="px-6 py-5 text-sm text-right">
+        <span className="text-gray-900 font-medium">{item.playcount}</span>
+        {item.playsChange !== null && item.playsChange !== 0 && (
+          <span className={`ml-2 ${getPlaysChangeColor(item.playsChange)}`}>
+            {formatPlaysChange(item.playsChange)}
+          </span>
+        )}
+      </td>
+      <td className="px-6 py-5 text-sm text-right">
+        {item.vibeScore !== null && item.vibeScore !== undefined ? (
+          <>
+            <span className="text-gray-900 font-medium">{item.vibeScore.toFixed(2)}</span>
+            {item.vibeScoreChange !== null && item.vibeScoreChange !== 0 && (
+              <span className={`ml-2 ${getVSChangeColor(item.vibeScoreChange)}`}>
+                {formatVSChange(item.vibeScoreChange)}
+              </span>
+            )}
+          </>
+        ) : (
+          <span className="text-gray-400">—</span>
+        )}
+      </td>
+      <td className="px-6 py-5 text-sm text-center text-gray-600">
+        {item.totalWeeksAppeared}
+      </td>
+      <td className="px-6 py-5 text-sm text-center text-gray-600">
+        #{item.highestPosition}
+      </td>
+    </tr>
+  ))
+  TableRow.displayName = 'TableRow'
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -106,57 +166,7 @@ export default function ChartTable({ items, chartType, groupId }: ChartTableProp
         </thead>
         <tbody className="divide-y divide-gray-200">
           {items.map((item) => (
-            <tr key={item.position} className="hover:bg-gray-50 transition-colors">
-              <td className="px-6 py-5 text-sm">
-                <span className="font-bold text-gray-900">{item.position}</span>
-                {(item.positionChange !== null && item.positionChange !== 0) || item.positionChange === null ? (
-                  <span className={`ml-2 ${getPositionChangeColor(item.positionChange, item.entryType)}`}>
-                    {formatPositionChange(item.positionChange, item.entryType)}
-                  </span>
-                ) : null}
-              </td>
-              <td className="px-6 py-5 text-sm">
-                <div>
-                  <Link
-                    href={`/groups/${groupId}/charts/${routeType}/${encodeURIComponent(getSlug(item))}`}
-                    className="font-medium text-gray-900 hover:text-[var(--theme-primary-dark)] transition-colors"
-                  >
-                    {item.name}
-                  </Link>
-                  {item.artist && (
-                    <div className="text-gray-500 text-xs mt-1">by {item.artist}</div>
-                  )}
-                </div>
-              </td>
-              <td className="px-6 py-5 text-sm text-right">
-                <span className="text-gray-900 font-medium">{item.playcount}</span>
-                {item.playsChange !== null && item.playsChange !== 0 && (
-                  <span className={`ml-2 ${getPlaysChangeColor(item.playsChange)}`}>
-                    {formatPlaysChange(item.playsChange)}
-                  </span>
-                )}
-              </td>
-              <td className="px-6 py-5 text-sm text-right">
-                {item.vibeScore !== null && item.vibeScore !== undefined ? (
-                  <>
-                    <span className="text-gray-900 font-medium">{item.vibeScore.toFixed(2)}</span>
-                    {item.vibeScoreChange !== null && item.vibeScoreChange !== 0 && (
-                      <span className={`ml-2 ${getVSChangeColor(item.vibeScoreChange)}`}>
-                        {formatVSChange(item.vibeScoreChange)}
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <span className="text-gray-400">—</span>
-                )}
-              </td>
-              <td className="px-6 py-5 text-sm text-center text-gray-600">
-                {item.totalWeeksAppeared}
-              </td>
-              <td className="px-6 py-5 text-sm text-center text-gray-600">
-                #{item.highestPosition}
-              </td>
-            </tr>
+            <TableRow key={item.position} item={item} />
           ))}
         </tbody>
       </table>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, memo } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMusic, faMicrophone, faCompactDisc, faArrowUp, faArrowDown, faMinus, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import Link from 'next/link'
@@ -44,12 +44,50 @@ export default function PersonalListeningOverview() {
       })
   }, [])
 
+  // All hooks must be called before any conditional returns
+  const currentWeek = stats?.currentWeek ?? null
+  const previousWeek = stats?.previousWeek ?? null
+  
+  const weekStartDate = useMemo(() => {
+    if (!stats?.weekStart) return new Date()
+    return new Date(stats.weekStart)
+  }, [stats?.weekStart])
+
+  // Memoize computed values - safe to call even if data is null
+  const { playsChange, playsChangePercent } = useMemo(() => {
+    if (!previousWeek || !currentWeek) {
+      return { playsChange: null, playsChangePercent: null }
+    }
+    const change = currentWeek.totalPlays - previousWeek.totalPlays
+    const percent = previousWeek.totalPlays > 0
+      ? ((change / previousWeek.totalPlays) * 100).toFixed(1)
+      : null
+    return { playsChange: change, playsChangePercent: percent }
+  }, [currentWeek?.totalPlays, previousWeek?.totalPlays])
+
+  // Memoize top items lists - safe to call even if data is null
+  const topArtists = useMemo(() => {
+    if (!currentWeek?.topArtists) return []
+    return currentWeek.topArtists.slice(0, 5)
+  }, [currentWeek?.topArtists])
+  
+  const topTracks = useMemo(() => {
+    if (!currentWeek?.topTracks) return []
+    return currentWeek.topTracks.slice(0, 5)
+  }, [currentWeek?.topTracks])
+  
+  const topAlbums = useMemo(() => {
+    if (!currentWeek?.topAlbums) return []
+    return currentWeek.topAlbums.slice(0, 5)
+  }, [currentWeek?.topAlbums])
+
   const glassStyle = {
     background: 'rgba(255, 255, 255, 0.6)',
     backdropFilter: 'blur(12px) saturate(180%)',
     WebkitBackdropFilter: 'blur(12px) saturate(180%)',
   }
 
+  // Now we can safely return early after all hooks have been called
   if (isLoading) {
     return (
       <div 
@@ -64,7 +102,7 @@ export default function PersonalListeningOverview() {
     )
   }
 
-  if (error || !stats) {
+  if (error || !stats || !currentWeek) {
     return (
       <div 
         className="rounded-xl shadow-lg p-6 border border-gray-200"
@@ -78,31 +116,6 @@ export default function PersonalListeningOverview() {
       </div>
     )
   }
-
-  const { currentWeek, previousWeek } = stats
-  const weekStartDate = new Date(stats.weekStart)
-
-  if (!currentWeek) {
-    return (
-      <div 
-        className="rounded-xl shadow-lg p-6 border border-gray-200"
-        style={glassStyle}
-      >
-        <h2 className="text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">Your Listening This Week</h2>
-        <div className="text-center py-8 text-gray-500">
-          <p className="mb-2">No listening data available yet.</p>
-          <p className="text-sm">Your weekly stats will appear here once your groups generate charts.</p>
-        </div>
-      </div>
-    )
-  }
-
-  const playsChange = previousWeek
-    ? currentWeek.totalPlays - previousWeek.totalPlays
-    : null
-  const playsChangePercent = previousWeek && previousWeek.totalPlays > 0
-    ? ((playsChange! / previousWeek.totalPlays) * 100).toFixed(1)
-    : null
 
   return (
     <div 
@@ -218,7 +231,7 @@ export default function PersonalListeningOverview() {
             <h3 className="font-semibold text-gray-900">Top Artists</h3>
           </div>
           <ol className="space-y-2">
-            {currentWeek.topArtists.slice(0, 5).map((artist, idx) => (
+            {topArtists.map((artist, idx) => (
               <li key={idx} className="flex items-center gap-2 text-sm">
                 <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-700">
                   {idx + 1}
@@ -245,7 +258,7 @@ export default function PersonalListeningOverview() {
             <h3 className="font-semibold text-gray-900">Top Tracks</h3>
           </div>
           <ol className="space-y-2">
-            {currentWeek.topTracks.slice(0, 5).map((track, idx) => (
+            {topTracks.map((track, idx) => (
               <li key={idx} className="flex items-start gap-2 text-sm">
                 <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-700 mt-0.5">
                   {idx + 1}
@@ -275,7 +288,7 @@ export default function PersonalListeningOverview() {
             <h3 className="font-semibold text-gray-900">Top Albums</h3>
           </div>
           <ol className="space-y-2">
-            {currentWeek.topAlbums.slice(0, 5).map((album, idx) => (
+            {topAlbums.map((album, idx) => (
               <li key={idx} className="flex items-start gap-2 text-sm">
                 <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-700 mt-0.5">
                   {idx + 1}

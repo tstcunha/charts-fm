@@ -1,8 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import RequestsModal from './RequestsModal'
+import dynamic from 'next/dynamic'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+
+// Lazy load modal to reduce initial bundle size
+const RequestsModal = dynamic(() => import('./RequestsModal'), {
+  ssr: false,
+  loading: () => null,
+})
 
 interface RequestsButtonProps {
   groupId: string

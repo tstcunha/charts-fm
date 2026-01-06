@@ -10,12 +10,14 @@ const oswald = Oswald({
   weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
   variable: '--font-oswald',
+  display: 'swap',
 });
 
 const inter = Inter({
   weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {

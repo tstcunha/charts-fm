@@ -1,12 +1,18 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import SafeImage from '@/components/SafeImage'
 import { useNavigation } from '@/contexts/NavigationContext'
-import SignInModal from '@/components/SignInModal'
+
+// Lazy load SignInModal to reduce initial bundle size
+const SignInModal = dynamic(() => import('@/components/SignInModal'), {
+  ssr: false,
+  loading: () => null,
+})
 
 export default function Navbar() {
   const { data: session, status } = useSession()
@@ -90,15 +96,15 @@ export default function Navbar() {
     }
   }, [isDropdownOpen])
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     setIsSigningOut(true)
     signOutStartTimeRef.current = Date.now()
     await signOut({ redirect: false })
     router.push('/')
     router.refresh()
-  }
+  }, [router])
 
-  const isAuthenticated = status === 'authenticated' && session?.user
+  const isAuthenticated = useMemo(() => status === 'authenticated' && session?.user, [status, session?.user])
 
   // Don't show navbar on auth pages, but still show loading screen if signing out
   if (pathname?.startsWith('/auth/')) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
@@ -70,8 +70,8 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
       })
   }, [groupId])
 
-  // Organize data by category
-  const organizeByCategory = (): Record<string, CategoryData> => {
+  // Organize data by category - memoized to prevent recalculation
+  const organizeByCategory = useCallback((): Record<string, CategoryData> => {
     const allNewEntries = (trends.newEntries as any[]) || []
     const allBiggestClimbers = (trends.biggestClimbers as any[]) || []
     const allBiggestFallers = (trends.biggestFallers as any[]) || []
@@ -99,14 +99,14 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
     }
 
     return categories
-  }
+  }, [trends.newEntries, trends.biggestClimbers, trends.biggestFallers, trends.exits])
 
-  const categoryData = organizeByCategory()
+  const categoryData = useMemo(() => organizeByCategory(), [organizeByCategory])
   const funFacts = (trends.funFacts as string[]) || []
   const topContributors = (trends.topContributors as any[]) || []
   const memberSpotlight = trends.memberSpotlight as any
 
-  const getChartTypeIcon = (chartType: string) => {
+  const getChartTypeIcon = useCallback((chartType: string) => {
     switch (chartType) {
       case 'artists':
         return faMicrophone
@@ -117,9 +117,9 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
       default:
         return faMusic
     }
-  }
+  }, [])
 
-  const getChartTypePath = (chartType: string): string => {
+  const getChartTypePath = useCallback((chartType: string): string => {
     switch (chartType) {
       case 'artists':
         return 'artist'
@@ -130,9 +130,9 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
       default:
         return 'artist'
     }
-  }
+  }, [])
 
-  const renderCategoryContent = (category: 'artists' | 'tracks' | 'albums') => {
+  const renderCategoryContent = useCallback((category: 'artists' | 'tracks' | 'albums') => {
     const data = categoryData[category]
     
     // Filter longest streaks and comebacks by category
@@ -463,7 +463,7 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
         })}
       </div>
     )
-  }
+  }, [categoryData, longestStreaks, comebacks, groupId, getChartTypeIcon, getChartTypePath, isLoadingPersonal])
 
   const renderMembersContent = () => {
     return (

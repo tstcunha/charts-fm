@@ -2,8 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
-import SignInModal from '@/components/SignInModal'
+import dynamic from 'next/dynamic'
 import LiquidGlassButton, { LiquidGlassLink } from '@/components/LiquidGlassButton'
+
+// Lazy load SignInModal to reduce initial bundle size
+const SignInModal = dynamic(() => import('@/components/SignInModal'), {
+  ssr: false,
+  loading: () => null,
+})
 
 export default function LandingPageClient() {
   const searchParams = useSearchParams()

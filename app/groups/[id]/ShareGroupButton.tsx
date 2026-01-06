@@ -1,10 +1,16 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShare } from '@fortawesome/free-solid-svg-icons'
-import ShareGroupModal from './ShareGroupModal'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+
+// Lazy load modal to reduce initial bundle size
+const ShareGroupModal = dynamic(() => import('./ShareGroupModal'), {
+  ssr: false,
+  loading: () => null,
+})
 
 interface ShareGroupButtonProps {
   groupId: string

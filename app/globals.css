@@ -49,6 +49,28 @@ body {
   .font-inter {
     font-family: var(--font-inter), sans-serif !important;
   }
+
+  /* Performance optimization utilities */
+  .contain-layout {
+    contain: layout;
+  }
+
+  .contain-paint {
+    contain: paint;
+  }
+
+  .contain-strict {
+    contain: strict;
+  }
+
+  /* Use will-change sparingly - only for elements that will animate */
+  .will-change-transform {
+    will-change: transform;
+  }
+
+  .will-change-scroll {
+    will-change: scroll-position;
+  }
 }
 
 @keyframes pulse-scale {
