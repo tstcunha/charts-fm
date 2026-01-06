@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
 import { getDefaultGroupImage } from '@/lib/default-images'
@@ -38,6 +38,11 @@ export default function GroupsYouMightLike() {
   const [isCalculating, setIsCalculating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
+
+  // Fetch recommendations on component mount
+  useEffect(() => {
+    handleFindGroups()
+  }, [])
 
   const handleFindGroups = async () => {
     setIsLoading(true)

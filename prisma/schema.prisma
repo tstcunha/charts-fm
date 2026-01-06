@@ -34,6 +34,7 @@ model User {
   chartEntryVS        UserChartEntryVS[]
   groupCompatibilityScores GroupCompatibilityScore[]
   groupRecommendationRejections GroupRecommendationRejection[]
+  recommendationCache GroupRecommendationCache?
   
   @@map("users")
 }
@@ -290,5 +291,19 @@ model ArtistGenre {
   
   @@index([artistName])
   @@map("artist_genres")
+}
+
+model GroupRecommendationCache {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  recommendations Json   // Array of recommendation groups with scores
+  lastCalculated DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@map("group_recommendation_cache")
 }
 

@@ -8,6 +8,7 @@ import { TopItem } from '@/lib/lastfm-weekly'
 
 const API_KEY = process.env.LASTFM_API_KEY!
 const BATCH_SIZE = 10
+const RECOMMENDATION_CACHE_HOURS = 24 // Cache recommendations for 24 hours
 
 // POST - Calculate and return group recommendations
 export async function POST(request: Request) {
@@ -26,6 +27,28 @@ export async function POST(request: Request) {
   }
 
   try {
+    const now = new Date()
+    
+    // Check cache first
+    const cached = await prisma.groupRecommendationCache.findUnique({
+      where: { userId: user.id },
+    })
+
+    if (cached) {
+      const cacheExpiry = new Date(
+        cached.lastCalculated.getTime() + RECOMMENDATION_CACHE_HOURS * 60 * 60 * 1000
+      )
+
+      // Return cached recommendations if fresh
+      if (now < cacheExpiry) {
+        const recommendations = cached.recommendations as any[]
+        return NextResponse.json({
+          groups: recommendations,
+          isCalculating: false,
+          progress: 1,
+        })
+      }
+    }
     // Stage 1: Pre-filter groups
     const preFilteredGroupIds = await preFilterGroups(user.id)
 
@@ -38,7 +61,6 @@ export async function POST(request: Request) {
     }
 
     // Get user's top artists for candidate selection
-    const now = new Date()
     const weeksAgo = new Date(now)
     weeksAgo.setUTCDate(weeksAgo.getUTCDate() - 8 * 7)
 
@@ -176,6 +198,20 @@ export async function POST(request: Request) {
 
     // Sort by score (descending)
     groupsWithScores.sort((a, b) => b.score - a.score)
+
+    // Cache the results
+    await prisma.groupRecommendationCache.upsert({
+      where: { userId: user.id },
+      create: {
+        userId: user.id,
+        recommendations: groupsWithScores,
+        lastCalculated: now,
+      },
+      update: {
+        recommendations: groupsWithScores,
+        lastCalculated: now,
+      },
+    })
 
     return NextResponse.json({
       groups: groupsWithScores,
