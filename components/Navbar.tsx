@@ -153,7 +153,7 @@ export default function Navbar() {
               href="/" 
               className={`text-3xl font-bold text-yellow-500 transition-all font-oswald leading-none pb-1 ${isLoading ? 'animate-pulse-scale' : ''}`}
             >
-              Charts.fm
+              ChartsFM
             </Link>
             {isAuthenticated && (
               <div className="flex space-x-2">
