@@ -35,6 +35,7 @@ model User {
   groupCompatibilityScores GroupCompatibilityScore[]
   groupRecommendationRejections GroupRecommendationRejection[]
   recommendationCache GroupRecommendationCache?
+  chartEntryStatsAsMajorDriver ChartEntryStats[]
   
   @@map("users")
 }
@@ -100,6 +101,7 @@ model Group {
   trends GroupTrends?
   compatibilityScores GroupCompatibilityScore[]
   recommendationRejections GroupRecommendationRejection[]
+  chartEntryStats ChartEntryStats[]
   
   @@map("groups")
 }
@@ -159,6 +161,7 @@ model GroupChartEntry {
   weekStart         DateTime // Sunday 00:00 UTC
   chartType         String   // "artists" | "tracks" | "albums"
   entryKey          String   // Normalized key: name for artists, "name|artist" for tracks/albums
+  slug              String?  // URL-friendly slug: entryKey with pipes replaced by hyphens, special chars removed
   name              String
   artist            String?   // For tracks and albums
   position          Int      // 1-10
@@ -177,6 +180,7 @@ model GroupChartEntry {
   @@unique([groupId, weekStart, chartType, entryKey])
   @@index([groupId, weekStart, chartType])
   @@index([groupId, chartType, entryKey])
+  @@index([groupId, chartType, slug])
   @@map("group_chart_entries")
 }
 
@@ -340,5 +344,51 @@ model GroupTrends {
   group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
   
   @@map("group_trends")
+}
+
+model ChartEntryStats {
+  id                String   @id @default(cuid())
+  groupId           String
+  chartType         String   // "artists" | "tracks" | "albums"
+  entryKey          String
+  slug              String
+  
+  // Cached statistics
+  peakPosition      Int
+  weeksAtPeak       Int
+  debutPosition     Int
+  weeksInTop10      Int
+  totalWeeksCharting Int
+  longestStreak     Int
+  isStreakOngoing   Boolean
+  
+  // Major driver (lazily calculated)
+  majorDriverUserId String?
+  majorDriverName   String?
+  majorDriverVS     Float?
+  majorDriverPlays Int?
+  majorDriverLastUpdated DateTime? // NULL = stale, needs recalculation
+  
+  // Totals
+  totalVS           Float?
+  totalPlays        Int
+  
+  // Staleness flags
+  statsStale        Boolean  @default(false) // True if stats need recalculation
+  statsLastUpdated  DateTime? // When stats were last calculated
+  
+  // Timestamps
+  latestAppearance  DateTime?
+  lastUpdated       DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  majorDriver User? @relation(fields: [majorDriverUserId], references: [id], onDelete: SetNull)
+  
+  @@unique([groupId, chartType, entryKey])
+  @@index([groupId, chartType, slug])
+  @@index([groupId, chartType, entryKey])
+  @@map("chart_entry_stats")
 }
 

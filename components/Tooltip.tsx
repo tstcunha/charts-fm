@@ -33,11 +33,11 @@ export default function Tooltip({
       <div
         className={`
           absolute ${positionClasses[position]}
-          opacity-0 group-hover:opacity-100 transition-opacity duration-0 pointer-events-none z-50
-          w-80
+          opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[100]
+          whitespace-nowrap
         `}
       >
-        <div className="relative bg-gray-900 text-white text-xs rounded-md py-1.5 px-2.5 shadow-lg whitespace-normal break-words">
+        <div className="relative bg-gray-900 text-white text-xs rounded-md py-1.5 px-2.5 shadow-lg">
           {content}
           <div
             className={`

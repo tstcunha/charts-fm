@@ -3,6 +3,8 @@
 import { prisma } from './prisma'
 import { TopItem } from './lastfm-weekly'
 import { ChartGenerationLogger } from './chart-generation-logger'
+import { generateSlug } from './chart-slugs'
+import { invalidateEntryStatsCache } from './chart-deep-dive'
 
 export type ChartType = 'artists' | 'tracks' | 'albums'
 
@@ -18,6 +20,8 @@ export interface EnrichedChartItem {
   totalWeeksAppeared: number
   highestPosition: number
   entryType?: string | null // "new" | "re-entry" | null (continuing entry)
+  entryKey: string // For generating deep dive links
+  slug: string | null // URL-friendly slug for deep dive links
 }
 
 /**
@@ -233,11 +237,15 @@ export async function cacheChartMetrics(
         ? 're-entry'
         : null // continuing entry
 
+    // Generate slug for URL-friendly routing
+    const slug = generateSlug(entryKey, chartType)
+
     entriesToCreate.push({
       groupId,
       weekStart: normalizedWeekStart,
       chartType,
       entryKey,
+      slug,
       name: item.name.trim(),
       artist: 'artist' in item && item.artist ? item.artist.trim() : null,
       position,
@@ -267,6 +275,18 @@ export async function cacheChartMetrics(
         data: entriesToCreate,
         skipDuplicates: true,
       })
+
+      // Invalidate cache for all entries in this chart
+      await invalidateEntryStatsCache(
+        groupId,
+        normalizedWeekStart,
+        chartType,
+        entriesToCreate.map((entry) => ({
+          entryKey: entry.entryKey,
+          vibeScore: entry.vibeScore ?? null,
+          playcount: entry.playcount,
+        }))
+      )
     } catch (error: any) {
       // Log detailed error information for debugging
       console.error('Error creating chart entries:', {
@@ -343,6 +363,9 @@ export async function getCachedChartEntries(
         ? entry.vibeScore - previousEntry.vibeScore
         : null
 
+    // Generate slug if not present (for backward compatibility)
+    const slug = entry.slug || generateSlug(entry.entryKey, chartType)
+
     return {
       name: entry.name,
       artist: entry.artist || undefined,
@@ -355,6 +378,8 @@ export async function getCachedChartEntries(
       totalWeeksAppeared: entry.totalWeeksAppeared,
       highestPosition: entry.highestPosition,
       entryType: entry.entryType ?? null,
+      entryKey: entry.entryKey,
+      slug,
     }
   })
 }

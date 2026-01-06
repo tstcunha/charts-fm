@@ -15,6 +15,7 @@ interface ChartsClientProps {
   artists: EnrichedChartItem[]
   tracks: EnrichedChartItem[]
   albums: EnrichedChartItem[]
+  groupId: string
 }
 
 export default function ChartsClient({
@@ -25,6 +26,7 @@ export default function ChartsClient({
   artists,
   tracks,
   albums,
+  groupId,
 }: ChartsClientProps) {
   const [isLoading, setIsLoading] = useState(false)
 
@@ -46,6 +48,7 @@ export default function ChartsClient({
           albums={albums}
           isLoading={isLoading}
           onLoadingChange={setIsLoading}
+          groupId={groupId}
         />
       </div>
     </div>

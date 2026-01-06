@@ -181,6 +181,7 @@ export default async function ChartsPage({
           artists={artists}
           tracks={tracks}
           albums={albums}
+          groupId={group.id}
         />
       </div>
     </main>

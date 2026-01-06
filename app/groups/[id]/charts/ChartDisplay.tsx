@@ -15,9 +15,10 @@ interface ChartDisplayProps {
   albums: EnrichedChartItem[]
   isLoading?: boolean
   onLoadingChange?: (loading: boolean) => void
+  groupId: string
 }
 
-export default function ChartDisplay({ initialType, artists, tracks, albums, isLoading = false, onLoadingChange }: ChartDisplayProps) {
+export default function ChartDisplay({ initialType, artists, tracks, albums, isLoading = false, onLoadingChange, groupId }: ChartDisplayProps) {
   const [currentType, setCurrentType] = useState<ChartType>(initialType)
   const searchParams = useSearchParams()
   const isInternalChange = useRef(false)
@@ -74,7 +75,7 @@ export default function ChartDisplay({ initialType, artists, tracks, albums, isL
         <ChartTypeSelector currentType={currentType} onTypeChange={handleTypeChange} />
       </div>
       <div className={`transition-opacity duration-300 ${isLoading ? 'opacity-30' : 'opacity-100'}`}>
-        <ChartTable items={currentItems} chartType={currentType} />
+        <ChartTable items={currentItems} chartType={currentType} groupId={groupId} />
       </div>
       
       {isLoading && (

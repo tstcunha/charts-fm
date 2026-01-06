@@ -1,15 +1,18 @@
 'use client'
 
 import { useEffect } from 'react'
+import Link from 'next/link'
 import { EnrichedChartItem } from '@/lib/group-chart-metrics'
 import { useNavigation } from '@/contexts/NavigationContext'
+import { generateSlug } from '@/lib/chart-slugs'
 
 interface ChartTableProps {
   items: EnrichedChartItem[]
   chartType: 'artists' | 'tracks' | 'albums'
+  groupId: string
 }
 
-export default function ChartTable({ items, chartType }: ChartTableProps) {
+export default function ChartTable({ items, chartType, groupId }: ChartTableProps) {
   const { stopPulse } = useNavigation()
 
   useEffect(() => {
@@ -17,6 +20,16 @@ export default function ChartTable({ items, chartType }: ChartTableProps) {
       stopPulse()
     }
   }, [items, stopPulse])
+
+  // Get the route type (singular form: artist, track, album)
+  const routeType = chartType === 'artists' ? 'artist' : chartType === 'tracks' ? 'track' : 'album'
+  
+  // Generate slug if not present (for backward compatibility)
+  const getSlug = (item: EnrichedChartItem): string => {
+    if (item.slug) return item.slug
+    // Fallback: generate slug from entryKey
+    return generateSlug(item.entryKey, chartType)
+  }
   const formatPositionChange = (change: number | null, entryType?: string | null): string => {
     if (change === null) {
       if (entryType === 'new') return 'NEW'
@@ -104,7 +117,12 @@ export default function ChartTable({ items, chartType }: ChartTableProps) {
               </td>
               <td className="px-6 py-5 text-sm">
                 <div>
-                  <div className="font-medium text-gray-900">{item.name}</div>
+                  <Link
+                    href={`/groups/${groupId}/charts/${routeType}/${encodeURIComponent(getSlug(item))}`}
+                    className="font-medium text-gray-900 hover:text-[var(--theme-primary-dark)] transition-colors"
+                  >
+                    {item.name}
+                  </Link>
                   {item.artist && (
                     <div className="text-gray-500 text-xs mt-1">by {item.artist}</div>
                   )}

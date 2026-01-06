@@ -354,3 +354,5 @@ Potential improvements to the trends system:
 5. **Custom Time Ranges**: View trends for custom date ranges
 6. **Trend Alerts**: Notifications for significant movements
 
+
+
