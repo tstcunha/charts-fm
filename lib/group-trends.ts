@@ -788,6 +788,152 @@ export async function calculateGroupTrends(
 /**
  * Get cached trends for a group
  */
+/**
+ * Calculate consecutive streak in top 10 for chart entries
+ * Returns entries with their current consecutive streak (minimum 2 weeks)
+ */
+export async function calculateConsecutiveStreaks(
+  groupId: string,
+  weekStart: Date,
+  chartType?: 'artists' | 'tracks' | 'albums',
+  minStreak: number = 2
+): Promise<Array<{
+  chartType: string
+  entryKey: string
+  name: string
+  artist?: string
+  position: number
+  currentStreak: number
+}>> {
+  const normalizedWeekStart = new Date(weekStart)
+  normalizedWeekStart.setUTCHours(0, 0, 0, 0)
+  
+  // Limit historical lookback to 52 weeks (1 year) for performance
+  const maxLookbackWeeks = 52
+  const lookbackDate = new Date(normalizedWeekStart)
+  lookbackDate.setUTCDate(lookbackDate.getUTCDate() - (maxLookbackWeeks * 7))
+  
+  // Get current week's top 10 entries
+  const whereClause: any = {
+    groupId,
+    weekStart: normalizedWeekStart,
+    position: {
+      lte: 10,
+    },
+  }
+  
+  if (chartType) {
+    whereClause.chartType = chartType
+  }
+  
+  const currentTop10 = await prisma.groupChartEntry.findMany({
+    where: whereClause,
+  })
+  
+  if (currentTop10.length === 0) {
+    return []
+  }
+  
+  // Get entry keys grouped by chart type
+  const entryKeysByType = new Map<string, Set<string>>()
+  for (const entry of currentTop10) {
+    if (!entryKeysByType.has(entry.chartType)) {
+      entryKeysByType.set(entry.chartType, new Set())
+    }
+    entryKeysByType.get(entry.chartType)!.add(entry.entryKey)
+  }
+  
+  // Batch fetch historical entries (only last 52 weeks for performance)
+  const historicalQueries = Array.from(entryKeysByType.entries()).map(([type, keys]) =>
+    prisma.groupChartEntry.findMany({
+      where: {
+        groupId,
+        chartType: type,
+        weekStart: {
+          gte: lookbackDate,
+          lt: normalizedWeekStart,
+        },
+        entryKey: {
+          in: Array.from(keys),
+        },
+        position: {
+          lte: 10, // Only fetch entries that were in top 10
+        },
+      },
+      select: {
+        weekStart: true,
+        chartType: true,
+        entryKey: true,
+        position: true,
+      },
+      orderBy: {
+        weekStart: 'desc',
+      },
+    })
+  )
+  
+  const allHistoricalResults = await Promise.all(historicalQueries)
+  const allHistoricalEntries = allHistoricalResults.flat()
+  
+  // Group historical entries by entry key for quick lookup
+  const historicalByEntry = new Map<string, Map<number, number>>()
+  for (const histEntry of allHistoricalEntries) {
+    const key = `${histEntry.chartType}|${histEntry.entryKey}`
+    if (!historicalByEntry.has(key)) {
+      historicalByEntry.set(key, new Map())
+    }
+    const weekTime = histEntry.weekStart.getTime()
+    historicalByEntry.get(key)!.set(weekTime, histEntry.position)
+  }
+  
+  // Calculate consecutive streaks for each current top 10 entry
+  const streakCalculations = currentTop10.map((entry) => {
+    let streak = 1 // Start with current week
+    const key = `${entry.chartType}|${entry.entryKey}`
+    const historicalByWeek = historicalByEntry.get(key) || new Map()
+    
+    // Go backwards week by week to count consecutive appearances in top 10
+    let weekToCheck = new Date(normalizedWeekStart)
+    while (true) {
+      weekToCheck.setUTCDate(weekToCheck.getUTCDate() - 7)
+      const weekTime = weekToCheck.getTime()
+      
+      // Stop if we've gone beyond our lookback limit
+      if (weekTime < lookbackDate.getTime()) {
+        break
+      }
+      
+      const position = historicalByWeek.get(weekTime)
+      
+      // If entry exists in this week and was in top 10, continue streak
+      if (position !== undefined && position <= 10) {
+        streak++
+      } else {
+        // Streak broken
+        break
+      }
+    }
+    
+    return {
+      entry,
+      streak,
+    }
+  })
+  
+  // Filter to only entries with streak >= minStreak and sort by streak length
+  return streakCalculations
+    .filter(({ streak }) => streak >= minStreak)
+    .sort((a, b) => b.streak - a.streak)
+    .map(({ entry, streak }) => ({
+      chartType: entry.chartType,
+      entryKey: entry.entryKey,
+      name: entry.name,
+      artist: entry.artist || undefined,
+      position: entry.position,
+      currentStreak: streak,
+    }))
+}
+
 export async function getTrendsForGroup(groupId: string) {
   return await prisma.groupTrends.findUnique({
     where: { groupId },

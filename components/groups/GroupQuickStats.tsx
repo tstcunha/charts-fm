@@ -54,7 +54,7 @@ export default function GroupQuickStats({ groupId }: GroupQuickStatsProps) {
         {obsessionArtist ? (
           <>
             <div className="text-xl font-bold text-[var(--theme-text)] truncate">{obsessionArtist.name}</div>
-            <div className="text-sm text-gray-500 mt-1">{obsessionArtist.weeks} weeks in top 10</div>
+            <div className="text-sm text-gray-500 mt-1">{obsessionArtist.weeks} {obsessionArtist.weeks === 1 ? 'week' : 'weeks'} streak</div>
           </>
         ) : (
           <div className="text-lg font-bold text-gray-400">No data yet</div>

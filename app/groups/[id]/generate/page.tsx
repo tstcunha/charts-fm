@@ -1,4 +1,5 @@
 import { requireGroupCreator } from '@/lib/group-auth'
+import { getSuperuser } from '@/lib/admin'
 import Link from 'next/link'
 import GenerateChartsClient from './GenerateChartsClient'
 
@@ -18,6 +19,9 @@ export default async function GenerateChartsPage({ params }: { params: { id: str
     )
   }
 
-  return <GenerateChartsClient groupId={params.id} />
+  const superuser = await getSuperuser()
+  const isSuperuser = superuser !== null
+
+  return <GenerateChartsClient groupId={params.id} isSuperuser={isSuperuser} />
 }
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faFire, 
@@ -16,9 +17,11 @@ import {
   faUsers,
   faSkull,
   faLaughBeam,
-  faQuestionCircle
+  faQuestionCircle,
+  faArrowRight
 } from '@fortawesome/free-solid-svg-icons'
 import Tooltip from '@/components/Tooltip'
+import { formatWeekDate } from '@/lib/weekly-utils'
 
 type CategoryTab = 'members' | 'artists' | 'tracks' | 'albums'
 
@@ -129,6 +132,7 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
       icon: faChartLine,
       iconColor: 'text-[var(--theme-primary)]',
       entries: categoryLongestStreaks,
+      isLoading: isLoadingPersonal,
       renderEntry: (entry: any, idx: number) => (
         <div
           key={idx}
@@ -143,7 +147,7 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
               )}
             </div>
             <div className="text-sm text-gray-500">
-              #{entry.position} • {entry.totalWeeksAppeared} {entry.totalWeeksAppeared === 1 ? 'week' : 'weeks'} in top 10
+              #{entry.position} • {entry.currentStreak} {entry.currentStreak === 1 ? 'week' : 'weeks'} streak
             </div>
           </div>
         </div>
@@ -156,6 +160,7 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
       icon: faTrophy,
       iconColor: 'text-[var(--theme-primary)]',
       entries: categoryComebacks,
+      isLoading: isLoadingPersonal,
       renderEntry: (entry: any, idx: number) => (
         <div
           key={idx}
@@ -334,7 +339,11 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
                 {block.title}
               </h3>
               <div className="space-y-3">
-                {isEmpty ? (
+                {(block as any).isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <FontAwesomeIcon icon={faSpinner} className="animate-spin text-2xl text-[var(--theme-primary)]" />
+                  </div>
+                ) : isEmpty ? (
                   <div className="text-gray-500 text-center py-6 text-sm italic">
                     There are no entries to show. 🍂
                   </div>
@@ -365,8 +374,8 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
                                   {entry.weeksAway !== undefined && entry.weeksAway !== null && (
                                     <span className="ml-1">• Returned after {entry.weeksAway} {entry.weeksAway === 1 ? 'week' : 'weeks'} away</span>
                                   )}
-                                  {entry.totalWeeksAppeared !== undefined && entry.totalWeeksAppeared !== null && (
-                                    <span className="ml-1">• {entry.totalWeeksAppeared} {entry.totalWeeksAppeared === 1 ? 'week' : 'weeks'} in top 10</span>
+                                  {entry.currentStreak !== undefined && entry.currentStreak !== null && (
+                                    <span className="ml-1">• {entry.currentStreak} {entry.currentStreak === 1 ? 'week' : 'weeks'} streak</span>
                                   )}
                                 </div>
                               )}
@@ -674,6 +683,29 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
           <div className="text-sm text-gray-500 mt-1">Dropped out</div>
         </div>
       </div>
+
+      {/* Call to Action - View Detailed Charts */}
+      {trends.weekStart && (
+        <div className="bg-gradient-to-r from-[var(--theme-primary-light)] to-[var(--theme-primary-lighter)] rounded-xl shadow-sm p-6 border border-theme">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-[var(--theme-primary-dark)] mb-2">
+                See how the entire week played out
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Explore the complete charts with all artists, tracks, and albums ranked for this week.
+              </p>
+            </div>
+            <Link
+              href={`/groups/${groupId}/charts?week=${formatWeekDate(new Date(trends.weekStart))}`}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-[var(--theme-primary)] text-white rounded-lg font-semibold hover:bg-[var(--theme-primary-dark)] transition-colors shadow-sm whitespace-nowrap"
+            >
+              View Charts
+              <FontAwesomeIcon icon={faArrowRight} className="text-sm" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Fun Facts */}
       {funFacts.length > 0 && (

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireGroupMembership } from '@/lib/group-auth'
 import { getGroupWeeklyStats } from '@/lib/group-queries'
+import { calculateConsecutiveStreaks } from '@/lib/group-trends'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(
@@ -30,25 +31,27 @@ export async function GET(
                           albums.reduce((sum, a) => sum + (a.playcount || 0), 0)
     }
 
-    // Get the longest-charting artist (Obsession)
+    // Get the artist with the longest current consecutive streak in top 10 (Obsession)
     let obsessionArtist: { name: string; weeks: number } | null = null
     if (weeklyStats.length > 0) {
       const latestWeekStart = weeklyStats[0].weekStart
-      const longestCharting = await prisma.groupChartEntry.findFirst({
-        where: {
-          groupId: group.id,
-          chartType: 'artists',
-          weekStart: latestWeekStart, // Get from most recent week to ensure latest totalWeeksAppeared
-        },
-        orderBy: {
-          totalWeeksAppeared: 'desc',
-        },
-      })
-
-      if (longestCharting) {
+      const normalizedWeekStart = new Date(latestWeekStart)
+      normalizedWeekStart.setUTCHours(0, 0, 0, 0)
+      
+      // Calculate streaks for artists only, using shared function
+      const artistStreaks = await calculateConsecutiveStreaks(
+        group.id,
+        normalizedWeekStart,
+        'artists',
+        2 // Minimum 2 weeks
+      )
+      
+      if (artistStreaks.length > 0) {
+        // Get the artist with the longest streak (already sorted by streak desc)
+        const topStreak = artistStreaks[0]
         obsessionArtist = {
-          name: longestCharting.name,
-          weeks: longestCharting.totalWeeksAppeared,
+          name: topStreak.name,
+          weeks: topStreak.currentStreak,
         }
       }
     }

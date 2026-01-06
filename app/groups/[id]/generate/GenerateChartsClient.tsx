@@ -15,13 +15,14 @@ const LOADING_MESSAGES = [
   "Finding the hidden gems in your music taste...",
 ]
 
-export default function GenerateChartsClient({ groupId }: { groupId: string }) {
+export default function GenerateChartsClient({ groupId, isSuperuser = false }: { groupId: string; isSuperuser?: boolean }) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0)
   const [showFirstMessage, setShowFirstMessage] = useState(true)
+  const [weeks, setWeeks] = useState<number>(5)
 
   useEffect(() => {
     if (!isLoading) {
@@ -61,8 +62,17 @@ export default function GenerateChartsClient({ groupId }: { groupId: string }) {
     setCurrentMessageIndex(0)
 
     try {
+      const body: { weeks?: number } = {}
+      if (isSuperuser) {
+        body.weeks = weeks
+      }
+
       const response = await fetch(`/api/groups/${groupId}/charts`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
       })
 
       const data = await response.json()
@@ -137,8 +147,34 @@ export default function GenerateChartsClient({ groupId }: { groupId: string }) {
         <div className="bg-white rounded-lg shadow-lg p-8">
           <p className="text-gray-600 mb-6">
             This will fetch the latest listening data from Last.fm for all group members
-            and generate weekly charts for the last 5 weeks. This may take a few moments.
+            and generate weekly charts for the last {isSuperuser ? weeks : 5} weeks. This may take a few moments.
           </p>
+
+          {isSuperuser && (
+            <div className="mb-6">
+              <label htmlFor="weeks" className="block text-sm font-medium text-gray-700 mb-2">
+                Number of weeks to generate (Superuser only)
+              </label>
+              <input
+                id="weeks"
+                type="number"
+                min="1"
+                max="52"
+                value={weeks}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value, 10)
+                  if (!isNaN(value) && value > 0 && value <= 52) {
+                    setWeeks(value)
+                  }
+                }}
+                disabled={isLoading}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Enter the number of weeks in the past to generate charts for (1-52)
+              </p>
+            </div>
+          )}
 
           <div className="flex gap-4">
             <button

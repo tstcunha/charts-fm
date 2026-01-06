@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireGroupMembership } from '@/lib/group-auth'
-import { getTrendsForGroup, calculatePersonalizedStats } from '@/lib/group-trends'
+import { getTrendsForGroup, calculatePersonalizedStats, calculateConsecutiveStreaks } from '@/lib/group-trends'
 import { getGroupWeeklyStats, getGroupChartEntriesForWeek } from '@/lib/group-queries'
 import { prisma } from '@/lib/prisma'
 
@@ -34,21 +34,8 @@ export async function GET(
       const normalizedWeekStart = new Date(trends.weekStart)
       normalizedWeekStart.setUTCHours(0, 0, 0, 0)
       
-      // Get current week's chart entries for longest streaks
-      const currentEntries = await getGroupChartEntriesForWeek(group.id, normalizedWeekStart)
-      
-      // Calculate longest streaks - entries with highest totalWeeksAppeared
-      longestStreaks = currentEntries
-        .sort((a, b) => (b.totalWeeksAppeared || 0) - (a.totalWeeksAppeared || 0))
-        .slice(0, 10)
-        .map(entry => ({
-          chartType: entry.chartType,
-          entryKey: entry.entryKey,
-          name: entry.name,
-          artist: entry.artist || undefined,
-          position: entry.position,
-          totalWeeksAppeared: entry.totalWeeksAppeared || 0,
-        }))
+      // Calculate longest streaks using shared function
+      longestStreaks = await calculateConsecutiveStreaks(group.id, normalizedWeekStart, undefined, 2)
       
       // Calculate comebacks - entries that returned after being away
       const previousWeekStart = new Date(normalizedWeekStart)

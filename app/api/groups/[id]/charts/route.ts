@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getSuperuser } from '@/lib/admin'
 import { calculateGroupWeeklyStats, deleteOverlappingCharts, updateGroupIconFromChart } from '@/lib/group-service'
 import { getLastNFinishedWeeks, getLastNFinishedWeeksForDay, getWeekEndForDay } from '@/lib/weekly-utils'
 import { recalculateAllTimeStats } from '@/lib/group-alltime-stats'
@@ -118,11 +119,30 @@ export async function POST(
   // @ts-ignore - Prisma client will be regenerated after migration
   const chartMode = (group.chartMode || 'plays_only') as 'vs' | 'vs_weighted' | 'plays_only'
 
+  // Check if user is a superuser and get request body
+  const superuser = await getSuperuser()
+  const isSuperuser = superuser !== null
+  
+  let numberOfWeeks = 5 // Default to 5 weeks
+  if (isSuperuser) {
+    try {
+      const body = await request.json()
+      if (body.weeks !== undefined) {
+        const requestedWeeks = parseInt(body.weeks, 10)
+        if (!isNaN(requestedWeeks) && requestedWeeks > 0 && requestedWeeks <= 52) {
+          numberOfWeeks = requestedWeeks
+        }
+      }
+    } catch {
+      // If body parsing fails, use default
+    }
+  }
+
   // Initialize logger (infrastructure kept for future use)
   const logger = new ChartGenerationLogger(groupId)
 
-  // Calculate stats for last 5 finished weeks using group's tracking day
-  const weeks = getLastNFinishedWeeksForDay(5, trackingDayOfWeek)
+  // Calculate stats for last N finished weeks using group's tracking day
+  const weeks = getLastNFinishedWeeksForDay(numberOfWeeks, trackingDayOfWeek)
   
   // Fetch group members once (to reuse across all weeks)
   const members = await prisma.groupMember.findMany({
