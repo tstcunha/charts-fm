@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
 import { useNavigation } from '@/contexts/NavigationContext'
+import SignInModal from '@/components/SignInModal'
 
 export default function Navbar() {
   const { data: session, status } = useSession()
@@ -15,6 +16,9 @@ export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 })
   const buttonRef = useRef<HTMLButtonElement>(null)
+  const [isSigningOut, setIsSigningOut] = useState(false)
+  const signOutStartTimeRef = useRef<number | null>(null)
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
   const [userData, setUserData] = useState<{
     name: string | null
     lastfmUsername: string
@@ -41,6 +45,21 @@ export default function Navbar() {
     }
   }, [session])
 
+  // Clear sign out loading screen when user is actually logged out, but ensure it shows for at least 1 second
+  useEffect(() => {
+    if (isSigningOut && status === 'unauthenticated') {
+      const elapsed = signOutStartTimeRef.current 
+        ? Date.now() - signOutStartTimeRef.current 
+        : 0
+      const remainingTime = Math.max(0, 1000 - elapsed)
+      
+      setTimeout(() => {
+        setIsSigningOut(false)
+        signOutStartTimeRef.current = null
+      }, remainingTime)
+    }
+  }, [isSigningOut, status])
+
   useEffect(() => {
     if (isDropdownOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect()
@@ -52,26 +71,58 @@ export default function Navbar() {
   }, [isDropdownOpen])
 
   const handleLogout = async () => {
+    setIsSigningOut(true)
+    signOutStartTimeRef.current = Date.now()
     await signOut({ redirect: false })
-    router.push('/auth/signin')
+    router.push('/')
     router.refresh()
-  }
-
-  // Don't show navbar on auth pages
-  if (pathname?.startsWith('/auth/')) {
-    return null
   }
 
   const isAuthenticated = status === 'authenticated' && session?.user
 
+  // Don't show navbar on auth pages, but still show loading screen if signing out
+  if (pathname?.startsWith('/auth/')) {
+    return isSigningOut ? (
+      <div 
+        className="fixed inset-0 z-[9999] flex items-center justify-center"
+        style={{
+          background: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+        }}
+      >
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-gray-300 border-t-[var(--theme-primary)] rounded-full animate-spin"></div>
+          <p className="text-white text-lg font-semibold">Signing out...</p>
+        </div>
+      </div>
+    ) : null
+  }
+
   return (
-    <nav 
-      className="sticky top-0 z-50 relative overflow-x-hidden bg-black"
-      style={{
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
-      }}
-    >
+    <>
+      {isSigningOut && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          style={{
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+          }}
+        >
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-gray-300 border-t-[var(--theme-primary)] rounded-full animate-spin"></div>
+            <p className="text-white text-lg font-semibold">Signing out...</p>
+          </div>
+        </div>
+      )}
+      <nav 
+        className="sticky top-0 z-50 relative overflow-x-hidden bg-black"
+        style={{
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+        }}
+      >
       {isLoading && (
         <div className="absolute bottom-0 left-0 h-1 bg-yellow-500 w-1/4 shadow-lg shadow-yellow-500/50 animate-race-bar" />
       )}
@@ -82,7 +133,7 @@ export default function Navbar() {
               href="/" 
               className={`text-3xl font-bold text-yellow-500 transition-all font-oswald leading-none pb-1 ${isLoading ? 'animate-pulse-scale' : ''}`}
             >
-              Charts.fm
+              ChartsFM
             </Link>
             {isAuthenticated && (
               <div className="flex space-x-2">
@@ -330,7 +381,7 @@ export default function Navbar() {
                           e.currentTarget.style.background = 'transparent'
                         }}
                       >
-                        Sign out
+                        Sign Out
                       </button>
                     </div>
                   </div>
@@ -339,8 +390,8 @@ export default function Navbar() {
             </div>
           ) : (
             <div className="flex items-center space-x-3">
-              <Link
-                href="/auth/signin"
+              <button
+                onClick={() => setIsSignInModalOpen(true)}
                 className="px-4 py-2 rounded-full text-sm font-semibold text-gray-200 hover:text-white transition-all duration-200"
                 style={{
                   background: 'rgba(255, 255, 255, 0.1)',
@@ -359,7 +410,7 @@ export default function Navbar() {
                 }}
               >
                 Sign In
-              </Link>
+              </button>
               <Link
                 href="/auth/signup"
                 className="px-4 py-2 rounded-full text-sm font-semibold text-black transition-all duration-200"
@@ -382,6 +433,11 @@ export default function Navbar() {
         </div>
       </div>
     </nav>
+    <SignInModal
+      isOpen={isSignInModalOpen}
+      onClose={() => setIsSignInModalOpen(false)}
+    />
+    </>
   )
 }
 

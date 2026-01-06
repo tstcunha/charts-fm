@@ -37,7 +37,7 @@ export async function requireSuperuser() {
   const superuser = await getSuperuser()
   
   if (!superuser) {
-    redirect("/auth/signin")
+    redirect("/")
   }
   
   return superuser

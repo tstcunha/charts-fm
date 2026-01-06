@@ -16,7 +16,7 @@ export async function requireGroupMembership(groupId: string) {
   const session = await getSession()
   
   if (!session?.user?.email) {
-    redirect('/auth/signin')
+    redirect('/')
   }
 
   const user = await prisma.user.findUnique({
@@ -24,7 +24,7 @@ export async function requireGroupMembership(groupId: string) {
   })
 
   if (!user) {
-    redirect('/auth/signin')
+    redirect('/')
   }
 
   // First check if the group exists (without membership restriction)

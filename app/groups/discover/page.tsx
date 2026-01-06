@@ -7,7 +7,7 @@ export default async function DiscoverGroupsPage() {
   const session = await getSession()
   
   if (!session?.user?.email) {
-    redirect('/auth/signin')
+    redirect('/')
   }
 
   const user = await prisma.user.findUnique({
@@ -15,7 +15,7 @@ export default async function DiscoverGroupsPage() {
   })
 
   if (!user) {
-    redirect('/auth/signin')
+    redirect('/')
   }
 
   // Fetch initial groups data directly from database
@@ -85,8 +85,8 @@ export default async function DiscoverGroupsPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col pt-8 pb-24 px-6 md:px-12 lg:px-24 bg-gray-50">
-      <div className="max-w-7xl w-full mx-auto">
+    <main className="flex min-h-screen flex-col pt-8 pb-24 px-6 md:px-12 lg:px-24 relative">
+      <div className="max-w-7xl w-full mx-auto relative z-10">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <h1 className="text-4xl font-bold text-gray-900">
             Discover Groups

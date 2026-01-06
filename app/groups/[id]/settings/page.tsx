@@ -27,8 +27,8 @@ export default async function GroupSettingsPage({ params }: { params: { id: stri
   }
 
   return (
-    <main className="flex min-h-screen flex-col pt-8 pb-24 px-6 md:px-12 lg:px-24 bg-gray-50">
-      <div className="max-w-6xl w-full mx-auto">
+    <main className="flex min-h-screen flex-col pt-8 pb-24 px-6 md:px-12 lg:px-24 relative">
+      <div className="max-w-6xl w-full mx-auto relative z-10">
         <div className="mb-8">
           <nav className="mb-6 flex items-center gap-2 text-sm">
             <Link 
