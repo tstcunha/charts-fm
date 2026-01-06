@@ -4,6 +4,7 @@ import { useState } from 'react'
 import WeekSelector from './WeekSelector'
 import ChartDisplay from './ChartDisplay'
 import { EnrichedChartItem } from '@/lib/group-chart-metrics'
+import WeeklyChartDownloadButton from '@/components/charts/WeeklyChartDownloadButton'
 
 type ChartType = 'artists' | 'tracks' | 'albums'
 
@@ -33,12 +34,20 @@ export default function ChartsClient({
   return (
     <div className="grid grid-cols-12 gap-6">
       <div className="col-span-12 md:col-span-3">
-        <WeekSelector 
-          weeks={weeks} 
-          currentWeek={currentWeek}
-          trackingDayOfWeek={trackingDayOfWeek}
-          onWeekChange={() => setIsLoading(true)}
-        />
+        <div className="mb-4">
+          <WeekSelector 
+            weeks={weeks} 
+            currentWeek={currentWeek}
+            trackingDayOfWeek={trackingDayOfWeek}
+            onWeekChange={() => setIsLoading(true)}
+          />
+        </div>
+        <div className="flex justify-center">
+          <WeeklyChartDownloadButton
+            groupId={groupId}
+            weekStart={currentWeek}
+          />
+        </div>
       </div>
       <div className="col-span-12 md:col-span-9">
         <ChartDisplay
