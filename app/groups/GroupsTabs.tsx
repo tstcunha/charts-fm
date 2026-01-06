@@ -36,9 +36,10 @@ interface GroupsTabsProps {
   memberGroups: Group[]
   invites: Invite[]
   userId: string
+  pendingRequestsMap?: Record<string, number>
 }
 
-export default function GroupsTabs({ ownedGroups, memberGroups, invites, userId }: GroupsTabsProps) {
+export default function GroupsTabs({ ownedGroups, memberGroups, invites, userId, pendingRequestsMap = {} }: GroupsTabsProps) {
   const [activeTab, setActiveTab] = useState<'groups' | 'invites'>('groups')
   
   // Merge groups with owned groups first
@@ -93,13 +94,19 @@ export default function GroupsTabs({ ownedGroups, memberGroups, invites, userId 
     const colorTheme = group.colorTheme || 'white'
     const themeClass = `theme-${colorTheme.replace('_', '-')}`
     const groupImage = group.image || getDefaultGroupImage()
+    const pendingRequestsCount = pendingRequestsMap[group.id] || 0
     
     return (
       <Link
         key={group.id}
         href={href}
-        className={`block bg-gradient-to-br from-[var(--theme-background-from)] to-[var(--theme-background-to)] rounded-xl p-6 border border-[var(--theme-border)] hover:shadow-md transition-all ${themeClass}`}
+        className={`block bg-gradient-to-br from-[var(--theme-background-from)] to-[var(--theme-background-to)] rounded-xl p-6 border border-[var(--theme-border)] hover:shadow-md transition-all ${themeClass} relative`}
       >
+        {pendingRequestsCount > 0 && (
+          <span className="absolute top-4 right-4 px-2.5 py-1 bg-red-500 text-white rounded-full text-xs font-bold z-10">
+            {pendingRequestsCount}
+          </span>
+        )}
         <div className="flex items-start gap-4 mb-4">
           <div className="relative w-20 h-20 flex-shrink-0">
             <div className="w-20 h-20 rounded-xl overflow-hidden ring-2 ring-[var(--theme-ring)] bg-[var(--theme-primary-lighter)] transition-all">

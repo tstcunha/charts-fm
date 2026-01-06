@@ -27,6 +27,27 @@ export default async function GroupsPage() {
   const adminGroups = groups.filter((group: any) => group.creatorId === user.id)
   const memberGroups = groups.filter((group: any) => group.creatorId !== user.id)
 
+  // Get pending request counts for owned groups
+  const pendingRequestsMap: Record<string, number> = {}
+  if (adminGroups.length > 0) {
+    const ownedGroupIds = adminGroups.map((group: any) => group.id)
+    const pendingRequestsCounts = await prisma.groupJoinRequest.groupBy({
+      by: ['groupId'],
+      where: {
+        groupId: { in: ownedGroupIds },
+        status: 'pending',
+      },
+      _count: {
+        id: true,
+      },
+    })
+
+    // Create a map of groupId -> pending request count
+    pendingRequestsCounts.forEach((item) => {
+      pendingRequestsMap[item.groupId] = item._count.id
+    })
+  }
+
   return (
     <main className="flex min-h-screen flex-col pt-8 pb-24 px-6 md:px-12 lg:px-24 bg-gray-50">
       <div className="max-w-7xl w-full mx-auto">
@@ -55,6 +76,7 @@ export default async function GroupsPage() {
           memberGroups={memberGroups}
           invites={invites}
           userId={user.id}
+          pendingRequestsMap={pendingRequestsMap}
         />
       </div>
     </main>
