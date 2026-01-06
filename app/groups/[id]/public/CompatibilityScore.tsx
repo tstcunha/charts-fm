@@ -119,31 +119,26 @@ export default function CompatibilityScore({ groupId }: CompatibilityScoreProps)
   }
 
   // If no score exists, show button to calculate
+  // TEMPORARY: Recommendations system hidden for launch - button is faint and disabled
   if (!score) {
     return (
       <Tooltip 
-        content="Ready to discover your musical match score? Click to find out!"
+        content="Coming Soon!"
         position="top"
       >
         <button
           ref={buttonRef}
-          onClick={handleCalculate}
-          disabled={isLoading}
-          className="flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200 hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={(e) => {
+            // TEMPORARY: Prevent click - recommendations system hidden for launch
+            e.preventDefault()
+            e.stopPropagation()
+          }}
+          disabled
+          className="flex items-center gap-2 px-3 py-1.5 bg-white/50 backdrop-blur-sm rounded-lg border border-gray-200 opacity-40 cursor-not-allowed transition-colors"
         >
-          {isLoading ? (
-            <>
-              <FontAwesomeIcon icon={faSpinner} className="animate-spin text-red-500" />
-              <span className="font-semibold text-gray-600">Calculating...</span>
-              <FontAwesomeIcon icon={faInfoCircle} className="text-gray-400 text-xs" />
-            </>
-          ) : (
-            <>
-              <FontAwesomeIcon icon={faHeart} className="text-red-500" />
-              <span className="font-semibold text-gray-600">Check Match</span>
-              <FontAwesomeIcon icon={faInfoCircle} className="text-gray-400 text-xs" />
-            </>
-          )}
+          <FontAwesomeIcon icon={faHeart} className="text-red-500" />
+          <span className="font-semibold text-gray-600">Check Match</span>
+          <FontAwesomeIcon icon={faInfoCircle} className="text-gray-400 text-xs" />
         </button>
       </Tooltip>
     )
