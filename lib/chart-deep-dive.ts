@@ -2,7 +2,7 @@
 
 import { prisma } from './prisma'
 import { generateSlug, ChartType } from './chart-slugs'
-import { formatWeekDate } from './weekly-utils'
+import { formatWeekDate, getWeekStart } from './weekly-utils'
 
 export interface ChartHistoryEntry {
   weekStart: Date
@@ -465,29 +465,52 @@ export async function getArtistChartEntries(
     ],
   })
 
-  // Group by entryKey and calculate stats
+
+  // Group by entryKey AND chartType to separate tracks from albums
+  // Use Set to track distinct weeks to ensure accuracy
+  // Key format: "entryKey|chartType" to ensure tracks and albums are separate
   const entryMap = new Map<string, {
     entryKey: string
     name: string
     artist: string | null
     chartType: 'tracks' | 'albums'
     positions: number[]
-    weeks: number
+    weekStarts: Set<string> // Track distinct weeks as ISO date strings
+    entryCount: number // Count entries for validation
   }>()
 
   for (const entry of entries) {
-    const existing = entryMap.get(entry.entryKey)
+    // Use entryKey + chartType as the map key to separate tracks from albums
+    // This prevents mixing tracks and albums that share the same entryKey
+    const mapKey = `${entry.entryKey}|${entry.chartType}`
+    const existing = entryMap.get(mapKey)
+    // Normalize weekStart to ensure consistent grouping (Sunday 00:00:00 UTC)
+    const normalizedWeekStart = getWeekStart(entry.weekStart)
+    const weekKey = formatWeekDate(normalizedWeekStart) // Use normalized date as key
+    
     if (existing) {
+      // Validate that we're not grouping different albums/tracks
+      if (existing.name !== entry.name || existing.artist !== entry.artist) {
+        console.warn(
+          `[getArtistChartEntries] Warning: entryKey "${entry.entryKey}" (${entry.chartType}) has inconsistent data. ` +
+          `Existing: name="${existing.name}", artist="${existing.artist}". ` +
+          `New: name="${entry.name}", artist="${entry.artist}". ` +
+          `This may indicate a data integrity issue.`
+        )
+      }
+      
       existing.positions.push(entry.position)
-      existing.weeks++
+      existing.weekStarts.add(weekKey)
+      existing.entryCount++
     } else {
-      entryMap.set(entry.entryKey, {
+      entryMap.set(mapKey, {
         entryKey: entry.entryKey,
         name: entry.name,
         artist: entry.artist,
         chartType: entry.chartType as 'tracks' | 'albums',
         positions: [entry.position],
-        weeks: 1,
+        weekStarts: new Set([weekKey]),
+        entryCount: 1,
       })
     }
   }
@@ -496,10 +519,22 @@ export async function getArtistChartEntries(
   const tracks: ArtistChartEntry[] = []
   const albums: ArtistChartEntry[] = []
 
-  for (const [entryKey, data] of entryMap.entries()) {
+  for (const [mapKey, data] of entryMap.entries()) {
+    // mapKey is "entryKey|chartType", but we just need entryKey for the result
+    const entryKey = data.entryKey
     const peakPosition = Math.min(...data.positions)
     const weeksAtPeak = data.positions.filter((p) => p === peakPosition).length
+    // Count distinct weeks instead of just entries (should be the same, but more accurate)
+    const totalWeeksCharting = data.weekStarts.size
     const slug = generateSlug(entryKey, data.chartType)
+
+    // Validate: if entry count != distinct weeks, there might be duplicates
+    if (data.entryCount !== totalWeeksCharting) {
+      console.warn(
+        `[getArtistChartEntries] Warning: entryKey "${entryKey}" (${data.chartType}) has ${data.entryCount} entries ` +
+        `but only ${totalWeeksCharting} distinct weeks. This may indicate duplicate entries in the database.`
+      )
+    }
 
     const entry: ArtistChartEntry = {
       entryKey,
@@ -509,7 +544,7 @@ export async function getArtistChartEntries(
       chartType: data.chartType,
       peakPosition,
       weeksAtPeak,
-      totalWeeksCharting: data.weeks,
+      totalWeeksCharting,
     }
 
     if (data.chartType === 'tracks') {

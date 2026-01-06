@@ -260,23 +260,30 @@ export async function cacheChartMetrics(
   }
 
   // Delete existing entries for this week/chartType, then batch insert
-  await prisma.groupChartEntry.deleteMany({
-    where: {
-      groupId,
-      weekStart: normalizedWeekStart,
-      chartType,
-    },
-  })
-
-  // Batch insert all entries
-  if (entriesToCreate.length > 0) {
-    try {
-      await prisma.groupChartEntry.createMany({
-        data: entriesToCreate,
-        skipDuplicates: true,
+  // Use a transaction to make this atomic and prevent race conditions
+  // This prevents duplicate entries when chart generation runs concurrently
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Delete existing entries
+      await tx.groupChartEntry.deleteMany({
+        where: {
+          groupId,
+          weekStart: normalizedWeekStart,
+          chartType,
+        },
       })
 
-      // Invalidate cache for all entries in this chart
+      // Batch insert all entries (atomic with the delete above)
+      if (entriesToCreate.length > 0) {
+        await tx.groupChartEntry.createMany({
+          data: entriesToCreate,
+          skipDuplicates: true,
+        })
+      }
+    })
+
+    // Invalidate cache for all entries in this chart (outside transaction)
+    if (entriesToCreate.length > 0) {
       await invalidateEntryStatsCache(
         groupId,
         normalizedWeekStart,
@@ -287,33 +294,33 @@ export async function cacheChartMetrics(
           playcount: entry.playcount,
         }))
       )
-    } catch (error: any) {
-      // Log detailed error information for debugging
-      console.error('Error creating chart entries:', {
-        error: error.message,
-        groupId,
-        weekStart: normalizedWeekStart,
-        chartType,
-        entriesCount: entriesToCreate.length,
-        sampleEntry: entriesToCreate[0],
+    }
+  } catch (error: any) {
+    // Log detailed error information for debugging
+    console.error('Error creating chart entries:', {
+      error: error.message,
+      groupId,
+      weekStart: normalizedWeekStart,
+      chartType,
+      entriesCount: entriesToCreate.length,
+      sampleEntry: entriesToCreate[0],
+    })
+    
+    // Handle Prisma validation errors
+    if (error.message && error.message.includes('did not match the expected pattern')) {
+      // Find the problematic entry
+      const problematicEntry = entriesToCreate.find((entry) => {
+        // Check if entryKey might be invalid (empty or contains invalid characters)
+        return !entry.entryKey || entry.entryKey.trim() === '' || !entry.name || entry.name.trim() === ''
       })
       
-      // Handle Prisma validation errors
-      if (error.message && error.message.includes('did not match the expected pattern')) {
-        // Find the problematic entry
-        const problematicEntry = entriesToCreate.find((entry) => {
-          // Check if entryKey might be invalid (empty or contains invalid characters)
-          return !entry.entryKey || entry.entryKey.trim() === '' || !entry.name || entry.name.trim() === ''
-        })
-        
-        throw new Error(
-          `Invalid chart entry data: ${problematicEntry ? JSON.stringify(problematicEntry) : 'unknown entry'}. ` +
-          `This may be caused by invalid track/artist/album names from Last.fm data.`
-        )
-      }
-      
-      throw error
+      throw new Error(
+        `Invalid chart entry data: ${problematicEntry ? JSON.stringify(problematicEntry) : 'unknown entry'}. ` +
+        `This may be caused by invalid track/artist/album names from Last.fm data.`
+      )
     }
+    
+    throw error
   }
 }
 
