@@ -87,6 +87,7 @@ model Group {
   trackingDayOfWeek Int    @default(0) // Day of week for tracking (0=Sunday, 1=Monday, ..., 6=Saturday)
   dynamicIconEnabled Boolean @default(false) // Enable dynamic icon updates from weekly charts
   dynamicIconSource String? // Source type: 'top_artist', 'top_album', or 'top_track_artist'
+  dynamicIconCaption String? // Caption text for the dynamic icon (e.g., "Artist Name" or "Album by Artist" or "Track by Artist")
   colorTheme        String? @default("white") // Color theme: 'yellow', 'royal_blue', 'cyan', 'bright_red', 'maroon', 'graphite', 'hot_pink', 'neon_green', 'white', 'rainbow'
   chartGenerationInProgress Boolean @default(false) // Lock flag to prevent concurrent chart updates
   chartGenerationStartedAt DateTime? // Timestamp for timeout detection

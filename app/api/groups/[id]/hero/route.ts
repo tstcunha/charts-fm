@@ -74,6 +74,9 @@ export async function GET(
     // Can only update if not already in progress
     canUpdateCharts = canUpdateCharts && !chartGenerationInProgress
 
+    // Get caption from stored data (set when icon is updated)
+    const imageCaption = group.dynamicIconCaption || null
+
     return NextResponse.json({
       group: {
         id: group.id,
@@ -106,6 +109,7 @@ export async function GET(
       nextChartDateFormatted,
       canUpdateCharts,
       chartGenerationInProgress,
+      imageCaption,
     })
   } catch (error: any) {
     if (error.status === 401 || error.status === 403 || error.status === 404) {

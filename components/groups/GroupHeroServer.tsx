@@ -56,6 +56,9 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
     return null
   }
 
+  // Get caption from stored data (set when icon is updated)
+  const imageCaption = group.dynamicIconCaption || null
+
   const trackingDayOfWeek = group.trackingDayOfWeek ?? 0
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const trackingDayName = dayNames[trackingDayOfWeek]
@@ -113,13 +116,18 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
           <div className="flex items-start gap-6">
             {/* Large Group Icon */}
             <div className="relative flex-shrink-0">
-              <div className="w-32 h-32 rounded-2xl overflow-hidden shadow-sm ring-4 ring-theme bg-[var(--theme-primary-lighter)]">
+              <div className="w-40 h-40 rounded-2xl overflow-hidden shadow-sm ring-4 ring-theme bg-[var(--theme-primary-lighter)]">
                 <SafeImage
                   src={group.image}
                   alt={group.name}
                   className="object-cover w-full h-full"
                 />
               </div>
+              {imageCaption && (
+                <p className="text-xs italic text-gray-600 mt-2 text-left max-w-[10rem]">
+                  {imageCaption}
+                </p>
+              )}
             </div>
             
             {/* Group Info */}

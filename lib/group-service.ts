@@ -565,6 +565,7 @@ export async function updateGroupIconFromChart(groupId: string): Promise<void> {
   }
 
   let imageUrl: string | null = null
+  let caption: string | null = null
 
     try {
     // Extract the appropriate item based on source type
@@ -574,6 +575,7 @@ export async function updateGroupIconFromChart(groupId: string): Promise<void> {
         const topArtist = topArtists[0]
         if (topArtist.name) {
           imageUrl = await getArtistImage(topArtist.name, API_KEY)
+          caption = topArtist.name
         }
       }
     } else if (group.dynamicIconSource === 'top_album') {
@@ -582,6 +584,7 @@ export async function updateGroupIconFromChart(groupId: string): Promise<void> {
         const topAlbum = topAlbums[0]
         if (topAlbum.name && topAlbum.artist) {
           imageUrl = await getAlbumImage(topAlbum.artist, topAlbum.name, API_KEY)
+          caption = topAlbum.name
         }
       }
     } else if (group.dynamicIconSource === 'top_track_artist') {
@@ -590,6 +593,9 @@ export async function updateGroupIconFromChart(groupId: string): Promise<void> {
         const topTrack = topTracks[0]
         if (topTrack.artist) {
           imageUrl = await getArtistImage(topTrack.artist, API_KEY)
+          if (topTrack.name) {
+            caption = topTrack.name
+          }
         }
       }
     }
@@ -603,7 +609,10 @@ export async function updateGroupIconFromChart(groupId: string): Promise<void> {
   if (imageUrl) {
     await prisma.group.update({
       where: { id: groupId },
-      data: { image: imageUrl },
+      data: { 
+        image: imageUrl,
+        dynamicIconCaption: caption,
+      },
     })
   }
   // If imageUrl is null, keep the existing icon (don't update)

@@ -59,7 +59,7 @@ export default function GroupHero({ groupId }: GroupHeroProps) {
     )
   }
 
-  const { group, isOwner, members, daysUntilNextChart, nextChartDateFormatted, canUpdateCharts, chartGenerationInProgress } = data
+  const { group, isOwner, members, daysUntilNextChart, nextChartDateFormatted, canUpdateCharts, chartGenerationInProgress, imageCaption } = data
   const themeClass = `theme-${group.colorTheme.replace('_', '-')}`
   
   const handleUpdateComplete = () => {
@@ -95,13 +95,18 @@ export default function GroupHero({ groupId }: GroupHeroProps) {
           <div className="flex items-start gap-6">
             {/* Large Group Icon */}
             <div className="relative flex-shrink-0">
-              <div className="w-32 h-32 rounded-2xl overflow-hidden shadow-sm ring-4 ring-theme bg-[var(--theme-primary-lighter)]">
+              <div className="w-40 h-40 rounded-2xl overflow-hidden shadow-sm ring-4 ring-theme bg-[var(--theme-primary-lighter)]">
                 <SafeImage
                   src={group.image}
                   alt={group.name}
                   className="object-cover w-full h-full"
                 />
               </div>
+              {imageCaption && (
+                <p className="text-xs italic text-gray-600 mt-2 text-left max-w-[10rem]">
+                  {imageCaption}
+                </p>
+              )}
             </div>
             
             {/* Group Info */}

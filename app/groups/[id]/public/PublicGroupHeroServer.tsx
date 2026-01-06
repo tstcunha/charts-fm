@@ -77,6 +77,9 @@ export default async function PublicGroupHeroServer({ groupId, colorTheme }: Pub
   // @ts-ignore - Prisma client will be regenerated after migration
   const chartMode = (group.chartMode || 'plays_only') as string
 
+  // Get caption from stored data (set when icon is updated)
+  const imageCaption = group.dynamicIconCaption || null
+
   return (
     <div className={`mb-8 relative ${themeClass}`}>
       <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm p-8 border border-theme">
@@ -102,13 +105,18 @@ export default async function PublicGroupHeroServer({ groupId, colorTheme }: Pub
           <div className="flex items-start gap-6">
             {/* Large Group Icon */}
             <div className="relative flex-shrink-0">
-              <div className="w-32 h-32 rounded-2xl overflow-hidden shadow-sm ring-4 ring-theme bg-[var(--theme-primary-lighter)]">
+              <div className="w-40 h-40 rounded-2xl overflow-hidden shadow-sm ring-4 ring-theme bg-[var(--theme-primary-lighter)]">
                 <SafeImage
                   src={group.image}
                   alt={group.name}
                   className="object-cover w-full h-full"
                 />
               </div>
+              {imageCaption && (
+                <p className="text-xs italic text-gray-600 mt-2 text-left max-w-[10rem]">
+                  {imageCaption}
+                </p>
+              )}
             </div>
             
             {/* Group Info */}
