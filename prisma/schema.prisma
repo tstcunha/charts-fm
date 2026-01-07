@@ -38,6 +38,11 @@ model User {
   recommendationCache GroupRecommendationCache?
   chartEntryStatsAsMajorDriver ChartEntryStats[]
   quickAccessGroup Group? @relation("QuickAccessGroup", fields: [quickAccessGroupId], references: [id], onDelete: SetNull)
+  comments GroupComment[]
+  commentBans UserCommentBan[] @relation("UserCommentBans")
+  commentBansIssued UserCommentBan[] @relation("CommentBansIssued")
+  shoutboxPermissions GroupShoutboxPermission[]
+  shoutboxPermissionsGranted GroupShoutboxPermission[] @relation("ShoutboxPermissionsGranted")
   
   @@map("users")
 }
@@ -91,6 +96,8 @@ model Group {
   colorTheme        String? @default("white") // Color theme: 'yellow', 'royal_blue', 'cyan', 'bright_red', 'maroon', 'graphite', 'hot_pink', 'neon_green', 'white', 'rainbow'
   chartGenerationInProgress Boolean @default(false) // Lock flag to prevent concurrent chart updates
   chartGenerationStartedAt DateTime? // Timestamp for timeout detection
+  shoutboxEnabled Boolean @default(true) // Enable/disable shoutbox for group
+  shoutboxRestrictiveMode Boolean @default(false) // If true, only explicitly allowed users can post
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   
@@ -106,6 +113,8 @@ model Group {
   recommendationRejections GroupRecommendationRejection[]
   chartEntryStats ChartEntryStats[]
   quickAccessUsers User[] @relation("QuickAccessGroup")
+  comments GroupComment[]
+  shoutboxPermissions GroupShoutboxPermission[]
   
   @@map("groups")
 }
@@ -394,5 +403,55 @@ model ChartEntryStats {
   @@index([groupId, chartType, slug])
   @@index([groupId, chartType, entryKey])
   @@map("chart_entry_stats")
+}
+
+model GroupComment {
+  id        String   @id @default(cuid())
+  groupId   String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([groupId, createdAt])
+  @@index([userId, createdAt])
+  @@map("group_comments")
+}
+
+model UserCommentBan {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  bannedBy  String
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User @relation("UserCommentBans", fields: [userId], references: [id], onDelete: Cascade)
+  bannedByUser User @relation("CommentBansIssued", fields: [bannedBy], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@map("user_comment_bans")
+}
+
+model GroupShoutboxPermission {
+  id         String   @id @default(cuid())
+  groupId    String
+  userId     String
+  permission String   // "silenced" | "allowed"
+  grantedBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  group      Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user       User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grantedByUser User @relation("ShoutboxPermissionsGranted", fields: [grantedBy], references: [id], onDelete: Cascade)
+  
+  @@unique([groupId, userId])
+  @@index([groupId, permission])
+  @@index([userId])
+  @@map("group_shoutbox_permissions")
 }
 

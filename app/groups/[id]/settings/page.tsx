@@ -5,6 +5,7 @@ import RegenerateChartsTab from './RegenerateChartsTab'
 import GroupSettingsForm from './GroupSettingsForm'
 import GroupDetailsTab from './GroupDetailsTab'
 import StylingTab from './StylingTab'
+import ShoutboxSettingsTab from './ShoutboxSettingsTab'
 import DeleteGroupTab from './DeleteGroupTab'
 
 // Force dynamic rendering to prevent caching
@@ -77,6 +78,9 @@ export default async function GroupSettingsPage({ params }: { params: { id: stri
               groupId={group.id}
               initialColorTheme={(group as any).colorTheme}
             />
+          }
+          shoutboxContent={
+            <ShoutboxSettingsTab groupId={group.id} />
           }
           deleteGroupContent={
             <DeleteGroupTab

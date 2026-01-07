@@ -8,6 +8,7 @@ import GroupWeeklyChartsTab from '@/components/groups/GroupWeeklyChartsTab'
 import GroupAllTimeTab from '@/components/groups/GroupAllTimeTab'
 import GroupMembersTab from '@/components/groups/GroupMembersTab'
 import GroupTrendsTab from '@/components/groups/GroupTrendsTab'
+import GroupShoutbox from '@/components/groups/GroupShoutbox'
 import { prisma } from '@/lib/prisma'
 
 export default async function GroupPage({ params }: { params: { id: string } }) {
@@ -68,6 +69,14 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
           membersContent={
             <GroupMembersTab groupId={group.id} />
           }
+        />
+
+        {/* Shoutbox - always visible at bottom if enabled */}
+        <GroupShoutbox 
+          groupId={group.id} 
+          userId={user.id}
+          isOwner={isOwner}
+          shoutboxEnabled={group.shoutboxEnabled ?? true}
         />
       </div>
     </main>
