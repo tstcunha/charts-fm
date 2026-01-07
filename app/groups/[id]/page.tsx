@@ -8,6 +8,7 @@ import GroupWeeklyChartsTab from '@/components/groups/GroupWeeklyChartsTab'
 import GroupAllTimeTab from '@/components/groups/GroupAllTimeTab'
 import GroupMembersTab from '@/components/groups/GroupMembersTab'
 import GroupTrendsTab from '@/components/groups/GroupTrendsTab'
+import GroupSearchTab from '@/components/groups/GroupSearchTab'
 import GroupShoutbox from '@/components/groups/GroupShoutbox'
 import { prisma } from '@/lib/prisma'
 
@@ -68,6 +69,9 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
           }
           membersContent={
             <GroupMembersTab groupId={group.id} />
+          }
+          searchContent={
+            <GroupSearchTab groupId={group.id} />
           }
         />
 

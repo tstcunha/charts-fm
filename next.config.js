@@ -1,8 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['lastfm.freetls.fastly.net', 'i.scdn.co'],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lastfm.freetls.fastly.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.scdn.co',
+      },
       {
         protocol: 'https',
         hostname: '**',

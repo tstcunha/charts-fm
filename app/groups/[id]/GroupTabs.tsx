@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { faChartBar, faTrophy, faUsers, faFire } from '@fortawesome/free-solid-svg-icons'
+import { faChartBar, faTrophy, faUsers, faFire, faSearch } from '@fortawesome/free-solid-svg-icons'
 import LiquidGlassTabs, { TabItem } from '@/components/LiquidGlassTabs'
 
-type Tab = 'charts' | 'members' | 'alltime' | 'trends'
+type Tab = 'charts' | 'members' | 'alltime' | 'trends' | 'search'
 
 interface GroupTabsProps {
   defaultTab?: Tab
@@ -12,6 +12,7 @@ interface GroupTabsProps {
   chartsContent: React.ReactNode
   allTimeContent: React.ReactNode
   trendsContent?: React.ReactNode
+  searchContent?: React.ReactNode
   pendingRequestsCount?: number
 }
 
@@ -21,6 +22,7 @@ export default function GroupTabs({
   chartsContent,
   allTimeContent,
   trendsContent,
+  searchContent,
   pendingRequestsCount = 0
 }: GroupTabsProps) {
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab)
@@ -30,6 +32,7 @@ export default function GroupTabs({
     { id: 'charts', label: 'Weekly Charts', icon: faChartBar },
     { id: 'alltime', label: 'All-Time Stats', icon: faTrophy },
     { id: 'members', label: 'Members', icon: faUsers, badge: pendingRequestsCount },
+    { id: 'search', label: 'Search', icon: faSearch },
   ], [pendingRequestsCount])
 
   return (
@@ -56,6 +59,9 @@ export default function GroupTabs({
         </div>
         <div style={{ display: activeTab === 'members' ? 'block' : 'none' }}>
           {membersContent}
+        </div>
+        <div style={{ display: activeTab === 'search' ? 'block' : 'none' }}>
+          {searchContent}
         </div>
       </div>
     </div>
