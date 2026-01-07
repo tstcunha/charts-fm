@@ -19,6 +19,10 @@ function CompleteSignUpPageContent() {
   })
 
   useEffect(() => {
+    document.title = 'ChartsFM - Complete Sign Up'
+  }, [])
+
+  useEffect(() => {
     // Check if we have Last.fm session data
     fetch('/api/auth/lastfm/session')
       .then(res => res.json())

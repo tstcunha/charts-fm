@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import CustomSelect from '@/components/CustomSelect'
 
@@ -60,6 +60,10 @@ export default function CreateGroupPage() {
   // Find initial carousel index
   const initialIndex = CHART_MODES.findIndex(mode => mode.value === formData.chartMode)
   const [carouselIndex, setCarouselIndex] = useState(initialIndex >= 0 ? initialIndex : 0)
+
+  useEffect(() => {
+    document.title = 'ChartsFM - Create Group'
+  }, [])
 
   // Step 1 validation
   const validateStep1 = (): boolean => {

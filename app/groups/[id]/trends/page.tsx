@@ -3,6 +3,20 @@ import { getTrendsForGroup } from '@/lib/group-trends'
 import Link from 'next/link'
 import TrendsClient from './TrendsClient'
 import GroupPageHero from '@/components/groups/GroupPageHero'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  try {
+    const { group } = await requireGroupMembership(params.id)
+    return {
+      title: `${group?.name || 'Group'} - Trends`,
+    }
+  } catch {
+    return {
+      title: 'Trends',
+    }
+  }
+}
 
 // Helper function to format date as "Dec. 28, 2025"
 function formatDateWritten(date: Date): string {

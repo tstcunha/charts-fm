@@ -73,9 +73,40 @@ A web application for visualizing your Last.fm listening statistics with beautif
 
 ## Database Setup
 
-### Local PostgreSQL
+### Local Development with Docker (Recommended)
 
-If you don't have PostgreSQL installed:
+The easiest way to set up a local database is using Docker Compose:
+
+1. **Start the PostgreSQL container:**
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Create `.env.local` file** (or update your `.env`):
+   ```env
+   DATABASE_URL="postgresql://chartsfm:devpassword@localhost:5432/chartsfm_dev"
+   ```
+
+3. **Push the schema to the database:**
+   ```bash
+   npm run db:push
+   ```
+
+The database will persist in a Docker volume, so your data will remain even after stopping the container.
+
+**To stop the database:**
+```bash
+docker-compose down
+```
+
+**To remove the database and start fresh:**
+```bash
+docker-compose down -v
+```
+
+### Alternative: Local PostgreSQL Installation
+
+If you prefer to install PostgreSQL directly:
 
 **macOS (using Homebrew):**
 ```bash

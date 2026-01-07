@@ -5,6 +5,20 @@ import Link from 'next/link'
 import ChartsClient from './ChartsClient'
 import { getCachedChartEntries } from '@/lib/group-chart-metrics'
 import GroupPageHero from '@/components/groups/GroupPageHero'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  try {
+    const { group } = await requireGroupMembership(params.id)
+    return {
+      title: `${group?.name || 'Group'} - Charts`,
+    }
+  } catch {
+    return {
+      title: 'Charts',
+    }
+  }
+}
 
 // Helper function to format date as "Dec. 28, 2025"
 function formatDateWritten(date: Date): string {

@@ -1,6 +1,11 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
 import LandingPageClient from './LandingPageClient'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Home',
+}
 
 export default async function Home() {
   const session = await getSession()

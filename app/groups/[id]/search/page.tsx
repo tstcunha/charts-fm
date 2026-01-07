@@ -3,6 +3,20 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import SearchResultsClient from './SearchResultsClient'
 import GroupPageHero from '@/components/groups/GroupPageHero'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  try {
+    const { group } = await requireGroupMembership(params.id)
+    return {
+      title: `${group?.name || 'Group'} - Search`,
+    }
+  } catch {
+    return {
+      title: 'Search',
+    }
+  }
+}
 
 async function searchChartEntries(groupId: string, searchTerm: string) {
   if (!searchTerm.trim()) {

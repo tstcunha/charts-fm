@@ -106,6 +106,10 @@ function SignUpPageContent() {
   }, [status, session])
 
   useEffect(() => {
+    document.title = 'ChartsFM - Sign Up'
+  }, [])
+
+  useEffect(() => {
     // Check for error in query params
     try {
       const errorParam = searchParams?.get('error')

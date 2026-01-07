@@ -7,6 +7,20 @@ import AllTimeChartTable from './AllTimeChartTable'
 import { recalculateAllTimeStats } from '@/lib/group-alltime-stats'
 import { TopItem } from '@/lib/lastfm-weekly'
 import { EnrichedChartItem } from '@/lib/group-chart-metrics'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  try {
+    const { group } = await requireGroupMembership(params.id)
+    return {
+      title: `${group?.name || 'Group'} - All-Time Stats`,
+    }
+  } catch {
+    return {
+      title: 'All-Time Stats',
+    }
+  }
+}
 
 type ChartType = 'artists' | 'tracks' | 'albums'
 

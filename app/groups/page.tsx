@@ -5,6 +5,11 @@ import { getUserGroups, getUserGroupInvites } from '@/lib/group-queries'
 import Link from 'next/link'
 import GroupsTabs from './GroupsTabs'
 import { LiquidGlassLink } from '@/components/LiquidGlassButton'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'My Groups',
+}
 
 export default async function GroupsPage() {
   const session = await getSession()

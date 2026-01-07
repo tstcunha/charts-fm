@@ -7,9 +7,23 @@ import GroupDetailsTab from './GroupDetailsTab'
 import StylingTab from './StylingTab'
 import ShoutboxSettingsTab from './ShoutboxSettingsTab'
 import DeleteGroupTab from './DeleteGroupTab'
+import type { Metadata } from 'next'
 
 // Force dynamic rendering to prevent caching
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  try {
+    const { group } = await requireGroupCreator(params.id)
+    return {
+      title: `${group?.name || 'Group'} - Settings`,
+    }
+  } catch {
+    return {
+      title: 'Group Settings',
+    }
+  }
+}
 
 export default async function GroupSettingsPage({ params }: { params: { id: string } }) {
   const { user, group } = await requireGroupCreator(params.id)

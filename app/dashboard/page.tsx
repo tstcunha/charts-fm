@@ -6,6 +6,11 @@ import ActivityFeed from '@/components/dashboard/ActivityFeed'
 import QuickActionsPanel from '@/components/dashboard/QuickActionsPanel'
 import GroupsYouMightLike from '@/components/dashboard/GroupsYouMightLike'
 import EmptyStateCTA from '@/components/dashboard/EmptyStateCTA'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Dashboard',
+}
 
 export default async function DashboardPage() {
   const session = await getSession()

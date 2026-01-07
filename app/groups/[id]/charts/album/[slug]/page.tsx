@@ -4,6 +4,30 @@ import { getEntryChartHistory } from '@/lib/chart-deep-dive'
 import { notFound } from 'next/navigation'
 import DeepDiveClient from '../../[type]/[slug]/DeepDiveClient'
 import DeepDiveHero from '@/components/charts/DeepDiveHero'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: { id: string; slug: string } }): Promise<Metadata> {
+  try {
+    const { group } = await requireGroupMembership(params.id)
+    const entry = await prisma.groupChartEntry.findFirst({
+      where: {
+        groupId: group?.id,
+        chartType: 'albums',
+        slug: params.slug,
+      },
+      orderBy: { weekStart: 'desc' },
+    })
+    if (entry) {
+      const title = entry.artist ? `${entry.name} by ${entry.artist}` : entry.name
+      return {
+        title: `${group?.name || 'Group'} - ${title}`,
+      }
+    }
+  } catch {}
+  return {
+    title: 'Album',
+  }
+}
 
 export default async function AlbumDeepDivePage({
   params,

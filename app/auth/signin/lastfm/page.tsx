@@ -10,6 +10,10 @@ export default function LastFMSignInPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    document.title = 'ChartsFM - Sign In'
+  }, [])
+
+  useEffect(() => {
     async function handleSignIn() {
       try {
         // Get the Last.fm credentials from the cookie via an API route

@@ -23,6 +23,10 @@ export default function ProfilePage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
   useEffect(() => {
+    document.title = 'ChartsFM - Profile'
+  }, [])
+
+  useEffect(() => {
     fetch('/api/user/profile')
       .then(res => res.json())
       .then(data => {

@@ -21,7 +21,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ChartsFM - Your Last.fm Listening Stats",
+  title: {
+    template: "ChartsFM - %s",
+    default: "ChartsFM",
+  },
   description: "Create beautiful charts and visualizations from your Last.fm listening data",
 };
 

@@ -1,6 +1,20 @@
 import { getPublicGroupById } from '@/lib/group-queries'
 import PublicGroupHeroServer from './PublicGroupHeroServer'
 import PublicGroupWeeklyCharts from './PublicGroupWeeklyCharts'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  try {
+    const group = await getPublicGroupById(params.id)
+    return {
+      title: group?.name || 'Public Group',
+    }
+  } catch {
+    return {
+      title: 'Public Group',
+    }
+  }
+}
 
 export default async function PublicGroupPage({ params }: { params: { id: string } }) {
   const group = await getPublicGroupById(params.id)

@@ -14,6 +14,10 @@ function VerifyEmailPageContent() {
   const [resendSuccess, setResendSuccess] = useState(false)
 
   useEffect(() => {
+    document.title = 'ChartsFM - Verify Email'
+  }, [])
+
+  useEffect(() => {
     const token = searchParams?.get('token')
     const errorParam = searchParams?.get('error')
     const emailParam = searchParams?.get('email')

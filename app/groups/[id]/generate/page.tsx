@@ -3,6 +3,20 @@ import { getSuperuser } from '@/lib/admin'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import GenerateChartsClient from './GenerateChartsClient'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  try {
+    const { group } = await requireGroupCreator(params.id)
+    return {
+      title: `${group?.name || 'Group'} - Generate Charts`,
+    }
+  } catch {
+    return {
+      title: 'Generate Charts',
+    }
+  }
+}
 
 export default async function GenerateChartsPage({ params }: { params: { id: string } }) {
   const { user, group } = await requireGroupCreator(params.id)

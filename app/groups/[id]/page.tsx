@@ -11,6 +11,20 @@ import GroupTrendsTab from '@/components/groups/GroupTrendsTab'
 import GroupSearchTab from '@/components/groups/GroupSearchTab'
 import GroupShoutbox from '@/components/groups/GroupShoutbox'
 import { prisma } from '@/lib/prisma'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  try {
+    const { group } = await requireGroupMembership(params.id)
+    return {
+      title: group?.name || 'Group',
+    }
+  } catch {
+    return {
+      title: 'Group',
+    }
+  }
+}
 
 export default async function GroupPage({ params }: { params: { id: string } }) {
   const { user, group } = await requireGroupMembership(params.id)

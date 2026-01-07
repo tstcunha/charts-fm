@@ -4,6 +4,20 @@ import Link from 'next/link'
 import RecordsClient from './RecordsClient'
 import GroupPageHero from '@/components/groups/GroupPageHero'
 import { prisma } from '@/lib/prisma'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  try {
+    const { group } = await requireGroupMembership(params.id)
+    return {
+      title: `${group?.name || 'Group'} - Records`,
+    }
+  } catch {
+    return {
+      title: 'Records',
+    }
+  }
+}
 
 export default async function RecordsPage({ params }: { params: { id: string } }) {
   const { user, group } = await requireGroupMembership(params.id)

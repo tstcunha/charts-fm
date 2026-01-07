@@ -1,5 +1,10 @@
 import { requireSuperuser } from '@/lib/admin'
 import BulkGenerateForm from './BulkGenerateForm'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Bulk Generate',
+}
 
 export default async function BulkGeneratePage() {
   // Check superuser access - will redirect if not authorized

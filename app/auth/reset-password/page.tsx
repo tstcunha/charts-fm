@@ -20,6 +20,10 @@ function ResetPasswordPageContent() {
   })
 
   useEffect(() => {
+    document.title = 'ChartsFM - Reset Password'
+  }, [])
+
+  useEffect(() => {
     const tokenParam = searchParams?.get('token')
     if (tokenParam) {
       setToken(tokenParam)
