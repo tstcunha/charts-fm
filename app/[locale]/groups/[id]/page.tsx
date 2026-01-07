@@ -11,31 +11,35 @@ import GroupTrendsTab from '@/components/groups/GroupTrendsTab'
 import GroupSearchTab from '@/components/groups/GroupSearchTab'
 import GroupShoutbox from '@/components/groups/GroupShoutbox'
 import { prisma } from '@/lib/prisma'
+import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   try {
     const { group } = await requireGroupMembership(params.id)
+    const t = await getTranslations('groups')
     return {
-      title: group?.name || 'Group',
+      title: group?.name || t('title'),
     }
   } catch {
+    const t = await getTranslations('groups')
     return {
-      title: 'Group',
+      title: t('title'),
     }
   }
 }
 
 export default async function GroupPage({ params }: { params: { id: string } }) {
   const { user, group } = await requireGroupMembership(params.id)
+  const t = await getTranslations('groups')
 
   if (!group) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-24">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Group not found</h1>
+          <h1 className="text-2xl font-bold mb-4">{t('notFound')}</h1>
           <Link href="/groups" className="text-gray-600 hover:underline">
-            Back to Groups
+            {t('backToGroups')}
           </Link>
         </div>
       </main>

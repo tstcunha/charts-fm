@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { useRouter } from '@/i18n/routing'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface GroupSearchTabProps {
   groupId: string
 }
 
 export default function GroupSearchTab({ groupId }: GroupSearchTabProps) {
+  const t = useSafeTranslations('groups.search')
   const [searchTerm, setSearchTerm] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const router = useRouter()
@@ -30,7 +32,7 @@ export default function GroupSearchTab({ groupId }: GroupSearchTabProps) {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">Search Charts</h2>
+        <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">{t('title')}</h2>
       </div>
       <div className="flex gap-3">
         <div className="flex-1 relative">
@@ -39,7 +41,7 @@ export default function GroupSearchTab({ groupId }: GroupSearchTabProps) {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Search for artists, tracks, or albums..."
+            placeholder={t('placeholder')}
             disabled={isSearching}
             className="w-full px-4 py-3 pr-12 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] focus:ring-opacity-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
@@ -81,7 +83,7 @@ export default function GroupSearchTab({ groupId }: GroupSearchTabProps) {
           ) : (
             <FontAwesomeIcon icon={faSearch} />
           )}
-          Search
+          {t('search')}
         </button>
       </div>
     </div>

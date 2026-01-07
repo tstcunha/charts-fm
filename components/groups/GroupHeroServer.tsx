@@ -7,6 +7,7 @@ import UpdateChartsButton from './UpdateChartsButton'
 import ShareGroupButton from '@/app/[locale]/groups/[id]/ShareGroupButton'
 import QuickAccessButton from '@/app/[locale]/groups/[id]/QuickAccessButton'
 import { LiquidGlassLink } from '@/components/LiquidGlassButton'
+import { getTranslations } from 'next-intl/server'
 
 interface GroupHeroServerProps {
   groupId: string
@@ -15,6 +16,7 @@ interface GroupHeroServerProps {
 }
 
 export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: GroupHeroServerProps) {
+  const t = await getTranslations('groups.hero')
   // Fetch members with images
   const membersWithImages = await prisma.groupMember.findMany({
     where: { groupId },
@@ -60,7 +62,15 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
   const imageCaption = group.dynamicIconCaption || null
 
   const trackingDayOfWeek = group.trackingDayOfWeek ?? 0
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const dayNames = [
+    t('daysOfWeek.sunday'),
+    t('daysOfWeek.monday'),
+    t('daysOfWeek.tuesday'),
+    t('daysOfWeek.wednesday'),
+    t('daysOfWeek.thursday'),
+    t('daysOfWeek.friday'),
+    t('daysOfWeek.saturday')
+  ]
   const trackingDayName = dayNames[trackingDayOfWeek]
   
   const now = new Date()
@@ -106,7 +116,7 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
             href="/groups" 
             className="text-gray-500 hover:text-[var(--theme-text)] transition-colors"
           >
-            Groups
+            {t('breadcrumb')}
           </Link>
           <span className="text-gray-400">/</span>
           <span className="text-gray-900 font-medium truncate">{group.name}</span>
@@ -137,19 +147,19 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
               </h1>
               <div className="flex flex-wrap items-center gap-4 mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Owner:</span>
+                  <span className="text-sm text-gray-600">{t('owner')}</span>
                   <span className="font-semibold text-gray-900">
-                    {group.creator ? (group.creator.name || group.creator.lastfmUsername) : 'Deleted User'}
+                    {group.creator ? (group.creator.name || group.creator.lastfmUsername) : t('deletedUser')}
                   </span>
                 </div>
                 <span className="text-gray-300">•</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Members:</span>
+                  <span className="text-sm text-gray-600">{t('members')}</span>
                   <span className="font-semibold text-gray-900">{group._count.members}</span>
                 </div>
                 <span className="text-gray-300">•</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Tracking:</span>
+                  <span className="text-sm text-gray-600">{t('tracking')}</span>
                   <span className="font-semibold text-gray-900">{trackingDayName}</span>
                 </div>
               </div>
@@ -173,7 +183,7 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
                     ))}
                   </div>
                   {membersWithImages.length > 6 && (
-                    <span className="text-sm text-gray-600 ml-2">+{membersWithImages.length - 6} more</span>
+                    <span className="text-sm text-gray-600 ml-2">{t('moreMembers', { count: membersWithImages.length - 6 })}</span>
                   )}
                 </div>
               )}
@@ -193,7 +203,7 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                   }}
                 >
-                  <span>Next charts in {daysUntilNextChart} {daysUntilNextChart === 1 ? 'day' : 'days'}</span>
+                  <span>{t(daysUntilNextChart === 1 ? 'nextChartsIn' : 'nextChartsInDays', { count: daysUntilNextChart })}</span>
                   <span className="text-xs opacity-80">({nextChartDateFormatted})</span>
                 </div>
               )}
@@ -210,7 +220,7 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
                 useTheme
                 size="md"
               >
-                Settings
+                {t('settings')}
               </LiquidGlassLink>
             )}
           </div>

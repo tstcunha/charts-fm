@@ -7,6 +7,7 @@ import { faMusic, faMicrophone, faCompactDisc, faTrophy, faSpinner, faMedal } fr
 import { LiquidGlassLink } from '@/components/LiquidGlassButton'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
 import { generateSlug } from '@/lib/chart-slugs'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface GroupAllTimeTabProps {
   groupId: string
@@ -14,6 +15,7 @@ interface GroupAllTimeTabProps {
 }
 
 export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabProps) {
+  const t = useSafeTranslations('groups.allTimeStats')
   const [data, setData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -32,7 +34,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
         setIsLoading(false)
       })
       .catch((err) => {
-        setError('Failed to load all-time stats')
+        setError(t('failedToLoad'))
         setIsLoading(false)
         console.error('Error fetching all-time stats:', err)
       })
@@ -56,7 +58,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
     return (
       <div>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">All-Time Stats</h2>
+          <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">{t('title')}</h2>
         </div>
         <div className="flex items-center justify-center py-12">
           <FontAwesomeIcon icon={faSpinner} className="animate-spin text-4xl text-[var(--theme-primary)]" />
@@ -69,21 +71,21 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
     return (
       <div>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">All-Time Stats</h2>
+          <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">{t('title')}</h2>
         </div>
         <div className="bg-[var(--theme-background-from)] rounded-xl shadow-sm p-12 text-center border border-theme">
           <div className="mb-4 text-[var(--theme-primary)]">
             <FontAwesomeIcon icon={faTrophy} size="3x" />
           </div>
-          <p className="text-gray-700 text-lg mb-2 font-medium">No all-time stats available yet.</p>
-          <p className="text-gray-500 text-sm mb-6">Generate charts to start building your all-time rankings!</p>
+          <p className="text-gray-700 text-lg mb-2 font-medium">{t('noStatsAvailable')}</p>
+          <p className="text-gray-500 text-sm mb-6">{t('generateChartsToStart')}</p>
           {!data?.hasWeeklyStats && isOwner && (
             <LiquidGlassLink
               href={`/groups/${groupId}/generate`}
               variant="primary"
               useTheme
             >
-              Generate Charts
+              {t('generateCharts')}
             </LiquidGlassLink>
           )}
         </div>
@@ -99,7 +101,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">All-Time Stats</h2>
+        <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">{t('title')}</h2>
       </div>
 
       {/* Records Preview Section */}
@@ -108,14 +110,14 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <FontAwesomeIcon icon={faMedal} className="text-[var(--theme-primary)]" />
-              Records
+              {t('records')}
             </h3>
             <LiquidGlassLink
               href={`/groups/${groupId}/records`}
               variant="primary"
               useTheme
             >
-              View All Records
+              {t('viewAllRecords')}
             </LiquidGlassLink>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -123,7 +125,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
                   <FontAwesomeIcon icon={faMicrophone} className="text-[var(--theme-primary)]" />
-                  <span className="text-sm font-semibold text-gray-600">Artist (most consecutive weeks)</span>
+                  <span className="text-sm font-semibold text-gray-600">{t('artistMostConsecutive')}</span>
                 </div>
                 <Link
                   href={`/groups/${groupId}/charts/artist/${previewData.artist.slug}`}
@@ -132,7 +134,9 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
                   {previewData.artist.name}
                 </Link>
                 <p className="text-sm text-gray-600">
-                  {previewData.artist.value} {previewData.artist.value === 1 ? 'week' : 'weeks'} on chart
+                  {previewData.artist.value === 1 
+                    ? t('weeksOnChart', { count: previewData.artist.value })
+                    : t('weeksOnChartPlural', { count: previewData.artist.value })}
                 </p>
               </div>
             )}
@@ -140,7 +144,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
                   <FontAwesomeIcon icon={faMusic} className="text-[var(--theme-primary)]" />
-                  <span className="text-sm font-semibold text-gray-600">Track (most consecutive weeks)</span>
+                  <span className="text-sm font-semibold text-gray-600">{t('trackMostConsecutive')}</span>
                 </div>
                 <Link
                   href={`/groups/${groupId}/charts/track/${previewData.track.slug}`}
@@ -149,10 +153,12 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
                   {previewData.track.name}
                 </Link>
                 {previewData.track.artist && (
-                  <p className="text-xs text-gray-600 mb-1 break-words">by {previewData.track.artist}</p>
+                  <p className="text-xs text-gray-600 mb-1 break-words">{t('by', { artist: previewData.track.artist })}</p>
                 )}
                 <p className="text-sm text-gray-600">
-                  {previewData.track.value} {previewData.track.value === 1 ? 'week' : 'weeks'} on chart
+                  {previewData.track.value === 1 
+                    ? t('weeksOnChart', { count: previewData.track.value })
+                    : t('weeksOnChartPlural', { count: previewData.track.value })}
                 </p>
               </div>
             )}
@@ -160,7 +166,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
                   <FontAwesomeIcon icon={faCompactDisc} className="text-[var(--theme-primary)]" />
-                  <span className="text-sm font-semibold text-gray-600">Album (most consecutive weeks)</span>
+                  <span className="text-sm font-semibold text-gray-600">{t('albumMostConsecutive')}</span>
                 </div>
                 <Link
                   href={`/groups/${groupId}/charts/album/${previewData.album.slug}`}
@@ -169,10 +175,12 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
                   {previewData.album.name}
                 </Link>
                 {previewData.album.artist && (
-                  <p className="text-xs text-gray-600 mb-1 break-words">by {previewData.album.artist}</p>
+                  <p className="text-xs text-gray-600 mb-1 break-words">{t('by', { artist: previewData.album.artist })}</p>
                 )}
                 <p className="text-sm text-gray-600">
-                  {previewData.album.value} {previewData.album.value === 1 ? 'week' : 'weeks'} on chart
+                  {previewData.album.value === 1 
+                    ? t('weeksOnChart', { count: previewData.album.value })
+                    : t('weeksOnChartPlural', { count: previewData.album.value })}
                 </p>
               </div>
             )}
@@ -184,14 +192,14 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <FontAwesomeIcon icon={faTrophy} className="text-[var(--theme-primary)]" />
-            Top 100 All-Time
+            {t('top100AllTime')}
           </h3>
           <LiquidGlassLink
             href={`/groups/${groupId}/alltime`}
             variant="primary"
             useTheme
           >
-            View complete table
+            {t('viewCompleteTable')}
           </LiquidGlassLink>
         </div>
         
@@ -199,7 +207,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
           <div className="bg-white/80 backdrop-blur-sm rounded-xl p-5 border border-theme shadow-sm">
             <h4 className="font-bold text-lg mb-4 text-[var(--theme-primary-dark)] flex items-center gap-2">
               <FontAwesomeIcon icon={faMicrophone} className="text-lg" />
-              Top Artists
+              {t('topArtists')}
             </h4>
             <ol className="space-y-2">
               {topArtists.slice(0, 10).map((artist: any, idx: number) => {
@@ -218,7 +226,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
                       >
                         {artist.name}
                       </Link>
-                      <div className="text-sm text-[var(--theme-text)]">{artist.playcount.toLocaleString()} plays</div>
+                      <div className="text-sm text-[var(--theme-text)]">{t('plays', { count: artist.playcount.toLocaleString() })}</div>
                     </div>
                   </li>
                 )
@@ -226,7 +234,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
             </ol>
             {topArtists.length > 10 && (
               <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-[var(--theme-border)]">
-                ...and {topArtists.length - 10} more
+                {t('andMore', { count: topArtists.length - 10 })}
               </p>
             )}
           </div>
@@ -234,7 +242,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
           <div className="bg-white/80 backdrop-blur-sm rounded-xl p-5 border border-theme shadow-sm">
             <h4 className="font-bold text-lg mb-4 text-[var(--theme-primary-dark)] flex items-center gap-2">
               <FontAwesomeIcon icon={faMusic} className="text-lg" />
-              Top Tracks
+              {t('topTracks')}
             </h4>
             <ol className="space-y-2">
               {topTracks.slice(0, 10).map((track: any, idx: number) => {
@@ -253,8 +261,8 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
                       >
                         {track.name}
                       </Link>
-                      <div className="text-xs text-gray-600 break-words">by {track.artist}</div>
-                      <div className="text-sm text-[var(--theme-text)] mt-0.5">{track.playcount.toLocaleString()} plays</div>
+                      <div className="text-xs text-gray-600 break-words">{t('by', { artist: track.artist })}</div>
+                      <div className="text-sm text-[var(--theme-text)] mt-0.5">{t('plays', { count: track.playcount.toLocaleString() })}</div>
                     </div>
                   </li>
                 )
@@ -262,7 +270,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
             </ol>
             {topTracks.length > 10 && (
               <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-[var(--theme-border)]">
-                ...and {topTracks.length - 10} more
+                {t('andMore', { count: topTracks.length - 10 })}
               </p>
             )}
           </div>
@@ -270,7 +278,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
           <div className="bg-white/80 backdrop-blur-sm rounded-xl p-5 border border-theme shadow-sm">
             <h4 className="font-bold text-lg mb-4 text-[var(--theme-primary-dark)] flex items-center gap-2">
               <FontAwesomeIcon icon={faCompactDisc} className="text-lg" />
-              Top Albums
+              {t('topAlbums')}
             </h4>
             <ol className="space-y-2">
               {topAlbums.slice(0, 10).map((album: any, idx: number) => {
@@ -289,8 +297,8 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
                       >
                         {album.name}
                       </Link>
-                      <div className="text-xs text-gray-600 break-words">by {album.artist}</div>
-                      <div className="text-sm text-[var(--theme-text)] mt-0.5">{album.playcount.toLocaleString()} plays</div>
+                      <div className="text-xs text-gray-600 break-words">{t('by', { artist: album.artist })}</div>
+                      <div className="text-sm text-[var(--theme-text)] mt-0.5">{t('plays', { count: album.playcount.toLocaleString() })}</div>
                     </div>
                   </li>
                 )
@@ -298,7 +306,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
             </ol>
             {topAlbums.length > 10 && (
               <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-[var(--theme-border)]">
-                ...and {topAlbums.length - 10} more
+                {t('andMore', { count: topAlbums.length - 10 })}
               </p>
             )}
           </div>

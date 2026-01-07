@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface GroupQuickStatsProps {
   groupId: string
 }
 
 export default function GroupQuickStats({ groupId }: GroupQuickStatsProps) {
+  const t = useSafeTranslations('groups.quickStats')
   const [data, setData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isRainbowTheme, setIsRainbowTheme] = useState(false)
@@ -57,24 +59,24 @@ export default function GroupQuickStats({ groupId }: GroupQuickStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
       <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
-        <div className="text-sm text-gray-600 mb-1">{isRainbowTheme ? 'Mother' : 'Obsession'}</div>
+        <div className="text-sm text-gray-600 mb-1">{isRainbowTheme ? t('mother') : t('obsession')}</div>
         {obsessionArtist ? (
           <>
             <div className="text-xl font-bold text-[var(--theme-text)] truncate">{obsessionArtist.name}</div>
-            <div className="text-sm text-gray-500 mt-1">{obsessionArtist.weeks} {obsessionArtist.weeks === 1 ? 'week' : 'weeks'} streak</div>
+            <div className="text-sm text-gray-500 mt-1">{obsessionArtist.weeks === 1 ? t('weekStreak', { count: obsessionArtist.weeks }) : t('weeksStreak', { count: obsessionArtist.weeks })}</div>
           </>
         ) : (
-          <div className="text-lg font-bold text-gray-400">No data yet</div>
+          <div className="text-lg font-bold text-gray-400">{t('noDataYet')}</div>
         )}
       </div>
       <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
-        <div className="text-sm text-gray-600 mb-1">Weeks Tracked</div>
+        <div className="text-sm text-gray-600 mb-1">{t('weeksTracked')}</div>
         <div className="text-3xl font-bold text-[var(--theme-text)]">{weeksTracked}</div>
       </div>
       <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
-        <div className="text-sm text-gray-600 mb-1">Chart Mode</div>
+        <div className="text-sm text-gray-600 mb-1">{t('chartMode')}</div>
         <div className="text-lg font-bold text-[var(--theme-text)] capitalize">
-          {chartMode === 'vs' ? 'Vibe Score' : chartMode === 'vs_weighted' ? 'Vibe Score Weighted' : 'Plays Only'}
+          {chartMode === 'vs' ? t('vibeScore') : chartMode === 'vs_weighted' ? t('vibeScoreWeighted') : t('playsOnly')}
         </div>
       </div>
     </div>

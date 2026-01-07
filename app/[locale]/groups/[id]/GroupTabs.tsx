@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { faChartBar, faTrophy, faUsers, faFire, faSearch } from '@fortawesome/free-solid-svg-icons'
 import LiquidGlassTabs, { TabItem } from '@/components/LiquidGlassTabs'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 type Tab = 'charts' | 'members' | 'alltime' | 'trends' | 'search'
 
@@ -25,15 +26,16 @@ export default function GroupTabs({
   searchContent,
   pendingRequestsCount = 0
 }: GroupTabsProps) {
+  const t = useSafeTranslations('groups.tabs')
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab)
 
   const tabs: TabItem[] = useMemo(() => [
-    { id: 'trends', label: 'Trends', icon: faFire },
-    { id: 'charts', label: 'Weekly Charts', icon: faChartBar },
-    { id: 'alltime', label: 'All-Time Stats', icon: faTrophy },
-    { id: 'members', label: 'Members', icon: faUsers, badge: pendingRequestsCount },
-    { id: 'search', label: 'Search', icon: faSearch },
-  ], [pendingRequestsCount])
+    { id: 'trends', label: t('trends'), icon: faFire },
+    { id: 'charts', label: t('weeklyCharts'), icon: faChartBar },
+    { id: 'alltime', label: t('allTimeStats'), icon: faTrophy },
+    { id: 'members', label: t('members'), icon: faUsers, badge: pendingRequestsCount },
+    { id: 'search', label: t('search'), icon: faSearch },
+  ], [t, pendingRequestsCount])
 
   return (
     <div className="mt-10">

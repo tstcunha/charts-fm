@@ -9,6 +9,7 @@ import RemoveMemberButton from '@/app/[locale]/groups/[id]/RemoveMemberButton'
 import RevokeInviteButton from '@/app/[locale]/groups/[id]/RevokeInviteButton'
 import LeaveGroupButton from '@/app/[locale]/groups/[id]/LeaveGroupButton'
 import RequestsButton from '@/app/[locale]/groups/[id]/RequestsButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 const MAX_GROUP_MEMBERS = 100
 
@@ -17,6 +18,7 @@ interface GroupMembersTabProps {
 }
 
 export default function GroupMembersTab({ groupId }: GroupMembersTabProps) {
+  const t = useSafeTranslations('groups.members')
   const [data, setData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -33,7 +35,7 @@ export default function GroupMembersTab({ groupId }: GroupMembersTabProps) {
         setError(null)
       }
     } catch (err) {
-      setError('Failed to load members')
+      setError(t('failedToLoad'))
       console.error('Error fetching members:', err)
     } finally {
       setIsLoading(false)
@@ -48,7 +50,7 @@ export default function GroupMembersTab({ groupId }: GroupMembersTabProps) {
     return (
       <div>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">Members</h2>
+          <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">{t('title')}</h2>
         </div>
         <div className="flex items-center justify-center py-12">
           <FontAwesomeIcon icon={faSpinner} className="animate-spin text-4xl text-[var(--theme-primary)]" />
@@ -61,10 +63,10 @@ export default function GroupMembersTab({ groupId }: GroupMembersTabProps) {
     return (
       <div>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">Members</h2>
+          <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">{t('title')}</h2>
         </div>
         <div className="text-center py-8 text-gray-500">
-          <p>{error || 'Failed to load members'}</p>
+          <p>{error || t('failedToLoad')}</p>
         </div>
       </div>
     )
@@ -80,11 +82,11 @@ export default function GroupMembersTab({ groupId }: GroupMembersTabProps) {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">Members</h2>
+          <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">{t('title')}</h2>
           <p className="text-sm text-gray-600 mt-1">
-            {memberCount} / {MAX_GROUP_MEMBERS} members
+            {t('membersCount', { count: memberCount, max: MAX_GROUP_MEMBERS })}
             {isAtLimit && (
-              <span className="ml-2 text-yellow-600 font-semibold">(Limit reached)</span>
+              <span className="ml-2 text-yellow-600 font-semibold">{t('limitReached')}</span>
             )}
           </p>
         </div>
@@ -118,7 +120,7 @@ export default function GroupMembersTab({ groupId }: GroupMembersTabProps) {
                     </p>
                     {member.user.id === creatorId && (
                       <span className="flex-shrink-0 text-xs bg-[var(--theme-primary)] text-[var(--theme-button-text)] px-2 py-0.5 rounded-full font-bold shadow-sm">
-                        Owner
+                        {t('owner')}
                       </span>
                     )}
                   </div>
@@ -156,7 +158,7 @@ export default function GroupMembersTab({ groupId }: GroupMembersTabProps) {
                       {invite.user.name || invite.user.lastfmUsername}
                     </p>
                     <span className="flex-shrink-0 text-xs bg-[var(--theme-primary)] text-[var(--theme-button-text)] px-2 py-0.5 rounded-full font-bold shadow-sm">
-                      Invited
+                      {t('invited')}
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 truncate">@{invite.user.lastfmUsername}</p>

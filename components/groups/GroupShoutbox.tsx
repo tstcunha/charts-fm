@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner, faEdit, faTrash, faPaperPlane } from '@fortawesome/free-solid-svg-icons'
 import SafeImage from '@/components/SafeImage'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface Comment {
   id: string
@@ -28,26 +29,27 @@ interface GroupShoutboxProps {
 }
 
 // Simple relative time formatter
-function formatRelativeTime(date: Date): string {
+function formatRelativeTime(date: Date, t: (key: string, values?: Record<string, any>) => string): string {
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffMins = Math.floor(diffMs / 60000)
   const diffHours = Math.floor(diffMs / 3600000)
   const diffDays = Math.floor(diffMs / 86400000)
 
-  if (diffMins < 1) return 'just now'
-  if (diffMins < 60) return `${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'} ago`
-  if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`
-  if (diffDays < 7) return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`
+  if (diffMins < 1) return t('justNow')
+  if (diffMins < 60) return diffMins === 1 ? t('minuteAgo', { count: diffMins }) : t('minutesAgo', { count: diffMins })
+  if (diffHours < 24) return diffHours === 1 ? t('hourAgo', { count: diffHours }) : t('hoursAgo', { count: diffHours })
+  if (diffDays < 7) return diffDays === 1 ? t('dayAgo', { count: diffDays }) : t('daysAgo', { count: diffDays })
   
   const diffWeeks = Math.floor(diffDays / 7)
-  if (diffWeeks < 4) return `${diffWeeks} ${diffWeeks === 1 ? 'week' : 'weeks'} ago`
+  if (diffWeeks < 4) return diffWeeks === 1 ? t('weekAgo', { count: diffWeeks }) : t('weeksAgo', { count: diffWeeks })
   
   const diffMonths = Math.floor(diffDays / 30)
-  return `${diffMonths} ${diffMonths === 1 ? 'month' : 'months'} ago`
+  return diffMonths === 1 ? t('monthAgo', { count: diffMonths }) : t('monthsAgo', { count: diffMonths })
 }
 
 export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnabled }: GroupShoutboxProps) {
+  const t = useSafeTranslations('groups.shoutbox')
   const [comments, setComments] = useState<Comment[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -83,7 +85,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
         setError(null)
       }
     } catch (err) {
-      setError('Failed to load comments')
+      setError(t('failedToLoad'))
       console.error('Error fetching comments:', err)
     } finally {
       setIsLoading(false)
@@ -146,7 +148,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
           setPostError(data.error)
           // Don't set error for permission issues, only postError
         } else {
-          setError(data.error || 'Failed to post comment')
+          setError(data.error || t('failedToPost'))
         }
         return
       }
@@ -158,7 +160,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
       // Re-check permissions
       await checkCanPost()
     } catch (err) {
-      setError('Failed to post comment')
+      setError(t('failedToPost'))
       console.error('Error posting comment:', err)
     } finally {
       setIsSubmitting(false)
@@ -179,7 +181,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || 'Failed to update comment')
+        setError(data.error || t('failedToUpdate'))
         setIsSaving(false)
         return
       }
@@ -189,7 +191,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
       setError(null)
       await fetchComments(page)
     } catch (err) {
-      setError('Failed to update comment')
+      setError(t('failedToUpdate'))
       console.error('Error updating comment:', err)
     } finally {
       setIsSaving(false)
@@ -213,7 +215,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || 'Failed to delete comment')
+        setError(data.error || t('failedToDelete'))
         setDeleteModalOpen(false)
         setCommentToDelete(null)
         setIsDeleting(false)
@@ -225,7 +227,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
       setCommentToDelete(null)
       await fetchComments(page)
     } catch (err) {
-      setError('Failed to delete comment')
+      setError(t('failedToDelete'))
       console.error('Error deleting comment:', err)
       setDeleteModalOpen(false)
       setCommentToDelete(null)
@@ -253,7 +255,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
           WebkitBackdropFilter: 'blur(12px) saturate(180%)',
         }}
       >
-        <h2 className="text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">Shoutbox</h2>
+        <h2 className="text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">{t('title')}</h2>
 
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -268,7 +270,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Write a comment..."
+                placeholder={t('placeholder')}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] resize-none"
                 rows={3}
                 maxLength={MAX_CONTENT_LENGTH}
@@ -284,11 +286,11 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
                 ) : (
                   <FontAwesomeIcon icon={faPaperPlane} />
                 )}
-                Post
+                {t('post')}
               </button>
             </div>
             <div className="mt-1 text-xs text-gray-500">
-              {content.length}/{MAX_CONTENT_LENGTH} characters
+              {t('characters', { current: content.length, max: MAX_CONTENT_LENGTH })}
             </div>
           </form>
         )}
@@ -306,7 +308,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
           </div>
         ) : comments.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            No comments yet. Be the first to post!
+            {t('noComments')}
           </div>
         ) : (
           <>
@@ -328,10 +330,10 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
                           {comment.user.name || comment.user.lastfmUsername}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {formatRelativeTime(new Date(comment.createdAt))}
+                          {formatRelativeTime(new Date(comment.createdAt), t)}
                         </span>
                         {comment.createdAt !== comment.updatedAt && (
-                          <span className="text-xs text-gray-400 italic">(edited)</span>
+                          <span className="text-xs text-gray-400 italic">{t('edited')}</span>
                         )}
                       </div>
                       {editingId === comment.id ? (
@@ -350,7 +352,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
                               className="px-4 py-1 bg-[var(--theme-primary)] text-[var(--theme-button-text)] rounded text-sm font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                               {isSaving && <FontAwesomeIcon icon={faSpinner} className="animate-spin" />}
-                              Save
+                              {t('save')}
                             </button>
                             <button
                               onClick={() => {
@@ -360,7 +362,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
                               disabled={isSaving}
                               className="px-4 py-1 bg-gray-200 text-gray-700 rounded text-sm font-semibold hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              Cancel
+                              {t('cancel')}
                             </button>
                           </div>
                         </div>
@@ -377,7 +379,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
                               setEditContent(comment.content)
                             }}
                             className="p-2 text-gray-500 hover:text-[var(--theme-primary)] transition-colors"
-                            title="Edit comment"
+                            title={t('editComment')}
                           >
                             <FontAwesomeIcon icon={faEdit} />
                           </button>
@@ -385,7 +387,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
                         <button
                           onClick={() => handleDeleteClick(comment.id)}
                           className="p-2 text-gray-500 hover:text-red-600 transition-colors"
-                          title={comment.user.id === userId ? "Delete comment" : "Delete comment (as group owner)"}
+                          title={comment.user.id === userId ? t('deleteComment') : t('deleteCommentAsOwner')}
                         >
                           <FontAwesomeIcon icon={faTrash} />
                         </button>
@@ -404,17 +406,17 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
                   disabled={page === 1}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Previous
+                  {t('previous')}
                 </button>
                 <span className="text-gray-600">
-                  Page {page} of {totalPages} ({total} total)
+                  {t('pageOf', { page, totalPages, total })}
                 </span>
                 <button
                   onClick={() => fetchComments(page + 1)}
                   disabled={page === totalPages}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Next
+                  {t('next')}
                 </button>
               </div>
             )}
@@ -445,9 +447,9 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
               >
                 <div className="bg-white rounded-lg shadow-2xl p-6 relative">
                   <div className="space-y-4 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">Delete Comment</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('deleteCommentTitle')}</h3>
                     <p className="text-sm text-gray-700">
-                      Are you sure you want to delete this comment? This action cannot be undone.
+                      {t('deleteCommentConfirm')}
                     </p>
                   </div>
 
@@ -459,7 +461,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
                       useTheme={false}
                       disabled={isDeleting}
                     >
-                      Cancel
+                      {t('cancel')}
                     </LiquidGlassButton>
                     <LiquidGlassButton
                       onClick={handleDeleteConfirm}
@@ -469,7 +471,7 @@ export default function GroupShoutbox({ groupId, userId, isOwner, shoutboxEnable
                       disabled={isDeleting}
                       icon={isDeleting ? <FontAwesomeIcon icon={faSpinner} className="animate-spin" /> : undefined}
                     >
-                      Delete
+                      {t('deleteComment')}
                     </LiquidGlassButton>
                   </div>
                 </div>
