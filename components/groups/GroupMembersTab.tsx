@@ -71,10 +71,21 @@ export default function GroupMembersTab({ groupId }: GroupMembersTabProps) {
   const { members, pendingInvites, isOwner, requestCount, creatorId } = data
   const isMember = members.some((m: any) => m.userId !== creatorId)
 
+  const memberCount = members.length
+  const isAtLimit = memberCount >= MAX_GROUP_MEMBERS
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">Members</h2>
+        <div>
+          <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">Members</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            {memberCount} / {MAX_GROUP_MEMBERS} members
+            {isAtLimit && (
+              <span className="ml-2 text-yellow-600 font-semibold">(Limit reached)</span>
+            )}
+          </p>
+        </div>
         {isOwner && (
           <div className="flex gap-2">
             <InviteMemberButton groupId={groupId} onInviteSent={fetchMembers} />

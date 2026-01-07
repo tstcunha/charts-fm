@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+const MAX_GROUP_MEMBERS = 100
+
 // PATCH - Accept invite
 export async function PATCH(
   request: Request,
@@ -72,6 +74,18 @@ export async function PATCH(
       data: { status: 'accepted' },
     })
     return NextResponse.json({ success: true })
+  }
+
+  // Check if group has reached the maximum member limit
+  const memberCount = await prisma.groupMember.count({
+    where: { groupId },
+  })
+
+  if (memberCount >= MAX_GROUP_MEMBERS) {
+    return NextResponse.json(
+      { error: `Group has reached the maximum limit of ${MAX_GROUP_MEMBERS} members` },
+      { status: 400 }
+    )
   }
 
   // Update invite status to accepted and create GroupMember entry

@@ -4,11 +4,14 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
 
+const MAX_GROUP_MEMBERS = 100
+
 interface InviteMemberModalProps {
   isOpen: boolean
   onClose: () => void
   groupId: string
   onInviteSent?: () => void
+  memberCount?: number | null
 }
 
 export default function InviteMemberModal({
@@ -16,6 +19,7 @@ export default function InviteMemberModal({
   onClose,
   groupId,
   onInviteSent,
+  memberCount,
 }: InviteMemberModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -86,10 +90,17 @@ export default function InviteMemberModal({
     return () => clearTimeout(timeoutId)
   }, [lastfmUsername])
 
+  const isAtLimit = memberCount !== null && memberCount >= MAX_GROUP_MEMBERS
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setSuccess(false)
+
+    if (isAtLimit) {
+      setError(`Group has reached the maximum limit of ${MAX_GROUP_MEMBERS} members`)
+      return
+    }
 
     // Use validated username if available, otherwise use input
     const usernameToUse = validatedUsername || lastfmUsername.trim()
@@ -203,6 +214,12 @@ export default function InviteMemberModal({
             </div>
           )}
 
+          {isAtLimit && (
+            <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded text-sm">
+              This group has reached the maximum limit of {MAX_GROUP_MEMBERS} members. You cannot invite more members.
+            </div>
+          )}
+
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
               {error}
@@ -251,7 +268,7 @@ export default function InviteMemberModal({
               </LiquidGlassButton>
               <LiquidGlassButton
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || isAtLimit}
                 variant="primary"
                 useTheme
               >

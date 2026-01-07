@@ -132,7 +132,7 @@ export default async function PublicGroupHeroServer({ groupId, colorTheme }: Pub
                 <span className="text-gray-300">•</span>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">Members:</span>
-                  <span className="font-semibold text-gray-900">{group._count.members}</span>
+                  <span className="font-semibold text-gray-900">{group._count.members} / 100</span>
                 </div>
                 <span className="text-gray-300">•</span>
                 <div className="flex items-center gap-2">
@@ -165,6 +165,7 @@ export default async function PublicGroupHeroServer({ groupId, colorTheme }: Pub
                   hasPendingRequest={hasPendingRequest}
                   hasPendingInvite={hasPendingInvite}
                   allowFreeJoin={group.allowFreeJoin ?? false}
+                  memberCount={group._count.members}
                 />
               </>
             )}

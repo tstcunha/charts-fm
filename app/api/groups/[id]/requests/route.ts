@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+const MAX_GROUP_MEMBERS = 100
+
 // POST - Create a join request
 export async function POST(
   request: Request,
@@ -100,6 +102,18 @@ export async function POST(
 
   // If group allows free join, add user directly as a member
   if (group.allowFreeJoin) {
+    // Check if group has reached the maximum member limit
+    const memberCount = await prisma.groupMember.count({
+      where: { groupId },
+    })
+
+    if (memberCount >= MAX_GROUP_MEMBERS) {
+      return NextResponse.json(
+        { error: `Group has reached the maximum limit of ${MAX_GROUP_MEMBERS} members` },
+        { status: 400 }
+      )
+    }
+
     // Delete any existing request first (in case there was a rejected one)
     if (existingRequest) {
       await prisma.groupJoinRequest.delete({

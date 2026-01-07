@@ -109,9 +109,9 @@ export async function PATCH(
 
   // Validate chartSize
   if (chartSize !== undefined) {
-    if (![10, 20, 50, 100].includes(chartSize)) {
+    if (![10, 20, 50].includes(chartSize)) {
       return NextResponse.json(
-        { error: 'chartSize must be 10, 20, 50, or 100' },
+        { error: 'chartSize must be 10, 20, or 50' },
         { status: 400 }
       )
     }

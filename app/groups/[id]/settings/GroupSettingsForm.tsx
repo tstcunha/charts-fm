@@ -21,7 +21,7 @@ const DAYS_OF_WEEK = [
   { value: 6, label: 'Saturday' },
 ]
 
-const CHART_SIZES = [10, 20, 50, 100]
+const CHART_SIZES = [10, 20, 50]
 
 const CHART_MODES = [
   {
@@ -125,7 +125,7 @@ export default function GroupSettingsForm({
             Chart Size
           </label>
           <p className="text-sm text-gray-500 mb-4">
-            Number of items to display in each chart (Top 10, Top 20, Top 50, or Top 100)
+            Number of items to display in each chart (Top 10, Top 20, or Top 50)
           </p>
           <div className="flex gap-4">
             {CHART_SIZES.map((size) => (

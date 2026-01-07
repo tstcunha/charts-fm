@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { requireGroupMembership, requireGroupCreator } from '@/lib/group-auth'
 import { prisma } from '@/lib/prisma'
 
+const MAX_GROUP_MEMBERS = 100
+
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
@@ -39,6 +41,18 @@ export async function POST(
     if (invitee.id === user.id) {
       return NextResponse.json(
         { error: 'You cannot invite yourself to the group' },
+        { status: 400 }
+      )
+    }
+
+    // Check if group has reached the maximum member limit
+    const memberCount = await prisma.groupMember.count({
+      where: { groupId: group.id },
+    })
+
+    if (memberCount >= MAX_GROUP_MEMBERS) {
+      return NextResponse.json(
+        { error: `Group has reached the maximum limit of ${MAX_GROUP_MEMBERS} members` },
         { status: 400 }
       )
     }

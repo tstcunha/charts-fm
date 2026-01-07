@@ -59,9 +59,9 @@ export async function POST(request: Request) {
   }
 
   // Validate chartSize if provided
-  if (chartSize !== undefined && ![10, 20, 50, 100].includes(Number(chartSize))) {
+  if (chartSize !== undefined && ![10, 20, 50].includes(Number(chartSize))) {
     return NextResponse.json(
-      { error: 'Chart size must be 10, 20, 50, or 100' },
+      { error: 'Chart size must be 10, 20, or 50' },
       { status: 400 }
     )
   }

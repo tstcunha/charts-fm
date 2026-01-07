@@ -3,7 +3,7 @@ import { requireSuperuserApi } from '@/lib/admin'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
-const CHART_SIZES = [10, 20, 50, 100]
+const CHART_SIZES = [10, 20, 50]
 const CHART_MODES = ['vs', 'vs_weighted', 'plays_only']
 const COLOR_THEMES = ['yellow', 'royal_blue', 'cyan', 'bright_red', 'maroon', 'graphite', 'hot_pink', 'neon_green', 'white']
 const DYNAMIC_ICON_SOURCES = ['top_artist', 'top_album', 'top_track_artist']
