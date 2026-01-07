@@ -60,7 +60,7 @@ export default function DeepDiveHero({ group, entry, chartType, artistSlug }: De
   }
 
   // Add entry name as final breadcrumb
-  breadcrumbs.push({ label: entry.name })
+  breadcrumbs.push({ label: entry.name, href: '#' })
 
   return (
     <GroupPageHero

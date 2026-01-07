@@ -243,6 +243,7 @@ function identifyExits(
       entryKey: entry.entryKey,
       name: entry.name,
       artist: entry.artist || undefined,
+      position: entry.position,
       lastPosition: entry.position,
     }))
 }
@@ -490,9 +491,9 @@ async function generateFunFacts(
 
   let previousTotalPlays = 0
   if (previousWeekStats) {
-    const prevArtists = (previousWeekStats.topArtists as TopItem[]) || []
-    const prevTracks = (previousWeekStats.topTracks as TopItem[]) || []
-    const prevAlbums = (previousWeekStats.topAlbums as TopItem[]) || []
+    const prevArtists = (previousWeekStats.topArtists as unknown as TopItem[]) || []
+    const prevTracks = (previousWeekStats.topTracks as unknown as TopItem[]) || []
+    const prevAlbums = (previousWeekStats.topAlbums as unknown as TopItem[]) || []
     previousTotalPlays = prevArtists.reduce((sum, a) => sum + a.playcount, 0) +
                         prevTracks.reduce((sum, t) => sum + t.playcount, 0) +
                         prevAlbums.reduce((sum, a) => sum + a.playcount, 0)
@@ -673,9 +674,9 @@ export async function calculateGroupTrends(
   // Calculate total plays
   let totalPlays = 0
   if (currentWeekStats) {
-    const artists = (currentWeekStats.topArtists as TopItem[]) || []
-    const tracks = (currentWeekStats.topTracks as TopItem[]) || []
-    const albums = (currentWeekStats.topAlbums as TopItem[]) || []
+    const artists = (currentWeekStats.topArtists as unknown as TopItem[]) || []
+    const tracks = (currentWeekStats.topTracks as unknown as TopItem[]) || []
+    const albums = (currentWeekStats.topAlbums as unknown as TopItem[]) || []
     totalPlays = artists.reduce((sum, a) => sum + a.playcount, 0) +
                  tracks.reduce((sum, t) => sum + t.playcount, 0) +
                  albums.reduce((sum, a) => sum + a.playcount, 0)
@@ -683,9 +684,9 @@ export async function calculateGroupTrends(
 
   let totalPlaysChange: number | null = null
   if (previousWeekStats) {
-    const prevArtists = (previousWeekStats.topArtists as TopItem[]) || []
-    const prevTracks = (previousWeekStats.topTracks as TopItem[]) || []
-    const prevAlbums = (previousWeekStats.topAlbums as TopItem[]) || []
+    const prevArtists = (previousWeekStats.topArtists as unknown as TopItem[]) || []
+    const prevTracks = (previousWeekStats.topTracks as unknown as TopItem[]) || []
+    const prevAlbums = (previousWeekStats.topAlbums as unknown as TopItem[]) || []
     const prevTotal = prevArtists.reduce((sum, a) => sum + a.playcount, 0) +
                       prevTracks.reduce((sum, t) => sum + t.playcount, 0) +
                       prevAlbums.reduce((sum, a) => sum + a.playcount, 0)
@@ -1096,7 +1097,7 @@ export async function calculatePersonalizedStats(
   // Compare with MVP if available
   let vsMVP: PersonalizedStats['vsMVP'] | undefined
   if (trends.topContributors && Array.isArray(trends.topContributors) && trends.topContributors.length > 0) {
-    const mvp = trends.topContributors[0] as MemberContribution
+    const mvp = trends.topContributors[0] as unknown as MemberContribution
     vsMVP = {
       mvpUserId: mvp.userId,
       mvpName: mvp.name,
@@ -1109,7 +1110,7 @@ export async function calculatePersonalizedStats(
   // Compare with highlighted members
   const vsHighlightedMembers: PersonalizedStats['vsHighlightedMembers'] = []
   if (trends.topContributors && Array.isArray(trends.topContributors)) {
-    for (const member of trends.topContributors.slice(0, 3) as MemberContribution[]) {
+    for (const member of trends.topContributors.slice(0, 3) as unknown as MemberContribution[]) {
       if (member.userId === userId) continue // Skip self
       vsHighlightedMembers.push({
         memberUserId: member.userId,

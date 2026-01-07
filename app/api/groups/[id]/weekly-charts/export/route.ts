@@ -214,6 +214,9 @@ export async function GET(
       // Create a map of user contributions by userId and entryKey
       const userContributionsMap = new Map<string, Map<string, typeof userContributions[0]>>()
       contributions.forEach(contrib => {
+        // Skip contributions with null userId
+        if (!contrib.userId) return
+        
         if (!userContributionsMap.has(contrib.userId)) {
           userContributionsMap.set(contrib.userId, new Map())
         }
@@ -257,9 +260,9 @@ export async function GET(
             if (chartType !== 'artists') {
               row.push(entry.artist || '')
             }
-            row.push(entry.position)
-            row.push(contrib.vibeScore)
-            row.push(contrib.playcount)
+            row.push(entry.position.toString())
+            row.push(contrib.vibeScore?.toString() || '')
+            row.push(contrib.playcount.toString())
             worksheet.addRow(row)
           })
         }

@@ -327,6 +327,9 @@ export async function getUserVSForWeek(
   const topAlbums: UserVSContribution[] = []
 
   for (const entry of vsEntries) {
+    // Skip entries with null userId
+    if (!entry.userId) continue
+    
     const contribution: UserVSContribution = {
       userId: entry.userId,
       entryKey: entry.entryKey,

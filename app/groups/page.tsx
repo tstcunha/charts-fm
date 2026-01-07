@@ -25,8 +25,9 @@ export default async function GroupsPage() {
   const invites = await getUserGroupInvites(user.id)
 
   // Separate groups into owned groups (where user is owner) and member groups
-  const adminGroups = groups.filter((group: any) => group.creatorId === user.id)
-  const memberGroups = groups.filter((group: any) => group.creatorId !== user.id)
+  // Filter out groups with null creators to match the Group interface
+  const adminGroups = groups.filter((group: any) => group.creatorId === user.id && group.creator !== null) as any
+  const memberGroups = groups.filter((group: any) => group.creatorId !== user.id && group.creator !== null) as any
 
   // Get pending request counts for owned groups
   const pendingRequestsMap: Record<string, number> = {}
@@ -77,7 +78,7 @@ export default async function GroupsPage() {
         <GroupsTabs
           ownedGroups={adminGroups}
           memberGroups={memberGroups}
-          invites={invites}
+          invites={invites.filter((invite: any) => invite.group.creator !== null) as any}
           userId={user.id}
           pendingRequestsMap={pendingRequestsMap}
         />

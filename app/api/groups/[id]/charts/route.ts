@@ -232,7 +232,6 @@ export async function POST(
         chartSize,
         trackingDayOfWeek,
         chartMode,
-        undefined,
         members,
         true // skipTrends = true
       )

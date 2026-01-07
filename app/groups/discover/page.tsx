@@ -19,7 +19,7 @@ export default async function DiscoverGroupsPage() {
   }
 
   // Fetch initial groups data directly from database
-  let initialGroups = []
+  let initialGroups: any[] = []
   let error = null
 
   try {

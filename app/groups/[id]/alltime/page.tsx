@@ -48,14 +48,16 @@ export default async function AllTimePage({
   if (allTimeStats) {
     let items: TopItem[] = []
     if (selectedType === 'artists') {
-      items = (allTimeStats.topArtists as TopItem[]) || []
+      items = (allTimeStats.topArtists as unknown as TopItem[]) || []
     } else if (selectedType === 'tracks') {
-      items = (allTimeStats.topTracks as TopItem[]) || []
+      items = (allTimeStats.topTracks as unknown as TopItem[]) || []
     } else {
-      items = (allTimeStats.topAlbums as TopItem[]) || []
+      items = (allTimeStats.topAlbums as unknown as TopItem[]) || []
     }
 
     chartEntries = items.map((item, index) => ({
+      entryKey: `${selectedType}|${item.name}${'artist' in item && item.artist ? `|${item.artist}` : ''}`,
+      slug: `${selectedType}-${item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}${'artist' in item && item.artist ? `-${item.artist.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : ''}`,
       name: item.name,
       artist: 'artist' in item ? item.artist : undefined,
       playcount: item.playcount,

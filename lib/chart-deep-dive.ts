@@ -700,7 +700,7 @@ export async function invalidateEntryStatsCache(
     weekStart,
     chartType,
   }))
-  await invalidateEntryStatsCacheBatch(groupId, batchEntries, undefined)
+  await invalidateEntryStatsCacheBatch(groupId, batchEntries)
 }
 
 /**

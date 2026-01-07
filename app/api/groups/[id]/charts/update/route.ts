@@ -261,7 +261,6 @@ async function generateChartsInBackground(
           chartSize,
           trackingDayOfWeek,
           chartMode,
-          undefined,
           members,
           true // skipTrends = true
         )

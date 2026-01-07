@@ -127,7 +127,7 @@ export default async function PublicGroupHeroServer({ groupId, colorTheme }: Pub
               <div className="flex flex-wrap items-center gap-4 mb-4">
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">Owner:</span>
-                  <span className="font-semibold text-gray-900">{group.creator.name || group.creator.lastfmUsername}</span>
+                  <span className="font-semibold text-gray-900">{group.creator?.name || group.creator?.lastfmUsername || 'Unknown'}</span>
                 </div>
                 <span className="text-gray-300">•</span>
                 <div className="flex items-center gap-2">
