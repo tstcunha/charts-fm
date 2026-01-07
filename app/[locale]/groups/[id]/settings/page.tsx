@@ -10,34 +10,38 @@ import GroupDetailsTab from './GroupDetailsTab'
 import StylingTab from './StylingTab'
 import ShoutboxSettingsTab from './ShoutboxSettingsTab'
 import DeleteGroupTab from './DeleteGroupTab'
+import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 
 // Force dynamic rendering to prevent caching
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const t = await getTranslations('groups.settings')
   try {
     const { group } = await requireGroupCreator(params.id)
     return {
-      title: `${group?.name || 'Group'} - Settings`,
+      title: `${group?.name || 'Group'} - ${t('title')}`,
     }
   } catch {
     return {
-      title: 'Group Settings',
+      title: t('title'),
     }
   }
 }
 
 export default async function GroupSettingsPage({ params }: { params: { id: string } }) {
   const { user, group } = await requireGroupCreator(params.id)
+  const t = await getTranslations('groups.settings')
+  const tGroups = await getTranslations('groups')
 
   if (!group) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-24">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Group not found</h1>
+          <h1 className="text-2xl font-bold mb-4">{t('notFound')}</h1>
           <Link href="/groups" className="text-yellow-600 hover:underline">
-            Back to Groups
+            {t('backToGroups')}
           </Link>
         </div>
       </main>
@@ -66,11 +70,11 @@ export default async function GroupSettingsPage({ params }: { params: { id: stri
             image: group.image,
           }}
           breadcrumbs={[
-            { label: 'Groups', href: '/groups' },
+            { label: tGroups('hero.breadcrumb'), href: '/groups' },
             { label: group.name, href: `/groups/${group.id}` },
-            { label: 'Settings' },
+            { label: tGroups('hero.settings') },
           ]}
-          subheader="Configure settings for your group"
+          subheader={t('subheader')}
           narrow={true}
         />
 

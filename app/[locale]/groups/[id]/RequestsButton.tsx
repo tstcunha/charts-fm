@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 // Lazy load modal to reduce initial bundle size
 const RequestsModal = dynamic(() => import('./RequestsModal'), {
@@ -19,6 +20,7 @@ export default function RequestsButton({
   groupId,
   requestCount: initialRequestCount,
 }: RequestsButtonProps) {
+  const t = useSafeTranslations('groups.members')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [requestCount, setRequestCount] = useState(initialRequestCount)
 
@@ -56,7 +58,7 @@ export default function RequestsButton({
         variant={requestCount === 0 ? 'neutral' : 'primary'}
         useTheme={false}
       >
-        Requests ({requestCount})
+        {t('requests')} ({requestCount})
       </LiquidGlassButton>
 
       <RequestsModal

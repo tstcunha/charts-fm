@@ -155,6 +155,20 @@
         "saturday": "Sábado"
       }
     },
+    "share": {
+      "title": "Compartilhar comunidade",
+      "close": "Fechar",
+      "description": "✨ Vamos abrir a roda! Compartilhe esta comunidade com seus amigos que amam música",
+      "groupLink": "Link para a comunidade",
+      "copyLink": "Copiar link",
+      "copied": "Copiado!",
+      "shareOnSocialMedia": "Compartilhar nas redes sociais",
+      "copyInvitation": "Copiar convite",
+      "invitationCopied": "✓ Convite copiado!",
+      "copyInvitationDescription": "Copie uma mensagem de convite pronta para enviar",
+      "shareGroup": "Compartilhar comunidade",
+      "invitationText": "Ei! Entre na minha comunidade musical no ChartsFM:"
+    },
     "tabs": {
       "trends": "Trends",
       "weeklyCharts": "Charts Semanais",
@@ -315,7 +329,9 @@
       "membersCount": "{count} / {max} membros",
       "limitReached": "(Limite atingido)",
       "owner": "Dono",
-      "invited": "Convidado"
+      "invited": "Convite enviado",
+      "inviteMember": "Convidar membro",
+      "requests": "Solicitações"
     },
     "search": {
       "title": "Buscar nos charts",
@@ -355,6 +371,192 @@
       "pageOf": "Página {page} de {totalPages} ({total} total)",
       "deleteCommentTitle": "Apagar comentário",
       "deleteCommentConfirm": "Tem certeza que deseja apagar este comentário? Esta ação não pode ser desfeita."
+    },
+    "settings": {
+      "title": "Configurações da Comunidade",
+      "subheader": "Configure a sua comunidade",
+      "notFound": "Comunidade não encontrada",
+      "backToGroups": "Voltar para Comunidades",
+      "tabs": {
+        "groupDetails": "Detalhes",
+        "charts": "Charts",
+        "styling": "Estilo",
+        "shoutbox": "Caixa de comentários",
+        "regenerateCharts": "Re-gerar Charts",
+        "deleteGroup": "Excluir Comunidade"
+      },
+      "chartCreation": {
+        "title": "Configurações dos charts",
+        "settingsUpdated": "Configurações atualizadas com sucesso!",
+        "failedToUpdate": "Falha ao atualizar configurações",
+        "chartSize": "Tamanho dos charts",
+        "chartSizeDescription": "Número de itens computados em cada chart (Top 10, Top 20 ou Top 50)",
+        "top": "Top {size}",
+        "chartMode": "Modo de cálculo",
+        "chartModeDescription": "Como os charts são calculados e, os itens, ranqueados. Alterar isso afeta apenas os charts futuros.",
+        "previousMode": "Modo anterior",
+        "nextMode": "Próximo modo",
+        "selectMode": "Selecionar {mode}",
+        "trackingDayOfWeek": "Dia dos charts",
+        "trackingDayOfWeekDescription": "O dia da semana que marca o início de cada chart semanal. Cada semana vai deste dia até o dia antes da próxima ocorrência (ex: se definido como segunda-feira, os charts vão de segunda a domingo). Os charts são liberados para serem calculados depois do fim de cada semana, o que acontece no dia escolhido.",
+        "saving": "Salvando...",
+        "saveSettings": "Salvar configurações",
+        "cancel": "Cancelar",
+        "modes": {
+          "vs": {
+            "label": "Vibe Score (VS)",
+            "description": "✨ Recomendado! Os favoritos de cada membro recebem a mesma quantidade de atenção. Para cada membro, sua música #1 recebe 2.00 VS, reduzindo sucessivamente até as posições mais baixas. Somamos as pontuações de todos, e geramos os charts com base na soma. É o modo mais democrático!"
+          },
+          "vsWeighted": {
+            "label": "VS Ponderado",
+            "description": "O melhor dos dois mundos! Seu VS (calculado) é multiplicado pelos plays dados em cada música, depois somamos os resultados de todos. É um equilíbrio entre priorizar os gostos de cada membro e o quanto cada um escutou."
+          },
+          "playsOnly": {
+            "label": "Apenas Plays",
+            "description": "O mais clássico e simples! Neste modo, os charts são apenas uma soma de todos os plays. Se você quiser a abordagem tradicional onde \"quem recebeu mais plays, entra no chart\", essa é a sua."
+          }
+        },
+        "daysOfWeek": {
+          "sunday": "Domingo",
+          "monday": "Segunda-feira",
+          "tuesday": "Terça-feira",
+          "wednesday": "Quarta-feira",
+          "thursday": "Quinta-feira",
+          "friday": "Sexta-feira",
+          "saturday": "Sábado"
+        }
+      },
+      "groupDetails": {
+        "title": "Detalhes",
+        "updatedSuccessfully": "Detalhes da comunidade atualizados com sucesso!",
+        "failedToUpdate": "Falha ao atualizar detalhes da comunidade",
+        "groupName": "Nome da comunidade",
+        "groupIcon": "Imagem de capa",
+        "iconUrlPlaceholder": "https://example.com/icon.png",
+        "iconUrlDescription": "Digite uma URL para servir como imagem de capa da sua comunidade",
+        "privacySettings": "Privacidade",
+        "privateGroup": "Comunidade privada",
+        "privateGroupDescription": "Comunidades privadas não visíveis publicamente e necessitam de aprovação para entrar",
+        "joinSettings": "Configurações de entrada",
+        "usersCanJoinFreely": "Usuários podem entrar livremente",
+        "usersCanJoinFreelyDescription": "Quando habilitado, usuários podem entrar nesta comunidade diretamente a partir da página pública, sem precisar da aprovação do dono",
+        "dynamicIcon": "Capa dinâmica",
+        "dynamicIconDescription": "Atualize automaticamente a capa da comunidade com base no chart semanal mais recente. A capa será atualizada sempre que novos charts forem gerados.",
+        "enableDynamicIcon": "Habilitar capa dinâmica",
+        "iconSource": "Imagem dinâmica de capa",
+        "iconSourceDescription": "Escolha qual vencedor do chart semanal será usado como imagem de capa",
+        "iconSources": {
+          "topAlbum": "Capa do álbum no topo",
+          "topArtist": "Artista no topo",
+          "topTrackArtist": "Artista da música no topo"
+        },
+        "saving": "Salvando...",
+        "saveChanges": "Salvar alterações",
+        "cancel": "Cancelar"
+      },
+      "styling": {
+        "title": "Configurações de estilo",
+        "updatedSuccessfully": "Configurações de estilo atualizadas com sucesso!",
+        "failedToUpdate": "Falha ao atualizar configurações de estilo",
+        "colorTheme": "Tema de cores",
+        "colorThemeDescription": "Escolha um tema de cores para a página da sua comunidade. O tema será aplicado aos fundos, texto, e botões em toda a página.",
+        "default": "(Padrão)",
+        "background": "Fundo",
+        "button": "Botões",
+        "titleColor": "Título",
+        "saving": "Salvando...",
+        "saveSettings": "Salvar configurações",
+        "cancel": "Cancelar",
+        "themes": {
+          "white": "Tinta & Manteiga",
+          "yellow": "Banana",
+          "royalBlue": "Netuno",
+          "cyan": "Aero",
+          "brightRed": "Rubi",
+          "maroon": "Marrom",
+          "graphite": "Fumê",
+          "hotPink": "Flamingo",
+          "neonGreen": "Kiwi",
+          "rainbow": "Orgulho"
+        }
+      },
+      "regenerateCharts": {
+        "title": "Re-gerar charts",
+        "fetchingData": "Buscando dados do last.fm. Isso pode levar alguns minutos...",
+        "generatedSuccessfully": "Charts gerados com sucesso!",
+        "failedToGenerate": "Falha ao gerar charts",
+        "description": "Esta ação buscará os dados mais recentes do Last.fm para todos os membros do grupo e gerará os charts semanais das últimas {weeks} semanas. Isto pode levar alguns momentos.",
+        "weeksToGenerate": "Número de semanas para gerar (apenas Superusuário)",
+        "weeksToGenerateDescription": "Digite o número de semanas no passado para gerar charts (1-52)",
+        "alreadyInProgress": "A geração de charts já está em andamento. Por favor, aguarde a conclusão.",
+        "generating": "Gerando",
+        "generateCharts": "Gerar charts",
+        "loadingMessages": {
+          "interestingTastes": "Essa comunidade tem uns gostos bem interessantes...",
+          "unexpectedArtist": "Nossa, ESSE artista aí ficou em #1? Interessante...",
+          "oldTrack": "Tá aí uma música que eu não ouvia há um tempo...",
+          "calculatingPositions": "Calculando as posições perfeitas dos charts...",
+          "deepCuts": "Estou vendo que há alguns gostos bem nichados por aqui...",
+          "albumLove": "É, pelo visto alguém gosta mesmo daquele álbum...",
+          "uniqueHabits": "Esses gostos musicais são bem... distintos!",
+          "processingScrobbles": "Processando milhares e milhares de scrobbles...",
+          "hiddenGems": "Vamos ver o que tem de melhor por aqui..."
+        }
+      },
+      "shoutbox": {
+        "title": "Configurações da caixa de comentários",
+        "updatedSuccessfully": "Configurações da caixa de comentários atualizadas com sucesso!",
+        "failedToUpdate": "Falha ao atualizar configurações",
+        "failedToLoad": "Falha ao carregar configurações",
+        "shoutboxSettings": "Configurações da caixa de comentários",
+        "enableShoutbox": "Habilitar caixa de comentários",
+        "enableShoutboxDescription": "Quando desabilitado, a caixa de comentários será ocultada da página da comunidade. Os comentários existentes são preservados.",
+        "restrictiveMode": "Modo restrito",
+        "restrictiveModeDescription": "Quando habilitado, apenas membros explicitamente permitidos podem postar comentários. Por padrão, nenhum membro pode postar.",
+        "silencedUsers": "Usuários silenciados",
+        "silencedUsersDescription": "Usuários que forem silenciados não podem postar comentários nesta comunidade.",
+        "searchByUsername": "Buscar por nome de usuário do Last.fm...",
+        "search": "Buscar",
+        "userNotFound": "Usuário não encontrado",
+        "failedToSearch": "Falha ao buscar usuário",
+        "silence": "Silenciar",
+        "removeSilence": "Remover silêncio",
+        "noSilencedUsers": "Nenhum usuário silenciado",
+        "allowedUsers": "Usuários permitidos",
+        "allowedUsersDescription": "Usuários que estão permitidos a postar comentários no modo restrito.",
+        "allow": "Permitir",
+        "revokePermission": "Revogar permissão",
+        "noAllowedUsers": "Nenhum usuário permitido",
+        "failedToSilence": "Falha ao silenciar usuário",
+        "failedToRemoveSilence": "Falha ao remover silêncio",
+        "failedToAllow": "Falha ao permitir usuário",
+        "failedToRevoke": "Falha ao revogar permissão",
+        "saving": "Salvando...",
+        "saveSettings": "Salvar configurações",
+        "cancel": "Cancelar"
+      },
+      "deleteGroup": {
+        "title": "Excluir comunidade",
+        "description": "Excluir permanentemente esta comunidade e todos os dados associados a ela.",
+        "warning": "Aviso: Esta ação não pode ser desfeita",
+        "willDelete": "Excluir esta comunidade apagará permanentemente:",
+        "allCharts": "Todos os charts e estatísticas",
+        "allInvites": "Todos os convites pendentes",
+        "allRequests": "Todas as solicitações de entrada",
+        "allMembers": "Todas as contribuições dos membros para esta comunidade",
+        "deleteButton": "Excluir comunidade",
+        "modal": {
+          "title": "Excluir comunidade",
+          "confirmMessage": "Tem certeza que deseja excluir {groupName}? Esta ação não pode ser desfeita.",
+          "willPermanentlyDelete": "Isso apagará permanentemente:",
+          "typeToConfirm": "Digite {groupName} para confirmar:",
+          "deleting": "Excluindo...",
+          "deleteGroup": "Excluir comunidade",
+          "cancel": "Cancelar",
+          "pleaseType": "Por favor, digite \"{groupName}\" para confirmar a exclusão",
+          "failedToDelete": "Falha ao excluir comunidade"
+        }
+      }
     }
   },
   "charts": {

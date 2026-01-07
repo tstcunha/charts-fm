@@ -6,6 +6,7 @@ import Toggle from '@/components/Toggle'
 import SafeImage from '@/components/SafeImage'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrash, faSpinner, faSearch } from '@fortawesome/free-solid-svg-icons'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface User {
   id: string
@@ -21,6 +22,7 @@ interface ShoutboxSettingsTabProps {
 
 export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProps) {
   const router = useRouter()
+  const t = useSafeTranslations('groups.settings.shoutbox')
   const [shoutboxEnabled, setShoutboxEnabled] = useState(true)
   const [shoutboxRestrictiveMode, setShoutboxRestrictiveMode] = useState(false)
   const [silencedUsers, setSilencedUsers] = useState<User[]>([])
@@ -55,7 +57,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
         setError(null)
       }
     } catch (err) {
-      setError('Failed to load settings')
+      setError(t('failedToLoad'))
       console.error('Error fetching settings:', err)
     } finally {
       setIsLoading(false)
@@ -78,10 +80,10 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
       } else if (data.user) {
         setSearchResult(data.user)
       } else {
-        setSearchError('User not found')
+        setSearchError(t('userNotFound'))
       }
     } catch (err) {
-      setSearchError('Failed to search for user')
+      setSearchError(t('failedToSearch'))
       console.error('Error searching user:', err)
     } finally {
       setIsSearching(false)
@@ -102,7 +104,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || 'Failed to silence user')
+        setError(data.error || t('failedToSilence'))
         setSilencingUserId(null)
         return
       }
@@ -112,7 +114,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
       setSearchResult(null)
       setSearchError(null)
     } catch (err) {
-      setError('Failed to silence user')
+      setError(t('failedToSilence'))
       console.error('Error silencing user:', err)
     } finally {
       setSilencingUserId(null)
@@ -131,14 +133,14 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || 'Failed to remove silence')
+        setError(data.error || t('failedToRemoveSilence'))
         setUnsilencingUserId(null)
         return
       }
 
       await fetchSettings()
     } catch (err) {
-      setError('Failed to remove silence')
+      setError(t('failedToRemoveSilence'))
       console.error('Error removing silence:', err)
     } finally {
       setUnsilencingUserId(null)
@@ -156,7 +158,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || 'Failed to allow user')
+        setError(data.error || t('failedToAllow'))
         return
       }
 
@@ -165,7 +167,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
       setSearchResult(null)
       setSearchError(null)
     } catch (err) {
-      setError('Failed to allow user')
+      setError(t('failedToAllow'))
       console.error('Error allowing user:', err)
     }
   }
@@ -179,13 +181,13 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || 'Failed to revoke permission')
+        setError(data.error || t('failedToRevoke'))
         return
       }
 
       await fetchSettings()
     } catch (err) {
-      setError('Failed to revoke permission')
+      setError(t('failedToRevoke'))
       console.error('Error revoking permission:', err)
     }
   }
@@ -209,13 +211,13 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to update settings')
+        throw new Error(data.error || t('failedToUpdate'))
       }
 
       setSuccess(true)
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update settings')
+      setError(err instanceof Error ? err.message : t('failedToUpdate'))
     } finally {
       setIsSaving(false)
     }
@@ -235,7 +237,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
     <div className="bg-white rounded-lg shadow-lg p-8">
       {success && (
         <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-          Shoutbox settings updated successfully!
+          {t('updatedSuccessfully')}
         </div>
       )}
 
@@ -248,17 +250,17 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
       <form onSubmit={handleSave} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Shoutbox Settings
+            {t('shoutboxSettings')}
           </label>
           <Toggle
             id="shoutboxEnabled"
             checked={shoutboxEnabled}
             onChange={setShoutboxEnabled}
             disabled={isSaving}
-            label="Enable Shoutbox"
+            label={t('enableShoutbox')}
           />
           <p className="text-xs text-gray-500 mt-1">
-            When disabled, the shoutbox will be hidden from the group page. Existing comments are preserved.
+            {t('enableShoutboxDescription')}
           </p>
         </div>
 
@@ -268,20 +270,20 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
             checked={shoutboxRestrictiveMode}
             onChange={setShoutboxRestrictiveMode}
             disabled={isSaving}
-            label="Restrictive Mode"
+            label={t('restrictiveMode')}
           />
           <p className="text-xs text-gray-500 mt-1">
-            When enabled, only users explicitly added to the allowed list can post comments. By default, all members can post.
+            {t('restrictiveModeDescription')}
           </p>
         </div>
 
         {/* Silenced Users */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Silenced Users
+            {t('silencedUsers')}
           </label>
           <p className="text-xs text-gray-500 mb-3">
-            Users who are silenced cannot post comments in this group.
+            {t('silencedUsersDescription')}
           </p>
 
           <div className="mb-4">
@@ -296,7 +298,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
                     searchUser()
                   }
                 }}
-                placeholder="Search by Last.fm username..."
+                placeholder={t('searchByUsername')}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
                 disabled={isSearching}
               />
@@ -337,7 +339,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
                   {silencingUserId === searchResult.id && (
                     <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
                   )}
-                  Silence
+                  {t('silence')}
                 </button>
               </div>
             )}
@@ -365,7 +367,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
                     onClick={() => handleUnsilence(user.id)}
                     disabled={unsilencingUserId === user.id}
                     className="p-2 text-red-600 hover:text-red-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Remove silence"
+                    title={t('removeSilence')}
                   >
                     {unsilencingUserId === user.id ? (
                       <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
@@ -377,7 +379,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 italic">No silenced users</p>
+            <p className="text-sm text-gray-500 italic">{t('noSilencedUsers')}</p>
           )}
         </div>
 
@@ -385,10 +387,10 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
         {shoutboxRestrictiveMode && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Allowed Users
+              {t('allowedUsers')}
             </label>
             <p className="text-xs text-gray-500 mb-3">
-              Users who are allowed to post comments in restrictive mode.
+              {t('allowedUsersDescription')}
             </p>
 
             <div className="mb-4">
@@ -403,7 +405,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
                       searchUser()
                     }
                   }}
-                  placeholder="Search by Last.fm username..."
+                  placeholder={t('searchByUsername')}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
                   disabled={isSearching}
                 />
@@ -440,7 +442,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
                     onClick={() => handleAllow(searchResult.id)}
                     className="px-3 py-1 bg-yellow-500 text-black rounded text-sm font-semibold hover:bg-yellow-400"
                   >
-                    Allow
+                    {t('allow')}
                   </button>
                 </div>
               )}
@@ -467,7 +469,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
                       type="button"
                       onClick={() => handleRevokeAllow(user.id)}
                       className="p-2 text-red-600 hover:text-red-800 transition-colors"
-                      title="Revoke permission"
+                      title={t('revokePermission')}
                     >
                       <FontAwesomeIcon icon={faTrash} />
                     </button>
@@ -475,7 +477,7 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500 italic">No allowed users</p>
+              <p className="text-sm text-gray-500 italic">{t('noAllowedUsers')}</p>
             )}
           </div>
         )}
@@ -486,14 +488,14 @@ export default function ShoutboxSettingsTab({ groupId }: ShoutboxSettingsTabProp
             disabled={isSaving}
             className="flex-1 py-3 px-6 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSaving ? 'Saving...' : 'Save Settings'}
+            {isSaving ? t('saving') : t('saveSettings')}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
             className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
           >
-            Cancel
+            {t('cancel')}
           </button>
         </div>
       </form>

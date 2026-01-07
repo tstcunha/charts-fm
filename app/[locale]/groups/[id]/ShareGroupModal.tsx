@@ -3,6 +3,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface ShareGroupModalProps {
   isOpen: boolean
@@ -17,6 +18,7 @@ export default function ShareGroupModal({
   groupId,
   buttonRef,
 }: ShareGroupModalProps) {
+  const t = useSafeTranslations('groups.share')
   const [linkCopied, setLinkCopied] = useState(false)
   const [invitationCopied, setInvitationCopied] = useState(false)
   const [publicUrl, setPublicUrl] = useState('')
@@ -94,7 +96,7 @@ export default function ShareGroupModal({
   }
 
   const handleCopyInvitation = async () => {
-    const invitationText = `Hey! Join my music group on chartsfm: ${publicUrl}`
+    const invitationText = `${t('invitationText')} ${publicUrl}`
     try {
       await navigator.clipboard.writeText(invitationText)
       setInvitationCopied(true)
@@ -105,7 +107,7 @@ export default function ShareGroupModal({
 
   const handleSocialShare = (platform: 'twitter' | 'whatsapp' | 'telegram') => {
     const encodedUrl = encodeURIComponent(publicUrl)
-    const encodedText = encodeURIComponent('Hey! Join my music group on chartsfm:')
+    const encodedText = encodeURIComponent(t('invitationText'))
     
     let shareUrl = ''
     switch (platform) {
@@ -113,7 +115,7 @@ export default function ShareGroupModal({
         shareUrl = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`
         break
       case 'whatsapp':
-        shareUrl = `https://wa.me/?text=${encodeURIComponent(`Hey! Join my music group on chartsfm: ${publicUrl}`)}`
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(`${t('invitationText')} ${publicUrl}`)}`
         break
       case 'telegram':
         shareUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`
@@ -157,11 +159,11 @@ export default function ShareGroupModal({
           <div className="absolute -top-3 right-4 w-6 h-6 bg-white transform rotate-45 shadow-lg"></div>
           
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Share Group</h2>
+            <h2 className="text-xl font-bold">{t('title')}</h2>
             <button
               onClick={handleClose}
               className="text-gray-500 hover:text-gray-700 text-xl leading-none w-8 h-8 flex items-center justify-center"
-              aria-label="Close"
+              aria-label={t('close')}
             >
               ×
             </button>
@@ -171,14 +173,14 @@ export default function ShareGroupModal({
             {/* Invitation Text */}
             <div>
               <p className="text-sm text-gray-700 text-center">
-                ✨ Let's grow the squad! Share this group with your music-loving friends
+                {t('description')}
               </p>
             </div>
 
             {/* Link Field with Copy Button */}
             <div>
               <label htmlFor="publicUrl" className="block text-xs font-medium text-gray-700 mb-2">
-                Group Link
+                {t('groupLink')}
               </label>
               <div className="flex gap-2">
                 <input
@@ -195,7 +197,7 @@ export default function ShareGroupModal({
                   useTheme
                   className="whitespace-nowrap"
                 >
-                  {linkCopied ? 'Copied!' : 'Copy Link'}
+                  {linkCopied ? t('copied') : t('copyLink')}
                 </LiquidGlassButton>
               </div>
             </div>
@@ -203,7 +205,7 @@ export default function ShareGroupModal({
             {/* Social Share Buttons */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-2">
-                Share on Social Media
+                {t('shareOnSocialMedia')}
               </label>
               <div className="flex gap-2">
                 <button
@@ -236,10 +238,10 @@ export default function ShareGroupModal({
                 useTheme
                 fullWidth
               >
-                {invitationCopied ? '✓ Invitation Copied!' : 'Copy Invitation'}
+                {invitationCopied ? t('invitationCopied') : t('copyInvitation')}
               </LiquidGlassButton>
               <p className="text-xs text-gray-500 mt-2 text-center">
-                Copy a ready-to-send invitation message
+                {t('copyInvitationDescription')}
               </p>
             </div>
           </div>

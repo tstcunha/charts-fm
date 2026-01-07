@@ -1,19 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from '@/i18n/routing'
-
-const LOADING_MESSAGES = [
-  "This group sure has some interesting tastes...",
-  "Oh wow, THAT artist got #1? Interesting...",
-  "Now that's a track that I hadn't heard in a while...",
-  "Calculating the perfect chart positions...",
-  "Some real deep cuts in here, I see...",
-  "Wow, someone really loves that album...",
-  "These listening habits are... unique!",
-  "Processing thousands of scrobbles...",
-  "Finding the hidden gems in your music taste...",
-]
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface RegenerateChartsTabProps {
   groupId: string
@@ -27,6 +16,21 @@ export default function RegenerateChartsTab({
   initialInProgress = false 
 }: RegenerateChartsTabProps) {
   const router = useRouter()
+  const t = useSafeTranslations('groups.settings.regenerateCharts')
+  const tMessages = useSafeTranslations('groups.settings.regenerateCharts.loadingMessages')
+  
+  const LOADING_MESSAGES = useMemo(() => [
+    tMessages('interestingTastes'),
+    tMessages('unexpectedArtist'),
+    tMessages('oldTrack'),
+    tMessages('calculatingPositions'),
+    tMessages('deepCuts'),
+    tMessages('albumLove'),
+    tMessages('uniqueHabits'),
+    tMessages('processingScrobbles'),
+    tMessages('hiddenGems'),
+  ], [tMessages])
+  
   const [isLoading, setIsLoading] = useState(initialInProgress)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -127,7 +131,7 @@ export default function RegenerateChartsTab({
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate charts')
+        throw new Error(data.error || t('failedToGenerate'))
       }
 
       setSuccess(true)
@@ -136,21 +140,21 @@ export default function RegenerateChartsTab({
       // Refresh the page to show updated charts
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate charts')
+      setError(err instanceof Error ? err.message : t('failedToGenerate'))
       setIsLoading(false)
     }
   }
 
   const getLoadingMessage = () => {
     if (showFirstMessage) {
-      return "Fetching data from last.fm. This may take a few minutes..."
+      return t('fetchingData')
     }
     return LOADING_MESSAGES[currentMessageIndex]
   }
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-8">
-      <h2 className="text-2xl font-semibold mb-4">Regenerate Charts</h2>
+      <h2 className="text-2xl font-semibold mb-4">{t('title')}</h2>
       
       {isLoading && (
         <div className="mb-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg flex items-center gap-3">
@@ -180,7 +184,7 @@ export default function RegenerateChartsTab({
 
       {success && (
         <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-          Charts generated successfully!
+          {t('generatedSuccessfully')}
         </div>
       )}
 
@@ -191,14 +195,13 @@ export default function RegenerateChartsTab({
       )}
 
       <p className="text-gray-600 mb-6">
-        This will fetch the latest listening data from Last.fm for all group members
-        and generate weekly charts for the last {isSuperuser ? weeks : 5} weeks. This may take a few moments.
+        {t('description', { weeks: isSuperuser ? weeks : 5 })}
       </p>
 
       {isSuperuser && (
         <div className="mb-6">
           <label htmlFor="weeks" className="block text-sm font-medium text-gray-700 mb-2">
-            Number of weeks to generate (Superuser only)
+            {t('weeksToGenerate')}
           </label>
           <input
             id="weeks"
@@ -216,14 +219,14 @@ export default function RegenerateChartsTab({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <p className="mt-1 text-xs text-gray-500">
-            Enter the number of weeks in the past to generate charts for (1-52)
+            {t('weeksToGenerateDescription')}
           </p>
         </div>
       )}
 
       {isLoading && !success && (
         <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg">
-          Chart generation is already in progress. Please wait for it to complete.
+          {t('alreadyInProgress')}
         </div>
       )}
 
@@ -234,7 +237,7 @@ export default function RegenerateChartsTab({
       >
         {isLoading ? (
           <span className="flex items-center justify-center gap-1">
-            Generating
+            {t('generating')}
             <span className="inline-flex">
               <span className="animate-dots">.</span>
               <span className="animate-dots-delay-1">.</span>
@@ -242,7 +245,7 @@ export default function RegenerateChartsTab({
             </span>
           </span>
         ) : (
-          'Generate Charts'
+          t('generateCharts')
         )}
       </button>
     </div>

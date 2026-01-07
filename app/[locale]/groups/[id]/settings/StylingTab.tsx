@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from '@/i18n/routing'
-import { THEME_NAMES, THEME_DISPLAY_NAMES, GROUP_THEMES, type ThemeName } from '@/lib/group-themes'
+import { THEME_NAMES, GROUP_THEMES, type ThemeName } from '@/lib/group-themes'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface StylingTabProps {
   groupId: string
@@ -14,6 +15,22 @@ export default function StylingTab({
   initialColorTheme,
 }: StylingTabProps) {
   const router = useRouter()
+  const t = useSafeTranslations('groups.settings.styling')
+  const tThemes = useSafeTranslations('groups.settings.styling.themes')
+  
+  const THEME_DISPLAY_NAMES = useMemo(() => ({
+    yellow: tThemes('yellow'),
+    royal_blue: tThemes('royalBlue'),
+    cyan: tThemes('cyan'),
+    bright_red: tThemes('brightRed'),
+    maroon: tThemes('maroon'),
+    graphite: tThemes('graphite'),
+    hot_pink: tThemes('hotPink'),
+    neon_green: tThemes('neonGreen'),
+    white: tThemes('white'),
+    rainbow: tThemes('rainbow'),
+  }), [tThemes])
+  
   const [colorTheme, setColorTheme] = useState<ThemeName>((initialColorTheme as ThemeName) || 'white')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -41,7 +58,7 @@ export default function StylingTab({
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to update styling settings')
+        throw new Error(data.error || t('failedToUpdate'))
       }
 
       setSuccess(true)
@@ -50,7 +67,7 @@ export default function StylingTab({
       // This ensures the server component gets the updated colorTheme
       window.location.href = `/groups/${groupId}`
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update styling settings')
+      setError(err instanceof Error ? err.message : t('failedToUpdate'))
       setIsLoading(false)
     }
   }
@@ -59,7 +76,7 @@ export default function StylingTab({
     <div className="bg-white rounded-lg shadow-lg p-8">
       {success && (
         <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-          Styling settings updated successfully!
+          {t('updatedSuccessfully')}
         </div>
       )}
 
@@ -72,10 +89,10 @@ export default function StylingTab({
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="colorTheme" className="block text-lg font-bold text-gray-900 mb-2">
-            Color Theme
+            {t('colorTheme')}
           </label>
           <p className="text-sm text-gray-500 mb-4">
-            Choose a color theme for your group page. This will apply to backgrounds, text, buttons, and highlights throughout the page.
+            {t('colorThemeDescription')}
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -109,7 +126,7 @@ export default function StylingTab({
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold text-gray-900">
                         {THEME_DISPLAY_NAMES[themeName]}
-                        {themeName === 'white' && <span className="ml-2 text-xs text-gray-500">(Default)</span>}
+                        {themeName === 'white' && <span className="ml-2 text-xs text-gray-500">{t('default')}</span>}
                       </h3>
                       {isSelected && (
                         <div className="w-5 h-5 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: theme.primary }}></div>
@@ -119,7 +136,7 @@ export default function StylingTab({
                     {/* Color preview - three colors only */}
                     <div className="flex gap-2 pt-2">
                       <div className="flex-1 space-y-1">
-                        <div className="text-xs text-gray-500">Background</div>
+                        <div className="text-xs text-gray-500">{t('background')}</div>
                         <div 
                           className="h-12 rounded border border-gray-200"
                           style={
@@ -133,15 +150,15 @@ export default function StylingTab({
                         ></div>
                       </div>
                       <div className="flex-1 space-y-1">
-                        <div className="text-xs text-gray-500">Button</div>
+                        <div className="text-xs text-gray-500">{t('button')}</div>
                         <div 
                           className="h-12 rounded border border-gray-200"
                           style={{ backgroundColor: theme.primaryLight }}
-                          title="Button color"
+                          title={t('button')}
                         ></div>
                       </div>
                       <div className="flex-1 space-y-1">
-                        <div className="text-xs text-gray-500">Title</div>
+                        <div className="text-xs text-gray-500">{t('titleColor')}</div>
                         <div 
                           className="h-12 rounded border border-gray-200"
                           style={{ backgroundColor: theme.primaryDark }}
@@ -162,14 +179,14 @@ export default function StylingTab({
             disabled={isLoading || !hasChanges}
             className="flex-1 py-3 px-6 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Saving...' : 'Save Settings'}
+            {isLoading ? t('saving') : t('saveSettings')}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
             className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
           >
-            Cancel
+            {t('cancel')}
           </button>
         </div>
       </form>

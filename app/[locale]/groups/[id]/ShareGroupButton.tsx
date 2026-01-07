@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShare } from '@fortawesome/free-solid-svg-icons'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 // Lazy load modal to reduce initial bundle size
 const ShareGroupModal = dynamic(() => import('./ShareGroupModal'), {
@@ -17,6 +18,7 @@ interface ShareGroupButtonProps {
 }
 
 export default function ShareGroupButton({ groupId }: ShareGroupButtonProps) {
+  const t = useSafeTranslations('groups.share')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
@@ -30,7 +32,7 @@ export default function ShareGroupButton({ groupId }: ShareGroupButtonProps) {
         useTheme
         icon={<FontAwesomeIcon icon={faShare} className="text-lg" />}
         className="absolute bottom-4 right-4 z-10 w-12 h-12"
-        aria-label="Share group"
+        aria-label={t('shareGroup')}
       />
 
       <ShareGroupModal

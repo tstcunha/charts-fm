@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from '@/i18n/routing'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface DeleteGroupModalProps {
   isOpen: boolean
@@ -17,13 +18,15 @@ export default function DeleteGroupModal({
   groupName,
 }: DeleteGroupModalProps) {
   const router = useRouter()
+  const t = useSafeTranslations('groups.settings.deleteGroup.modal')
+  const tDelete = useSafeTranslations('groups.settings.deleteGroup')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmText, setConfirmText] = useState('')
 
   const handleDelete = async () => {
     if (confirmText !== groupName) {
-      setError(`Please type "${groupName}" to confirm deletion`)
+      setError(t('pleaseType', { groupName }))
       return
     }
 
@@ -37,13 +40,13 @@ export default function DeleteGroupModal({
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to delete group')
+        throw new Error(data.error || t('failedToDelete'))
       }
 
       // Redirect to groups page after successful deletion
       router.push('/groups')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete group')
+      setError(err instanceof Error ? err.message : t('failedToDelete'))
       setIsLoading(false)
     }
   }
@@ -59,7 +62,7 @@ export default function DeleteGroupModal({
       <div className="fixed inset-0 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-red-600">Delete Group</h2>
+            <h2 className="text-2xl font-bold text-red-600">{t('title')}</h2>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 text-2xl leading-none w-8 h-8 flex items-center justify-center"
@@ -78,20 +81,20 @@ export default function DeleteGroupModal({
 
           <div className="mb-6">
             <p className="text-gray-700 mb-4">
-              Are you sure you want to delete <span className="font-semibold">{groupName}</span>? This action cannot be undone.
+              {t('confirmMessage', { groupName })}
             </p>
             <p className="text-sm text-gray-600 mb-4">
-              This will permanently delete:
+              {t('willPermanentlyDelete')}
             </p>
             <ul className="text-sm text-gray-600 list-disc list-inside mb-4 space-y-1">
-              <li>All charts and statistics</li>
-              <li>All pending invites</li>
-              <li>All join requests</li>
-              <li>All group members</li>
+              <li>{tDelete('allCharts')}</li>
+              <li>{tDelete('allInvites')}</li>
+              <li>{tDelete('allRequests')}</li>
+              <li>{tDelete('allMembers')}</li>
             </ul>
             <div>
               <label htmlFor="confirmText" className="block text-sm font-medium text-gray-700 mb-2">
-                Type <span className="font-mono font-semibold">{groupName}</span> to confirm:
+                {t('typeToConfirm', { groupName })}
               </label>
               <input
                 type="text"
@@ -112,14 +115,14 @@ export default function DeleteGroupModal({
               disabled={isLoading}
               className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               onClick={handleDelete}
               disabled={isLoading || confirmText !== groupName}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Deleting...' : 'Delete Group'}
+              {isLoading ? t('deleting') : t('deleteGroup')}
             </button>
           </div>
         </div>

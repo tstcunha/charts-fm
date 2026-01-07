@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from '@/i18n/routing'
 import CustomSelect, { SelectOption } from '@/components/CustomSelect'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface GroupSettingsFormProps {
   groupId: string
@@ -11,38 +12,7 @@ interface GroupSettingsFormProps {
   initialTrackingDayOfWeek: number
 }
 
-const DAYS_OF_WEEK = [
-  { value: 0, label: 'Sunday' },
-  { value: 1, label: 'Monday' },
-  { value: 2, label: 'Tuesday' },
-  { value: 3, label: 'Wednesday' },
-  { value: 4, label: 'Thursday' },
-  { value: 5, label: 'Friday' },
-  { value: 6, label: 'Saturday' },
-]
-
 const CHART_SIZES = [10, 20, 50]
-
-const CHART_MODES = [
-  {
-    value: 'vs',
-    label: 'Vibe Score (VS)',
-    icon: '/icons/icon_vs.png',
-    description: '✨ Recommended! Every member\'s top picks get equal love. Your #1 track scores 2.00 VS, and scores decrease gradually for lower positions. We sum everyone\'s scores together. Perfect for groups where everyone\'s taste matters equally!',
-  },
-  {
-    value: 'vs_weighted',
-    label: 'VS Weighted',
-    icon: '/icons/icon_vs_weighted.png',
-    description: 'The best of both worlds! We multiply your VS (calculated from your top 100) by how many times you actually played it, then sum across all members. Great for balancing what\'s important to you with how much you listened.',
-  },
-  {
-    value: 'plays_only',
-    label: 'Plays Only',
-    icon: '/icons/icon_plays.png',
-    description: 'Classic and simple! Just add up all the play counts. If you want the traditional "most played wins" approach, this is your jam.',
-  },
-]
 
 export default function GroupSettingsForm({
   groupId,
@@ -51,6 +21,42 @@ export default function GroupSettingsForm({
   initialTrackingDayOfWeek,
 }: GroupSettingsFormProps) {
   const router = useRouter()
+  const t = useSafeTranslations('groups.settings.chartCreation')
+  const tDays = useSafeTranslations('groups.settings.chartCreation.daysOfWeek')
+  const tModes = useSafeTranslations('groups.settings.chartCreation.modes')
+  const tCommon = useSafeTranslations('common')
+  
+  const DAYS_OF_WEEK = useMemo(() => [
+    { value: 0, label: tDays('sunday') },
+    { value: 1, label: tDays('monday') },
+    { value: 2, label: tDays('tuesday') },
+    { value: 3, label: tDays('wednesday') },
+    { value: 4, label: tDays('thursday') },
+    { value: 5, label: tDays('friday') },
+    { value: 6, label: tDays('saturday') },
+  ], [tDays])
+
+  const CHART_MODES = useMemo(() => [
+    {
+      value: 'vs',
+      label: tModes('vs.label'),
+      icon: '/icons/icon_vs.png',
+      description: tModes('vs.description'),
+    },
+    {
+      value: 'vs_weighted',
+      label: tModes('vsWeighted.label'),
+      icon: '/icons/icon_vs_weighted.png',
+      description: tModes('vsWeighted.description'),
+    },
+    {
+      value: 'plays_only',
+      label: tModes('playsOnly.label'),
+      icon: '/icons/icon_plays.png',
+      description: tModes('playsOnly.description'),
+    },
+  ], [tModes])
+
   const [chartSize, setChartSize] = useState(initialChartSize)
   const [chartMode, setChartMode] = useState(initialChartMode)
   const [trackingDayOfWeek, setTrackingDayOfWeek] = useState(initialTrackingDayOfWeek)
@@ -89,7 +95,7 @@ export default function GroupSettingsForm({
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to update settings')
+        throw new Error(data.error || t('failedToUpdate'))
       }
 
       setSuccess(true)
@@ -100,7 +106,7 @@ export default function GroupSettingsForm({
       // Redirect immediately
       router.push(`/groups/${groupId}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update settings')
+      setError(err instanceof Error ? err.message : t('failedToUpdate'))
       setIsLoading(false)
     }
   }
@@ -109,7 +115,7 @@ export default function GroupSettingsForm({
     <div className="bg-white rounded-lg shadow-lg p-8">
       {success && (
         <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-          Settings updated successfully!
+          {t('settingsUpdated')}
         </div>
       )}
 
@@ -122,10 +128,10 @@ export default function GroupSettingsForm({
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="chartSize" className="block text-lg font-bold text-gray-900 mb-2">
-            Chart Size
+            {t('chartSize')}
           </label>
           <p className="text-sm text-gray-500 mb-4">
-            Number of items to display in each chart (Top 10, Top 20, or Top 50)
+            {t('chartSizeDescription')}
           </p>
           <div className="flex gap-4">
             {CHART_SIZES.map((size) => (
@@ -145,7 +151,7 @@ export default function GroupSettingsForm({
                   onChange={(e) => setChartSize(Number(e.target.value))}
                   className="sr-only"
                 />
-                <span className="font-medium">Top {size}</span>
+                <span className="font-medium">{t('top', { size })}</span>
               </label>
             ))}
           </div>
@@ -153,10 +159,10 @@ export default function GroupSettingsForm({
 
         <div>
           <label htmlFor="chartMode" className="block text-lg font-bold text-gray-900 mb-2">
-            Chart Mode
+            {t('chartMode')}
           </label>
           <p className="text-sm text-gray-500 mb-4">
-            How charts are calculated and ranked. Changing this only affects future charts.
+            {t('chartModeDescription')}
           </p>
           
           {/* Carousel Selector */}
@@ -171,7 +177,7 @@ export default function GroupSettingsForm({
                   setChartMode(CHART_MODES[newIndex].value)
                 }}
                 className="p-2 rounded-full hover:bg-yellow-100 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                aria-label="Previous mode"
+                aria-label={t('previousMode')}
               >
                 <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -213,7 +219,7 @@ export default function GroupSettingsForm({
                   setChartMode(CHART_MODES[newIndex].value)
                 }}
                 className="p-2 rounded-full hover:bg-yellow-100 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                aria-label="Next mode"
+                aria-label={t('nextMode')}
               >
                 <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -236,7 +242,7 @@ export default function GroupSettingsForm({
                       ? 'bg-yellow-500 w-8'
                       : 'bg-gray-300 hover:bg-gray-400'
                   }`}
-                  aria-label={`Select ${mode.label}`}
+                  aria-label={t('selectMode', { mode: mode.label })}
                 />
               ))}
             </div>
@@ -255,10 +261,10 @@ export default function GroupSettingsForm({
 
         <div>
           <label htmlFor="trackingDayOfWeek" className="block text-lg font-bold text-gray-900 mb-2">
-            Tracking Day of Week
+            {t('trackingDayOfWeek')}
           </label>
           <p className="text-sm text-gray-500 mb-4">
-            The day of the week that marks the start of each tracking period. Each week runs from this day through the day before the next occurrence (e.g., if set to Monday, weeks run from Monday to Sunday). Charts can be calculated after each week ends, and this can be done on the day selected below.
+            {t('trackingDayOfWeekDescription')}
           </p>
           <CustomSelect
             id="trackingDayOfWeek"
@@ -274,14 +280,14 @@ export default function GroupSettingsForm({
             disabled={isLoading || !hasChanges}
             className="flex-1 py-3 px-6 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Saving...' : 'Save Settings'}
+            {isLoading ? t('saving') : t('saveSettings')}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
             className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
           >
-            Cancel
+            {t('cancel')}
           </button>
         </div>
       </form>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 type TabId = 'regenerate' | 'chart-creation' | 'group-details' | 'styling' | 'shoutbox' | 'delete'
 
@@ -21,15 +22,16 @@ export default function GroupSettingsTabs({
   shoutboxContent,
   deleteGroupContent,
 }: GroupSettingsTabsProps) {
+  const t = useSafeTranslations('groups.settings.tabs')
   const [activeTab, setActiveTab] = useState<TabId>('group-details')
 
   const tabs = [
-    { id: 'group-details' as TabId, label: 'Group Details' },
-    { id: 'chart-creation' as TabId, label: 'Charts' },
-    { id: 'styling' as TabId, label: 'Styling' },
-    { id: 'shoutbox' as TabId, label: 'Shoutbox' },
-    { id: 'regenerate' as TabId, label: 'Regenerate Charts' },
-    { id: 'delete' as TabId, label: 'Delete Group' },
+    { id: 'group-details' as TabId, label: t('groupDetails') },
+    { id: 'chart-creation' as TabId, label: t('charts') },
+    { id: 'styling' as TabId, label: t('styling') },
+    { id: 'shoutbox' as TabId, label: t('shoutbox') },
+    { id: 'regenerate' as TabId, label: t('regenerateCharts') },
+    { id: 'delete' as TabId, label: t('deleteGroup') },
   ]
 
   const getTabContent = () => {

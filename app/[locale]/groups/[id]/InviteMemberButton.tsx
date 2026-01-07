@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 // Lazy load modal to reduce initial bundle size
 const InviteMemberModal = dynamic(() => import('./InviteMemberModal'), {
@@ -18,6 +19,7 @@ interface InviteMemberButtonProps {
 }
 
 export default function InviteMemberButton({ groupId, onInviteSent }: InviteMemberButtonProps) {
+  const t = useSafeTranslations('groups.members')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [memberCount, setMemberCount] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -53,7 +55,7 @@ export default function InviteMemberButton({ groupId, onInviteSent }: InviteMemb
         disabled={isAtLimit}
         title={isAtLimit ? `Group has reached the maximum limit of ${MAX_GROUP_MEMBERS} members` : undefined}
       >
-        Invite Member
+        {t('inviteMember')}
       </LiquidGlassButton>
 
       <InviteMemberModal

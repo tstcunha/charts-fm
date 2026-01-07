@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from '@/i18n/routing'
 import SafeImage from '@/components/SafeImage'
 import { getDefaultGroupImage } from '@/lib/default-images'
 import CustomSelect from '@/components/CustomSelect'
 import Toggle from '@/components/Toggle'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface GroupDetailsTabProps {
   groupId: string
@@ -17,12 +18,6 @@ interface GroupDetailsTabProps {
   initialDynamicIconSource: string | null
 }
 
-const ICON_SOURCES = [
-  { value: 'top_album', label: 'Top Album' },
-  { value: 'top_artist', label: 'Top Artist' },
-  { value: 'top_track_artist', label: 'Artist of Top Track' },
-]
-
 export default function GroupDetailsTab({
   groupId,
   initialName,
@@ -33,6 +28,15 @@ export default function GroupDetailsTab({
   initialDynamicIconSource,
 }: GroupDetailsTabProps) {
   const router = useRouter()
+  const t = useSafeTranslations('groups.settings.groupDetails')
+  const tCommon = useSafeTranslations('common')
+  
+  const ICON_SOURCES = useMemo(() => [
+    { value: 'top_album', label: t('iconSources.topAlbum') },
+    { value: 'top_artist', label: t('iconSources.topArtist') },
+    { value: 'top_track_artist', label: t('iconSources.topTrackArtist') },
+  ], [t])
+
   const [name, setName] = useState(initialName)
   const [imageUrl, setImageUrl] = useState(initialImage || '')
   const [isPrivate, setIsPrivate] = useState(initialIsPrivate)
@@ -84,7 +88,7 @@ export default function GroupDetailsTab({
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to update group details')
+        throw new Error(data.error || t('failedToUpdate'))
       }
 
       // Update icon separately if it changed
@@ -99,7 +103,7 @@ export default function GroupDetailsTab({
 
         if (!iconResponse.ok) {
           const iconData = await iconResponse.json()
-          throw new Error(iconData.error || 'Failed to update icon')
+          throw new Error(iconData.error || t('failedToUpdate'))
         }
       }
 
@@ -111,7 +115,7 @@ export default function GroupDetailsTab({
       // Redirect immediately
       router.push(`/groups/${groupId}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update group details')
+      setError(err instanceof Error ? err.message : t('failedToUpdate'))
       setIsLoading(false)
     }
   }
@@ -120,7 +124,7 @@ export default function GroupDetailsTab({
     <div className="bg-white rounded-lg shadow-lg p-8">
       {success && (
         <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-          Group details updated successfully!
+          {t('updatedSuccessfully')}
         </div>
       )}
 
@@ -133,7 +137,7 @@ export default function GroupDetailsTab({
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="groupName" className="block text-sm font-medium text-gray-700 mb-2">
-            Group Name
+            {t('groupName')}
           </label>
           <input
             type="text"
@@ -148,7 +152,7 @@ export default function GroupDetailsTab({
 
         <div>
           <label htmlFor="groupIcon" className="block text-sm font-medium text-gray-700 mb-2">
-            Group Icon
+            {t('groupIcon')}
           </label>
           <input
             type="url"
@@ -156,11 +160,11 @@ export default function GroupDetailsTab({
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-            placeholder="https://example.com/icon.png"
+            placeholder={t('iconUrlPlaceholder')}
             disabled={isLoading}
           />
           <p className="text-xs text-gray-500 mt-1">
-            Enter a URL to an image for your group icon
+            {t('iconUrlDescription')}
           </p>
           {imageUrl && (
             <div className="mt-4 flex justify-center">
@@ -178,44 +182,44 @@ export default function GroupDetailsTab({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Privacy Settings
+            {t('privacySettings')}
           </label>
           <Toggle
             id="isPrivate"
             checked={isPrivate}
             onChange={handlePrivateChange}
             disabled={isLoading}
-            label="Private Group"
+            label={t('privateGroup')}
           />
           <p className="text-xs text-gray-500 mt-1">
-            Private groups are not viewable publicly and require approval to join
+            {t('privateGroupDescription')}
           </p>
         </div>
 
         {!isPrivate && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Join Settings
+              {t('joinSettings')}
             </label>
             <Toggle
               id="allowFreeJoin"
               checked={allowFreeJoin}
               onChange={setAllowFreeJoin}
               disabled={isLoading}
-              label="Users can join freely"
+              label={t('usersCanJoinFreely')}
             />
             <p className="text-xs text-gray-500 mt-1">
-              When enabled, users can join this group directly from the public page without requiring approval
+              {t('usersCanJoinFreelyDescription')}
             </p>
           </div>
         )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Dynamic Icon
+            {t('dynamicIcon')}
           </label>
           <p className="text-xs text-gray-500 mb-3">
-            Automatically update the group icon based on the latest weekly chart. The icon will update whenever new charts are generated.
+            {t('dynamicIconDescription')}
           </p>
           
           <div className="mb-4">
@@ -224,14 +228,14 @@ export default function GroupDetailsTab({
               checked={dynamicIconEnabled}
               onChange={setDynamicIconEnabled}
               disabled={isLoading}
-              label="Enable Dynamic Icon"
+              label={t('enableDynamicIcon')}
             />
           </div>
 
           {dynamicIconEnabled && (
             <div>
               <label htmlFor="dynamicIconSource" className="block text-sm font-medium text-gray-700 mb-2">
-                Icon Source
+                {t('iconSource')}
               </label>
               <CustomSelect
                 id="dynamicIconSource"
@@ -240,7 +244,7 @@ export default function GroupDetailsTab({
                 onChange={(value) => setDynamicIconSource(String(value))}
               />
               <p className="text-xs text-gray-500 mt-1">
-                Choose what the group icon should display from the latest weekly chart
+                {t('iconSourceDescription')}
               </p>
             </div>
           )}
@@ -252,14 +256,14 @@ export default function GroupDetailsTab({
             disabled={isLoading || !hasChanges}
             className="flex-1 py-3 px-6 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Saving...' : 'Save Changes'}
+            {isLoading ? t('saving') : t('saveChanges')}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
             className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
           >
-            Cancel
+            {t('cancel')}
           </button>
         </div>
       </form>
