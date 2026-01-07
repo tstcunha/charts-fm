@@ -11,13 +11,15 @@ import { generateSlug } from '@/lib/chart-slugs'
 interface RecordsClientProps {
   groupId: string
   initialRecords: any
+  memberCount: number
 }
 
-export default function RecordsClient({ groupId, initialRecords }: RecordsClientProps) {
+export default function RecordsClient({ groupId, initialRecords, memberCount }: RecordsClientProps) {
   const [records, setRecords] = useState<any>(initialRecords)
   const [isLoading, setIsLoading] = useState(false)
   const [previewData, setPreviewData] = useState<any>(null)
-  const [activeTab, setActiveTab] = useState<'artists' | 'tracks' | 'albums' | 'users'>('artists')
+  const [isLoadingPreview, setIsLoadingPreview] = useState(true)
+  const [activeTab, setActiveTab] = useState<'artists' | 'tracks' | 'albums' | 'users'>('users')
 
   useEffect(() => {
     // Fetch records status
@@ -35,15 +37,18 @@ export default function RecordsClient({ groupId, initialRecords }: RecordsClient
       })
 
     // Fetch preview data
+    setIsLoadingPreview(true)
     fetch(`/api/groups/${groupId}/records/preview`)
       .then((res) => res.json())
       .then((data) => {
         if (!data.error) {
           setPreviewData(data)
         }
+        setIsLoadingPreview(false)
       })
       .catch((err) => {
         console.error('Error fetching preview:', err)
+        setIsLoadingPreview(false)
       })
   }, [groupId])
 
@@ -51,10 +56,10 @@ export default function RecordsClient({ groupId, initialRecords }: RecordsClient
   const recordsData = records?.records || (initialRecords?.status === 'completed' ? initialRecords.records : null)
 
   const tabs: TabItem[] = [
+    { id: 'users', label: 'Users', icon: faUsers },
     { id: 'artists', label: 'Artists', icon: faMicrophone },
     { id: 'tracks', label: 'Tracks', icon: faMusic },
     { id: 'albums', label: 'Albums', icon: faCompactDisc },
-    { id: 'users', label: 'Users', icon: faUsers },
   ]
 
   if (isLoading || !records) {
@@ -126,75 +131,83 @@ export default function RecordsClient({ groupId, initialRecords }: RecordsClient
 
   // Preview cards at the top
   const renderPreviewCards = () => {
-    if (!previewData || (!previewData.artist && !previewData.track && !previewData.album)) {
-      return null
-    }
-
     return (
       <div className="bg-[var(--theme-background-from)] rounded-xl shadow-sm p-6 border border-theme mb-6">
         <h3 className="text-xl font-bold mb-4 text-gray-900 flex items-center gap-2">
           <FontAwesomeIcon icon={faMedal} className="text-[var(--theme-primary)]" />
           Most Weeks on Chart
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {previewData.artist && (
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon icon={faMicrophone} className="text-[var(--theme-primary)]" />
-                <span className="text-sm font-semibold text-gray-600">Artist</span>
+        {isLoadingPreview ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
+                <div className="flex items-center justify-center h-24">
+                  <FontAwesomeIcon icon={faSpinner} className="animate-spin text-2xl text-[var(--theme-primary)]" />
+                </div>
               </div>
-              <Link
-                href={`/groups/${groupId}/charts/artist/${previewData.artist.slug}`}
-                className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
-              >
-                {previewData.artist.name}
-              </Link>
-              <p className="text-sm text-gray-600">
-                {previewData.artist.value} {previewData.artist.value === 1 ? 'week' : 'weeks'}
-              </p>
-            </div>
-          )}
-          {previewData.track && (
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon icon={faMusic} className="text-[var(--theme-primary)]" />
-                <span className="text-sm font-semibold text-gray-600">Track</span>
+            ))}
+          </div>
+        ) : previewData && (previewData.artist || previewData.track || previewData.album) ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {previewData.artist && (
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon icon={faMicrophone} className="text-[var(--theme-primary)]" />
+                  <span className="text-sm font-semibold text-gray-600">Artist</span>
+                </div>
+                <Link
+                  href={`/groups/${groupId}/charts/artist/${previewData.artist.slug}`}
+                  className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
+                >
+                  {previewData.artist.name}
+                </Link>
+                <p className="text-sm text-gray-600">
+                  {previewData.artist.value} {previewData.artist.value === 1 ? 'week' : 'weeks'}
+                </p>
               </div>
-              <Link
-                href={`/groups/${groupId}/charts/track/${previewData.track.slug}`}
-                className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
-              >
-                {previewData.track.name}
-              </Link>
-              {previewData.track.artist && (
-                <p className="text-xs text-gray-600 mb-1">by {previewData.track.artist}</p>
-              )}
-              <p className="text-sm text-gray-600">
-                {previewData.track.value} {previewData.track.value === 1 ? 'week' : 'weeks'}
-              </p>
-            </div>
-          )}
-          {previewData.album && (
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon icon={faCompactDisc} className="text-[var(--theme-primary)]" />
-                <span className="text-sm font-semibold text-gray-600">Album</span>
+            )}
+            {previewData.track && (
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon icon={faMusic} className="text-[var(--theme-primary)]" />
+                  <span className="text-sm font-semibold text-gray-600">Track</span>
+                </div>
+                <Link
+                  href={`/groups/${groupId}/charts/track/${previewData.track.slug}`}
+                  className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
+                >
+                  {previewData.track.name}
+                </Link>
+                {previewData.track.artist && (
+                  <p className="text-xs text-gray-600 mb-1">by {previewData.track.artist}</p>
+                )}
+                <p className="text-sm text-gray-600">
+                  {previewData.track.value} {previewData.track.value === 1 ? 'week' : 'weeks'}
+                </p>
               </div>
-              <Link
-                href={`/groups/${groupId}/charts/album/${previewData.album.slug}`}
-                className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
-              >
-                {previewData.album.name}
-              </Link>
-              {previewData.album.artist && (
-                <p className="text-xs text-gray-600 mb-1">by {previewData.album.artist}</p>
-              )}
-              <p className="text-sm text-gray-600">
-                {previewData.album.value} {previewData.album.value === 1 ? 'week' : 'weeks'}
-              </p>
-            </div>
-          )}
-        </div>
+            )}
+            {previewData.album && (
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon icon={faCompactDisc} className="text-[var(--theme-primary)]" />
+                  <span className="text-sm font-semibold text-gray-600">Album</span>
+                </div>
+                <Link
+                  href={`/groups/${groupId}/charts/album/${previewData.album.slug}`}
+                  className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
+                >
+                  {previewData.album.name}
+                </Link>
+                {previewData.album.artist && (
+                  <p className="text-xs text-gray-600 mb-1">by {previewData.album.artist}</p>
+                )}
+                <p className="text-sm text-gray-600">
+                  {previewData.album.value} {previewData.album.value === 1 ? 'week' : 'weeks'}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
     )
   }
@@ -384,15 +397,6 @@ export default function RecordsClient({ groupId, initialRecords }: RecordsClient
       })
     }
 
-    if (recordsData.userMostNumberOnes) {
-      records.push({
-        title: 'Chart Dominator',
-        record: recordsData.userMostNumberOnes,
-        value: `${recordsData.userMostNumberOnes.value} ${recordsData.userMostNumberOnes.value === 1 ? '#1' : '#1s'}`,
-        isUser: true,
-      })
-    }
-
     if (recordsData.userMostWeeksContributing) {
       records.push({
         title: 'Consistency Champion',
@@ -407,15 +411,6 @@ export default function RecordsClient({ groupId, initialRecords }: RecordsClient
         title: 'Taste Maker',
         record: recordsData.userTasteMaker,
         value: `${recordsData.userTasteMaker.value} ${recordsData.userTasteMaker.value === 1 ? 'entry' : 'entries'}`,
-        isUser: true,
-      })
-    }
-
-    if (recordsData.userPeakPerformer) {
-      records.push({
-        title: 'Peak Performer',
-        record: recordsData.userPeakPerformer,
-        value: recordsData.userPeakPerformer.value.toFixed(2),
         isUser: true,
       })
     }
@@ -440,7 +435,33 @@ export default function RecordsClient({ groupId, initialRecords }: RecordsClient
           />
         </div>
 
-        {currentRecords.length === 0 ? (
+        {activeTab === 'users' && memberCount < 3 ? (
+          <div className="relative min-h-[400px]">
+            {/* Background content to blur */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm h-32">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+            {/* Frosted overlay */}
+            <div className="absolute inset-0 bg-white/30 backdrop-blur-md rounded-xl z-50 flex items-center justify-center border border-white/20 shadow-xl">
+              <div className="text-center p-6 max-w-md">
+                <p className="text-lg font-semibold text-gray-800 mb-3">
+                  User Records Coming Soon
+                </p>
+                <p className="text-sm text-gray-500 mb-2">
+                  This group currently has {memberCount} {memberCount === 1 ? 'member' : 'members'}. Invite <b>{memberCount === 1 ? '2 more' : memberCount === 2 ? '1 more' : ''}</b> to unlock user records!
+                </p>
+                <p className="text-sm text-gray-500 mb-2">
+                  With more people, we can compare contributions and highlight who's bringing the most energy, plays, and taste to the group.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : currentRecords.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-600">No records available for this category yet.</p>
           </div>

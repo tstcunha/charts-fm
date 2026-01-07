@@ -100,20 +100,13 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold text-[var(--theme-primary-dark)]">All-Time Stats</h2>
-        <LiquidGlassLink
-          href={`/groups/${groupId}/alltime`}
-          variant="primary"
-          useTheme
-        >
-          View All-Time Stats
-        </LiquidGlassLink>
       </div>
 
       {/* Records Preview Section */}
       {!previewLoading && previewData && (previewData.artist || previewData.track || previewData.album) && (
         <div className="bg-[var(--theme-background-from)] rounded-xl shadow-sm p-6 border border-theme mb-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <FontAwesomeIcon icon={faMedal} className="text-[var(--theme-primary)]" />
               Records
             </h3>
@@ -130,7 +123,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
                   <FontAwesomeIcon icon={faMicrophone} className="text-[var(--theme-primary)]" />
-                  <span className="text-sm font-semibold text-gray-600">Artist</span>
+                  <span className="text-sm font-semibold text-gray-600">Artist (most consecutive weeks)</span>
                 </div>
                 <Link
                   href={`/groups/${groupId}/charts/artist/${previewData.artist.slug}`}
@@ -147,7 +140,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
                   <FontAwesomeIcon icon={faMusic} className="text-[var(--theme-primary)]" />
-                  <span className="text-sm font-semibold text-gray-600">Track</span>
+                  <span className="text-sm font-semibold text-gray-600">Track (most consecutive weeks)</span>
                 </div>
                 <Link
                   href={`/groups/${groupId}/charts/track/${previewData.track.slug}`}
@@ -167,7 +160,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
               <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
                   <FontAwesomeIcon icon={faCompactDisc} className="text-[var(--theme-primary)]" />
-                  <span className="text-sm font-semibold text-gray-600">Album</span>
+                  <span className="text-sm font-semibold text-gray-600">Album (most consecutive weeks)</span>
                 </div>
                 <Link
                   href={`/groups/${groupId}/charts/album/${previewData.album.slug}`}
@@ -188,7 +181,19 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
       )}
 
       <div className="bg-[var(--theme-background-from)] rounded-xl shadow-sm p-6 border border-theme">
-        <h3 className="text-2xl font-bold mb-6 text-gray-900">Top 100 All-Time</h3>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <FontAwesomeIcon icon={faTrophy} className="text-[var(--theme-primary)]" />
+            Top 100 All-Time
+          </h3>
+          <LiquidGlassLink
+            href={`/groups/${groupId}/alltime`}
+            variant="primary"
+            useTheme
+          >
+            View complete table
+          </LiquidGlassLink>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white/80 backdrop-blur-sm rounded-xl p-5 border border-theme shadow-sm">

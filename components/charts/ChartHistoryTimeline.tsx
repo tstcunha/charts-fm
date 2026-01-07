@@ -4,6 +4,7 @@ import { memo, useMemo } from 'react'
 import { ChartHistoryEntry } from '@/lib/chart-deep-dive'
 import PositionBubble from './PositionBubble'
 import { formatWeekDate, formatWeekLabel } from '@/lib/weekly-utils'
+import Tooltip from '@/components/Tooltip'
 
 interface ChartHistoryTimelineProps {
   history: ChartHistoryEntry[]
@@ -129,17 +130,16 @@ function ChartHistoryTimeline({
     <div className="bg-white/40 backdrop-blur-md rounded-xl p-6 border border-white/30" style={{ overflow: 'visible', contain: 'layout style paint' }}>
       <h2 className="text-xl font-bold text-gray-900 mb-6">Chart History</h2>
       <div className="relative" style={{ overflow: 'visible' }}>
-        {/* Timeline line - positioned at center of bubbles (approximately 32px from top for w-16 bubbles) */}
-        <div className="absolute top-8 left-0 right-0 h-0.5 bg-gray-300/40" style={{ zIndex: 0 }} />
-        
-        {/* Timeline items - optimized for scroll performance */}
+        {/* Timeline items container with repeating lines on all rows */}
         <div 
-          className="relative flex items-center gap-4 overflow-x-auto overflow-y-visible pb-12 pl-8" 
+          className="relative flex flex-wrap items-center gap-4 pb-12 pl-8"
           style={{ 
             zIndex: 1, 
             overflow: 'visible',
-            willChange: 'scroll-position',
-            WebkitOverflowScrolling: 'touch'
+            backgroundImage: 'repeating-linear-gradient(to bottom, transparent 0, transparent 31px, rgba(209, 213, 219, 0.4) 31px, rgba(209, 213, 219, 0.4) 33px, transparent 33px, transparent 80px)',
+            backgroundSize: '100% 80px',
+            backgroundPosition: '0 0',
+            backgroundRepeat: 'repeat-y'
           }}
         >
           {timelineItems.map((item, index) => {
@@ -147,7 +147,7 @@ function ChartHistoryTimeline({
               return (
                 <div 
                   key={`${item.entry?.weekStart?.getTime() || item.gapWeekStart?.getTime()}-${index}`} 
-                  className="relative flex flex-col items-center flex-shrink-0" 
+                  className="relative flex flex-col items-center" 
                   style={{ overflow: 'visible', contain: 'layout style' }}
                 >
                   <PositionBubble
@@ -158,7 +158,7 @@ function ChartHistoryTimeline({
                     isOut={item.isOut}
                   />
                   {item.isFirst && firstAppearanceDate && (
-                    <span className="absolute top-full mt-4 left-1/2 -translate-x-1/2 text-xs text-gray-600 font-medium whitespace-nowrap">
+                    <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 text-xs text-gray-600 font-medium whitespace-nowrap">
                       {formatWeekLabel(firstAppearanceDate)}
                     </span>
                   )}
@@ -166,13 +166,18 @@ function ChartHistoryTimeline({
               )
             } else if (item.type === 'gap-text') {
               return (
-                <div 
-                  key={`gap-${index}`} 
-                  className="px-4 py-2 text-sm text-gray-600 italic flex-shrink-0"
-                  style={{ contain: 'layout style' }}
+                <Tooltip 
+                  key={`gap-${index}`}
+                  content={`Out for ${item.gapWeeks} ${item.gapWeeks === 1 ? 'week' : 'weeks'}`}
+                  position="top"
                 >
-                  ...{item.gapWeeks} week{item.gapWeeks! > 1 ? 's' : ''} out...
-                </div>
+                  <div 
+                    className="px-2 text-xs text-gray-500 cursor-help"
+                    style={{ contain: 'layout style' }}
+                  >
+                    ⏸ {item.gapWeeks}
+                  </div>
+                </Tooltip>
               )
             }
             return null

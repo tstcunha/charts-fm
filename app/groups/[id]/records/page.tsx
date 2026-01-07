@@ -3,6 +3,7 @@ import { getGroupRecords } from '@/lib/group-records'
 import Link from 'next/link'
 import RecordsClient from './RecordsClient'
 import GroupPageHero from '@/components/groups/GroupPageHero'
+import { prisma } from '@/lib/prisma'
 
 export default async function RecordsPage({ params }: { params: { id: string } }) {
   const { user, group } = await requireGroupMembership(params.id)
@@ -26,6 +27,52 @@ export default async function RecordsPage({ params }: { params: { id: string } }
 
   // Get records data
   const records = await getGroupRecords(group.id)
+  
+  // Get member count
+  const memberCount = await prisma.groupMember.count({
+    where: { groupId: group.id },
+  })
+  
+  // Enrich user records with user images if records are completed
+  if (records && records.status === 'completed' && records.records) {
+    const recordsData = records.records as any
+    
+    // Get all user IDs from user records
+    const userIds = new Set<string>()
+    const userRecordFields = [
+      'userMostVS',
+      'userMostPlays',
+      'userMostEntries',
+      'userLeastEntries',
+      'userMostNumberOnes',
+      'userMostWeeksContributing',
+      'userTasteMaker',
+      'userPeakPerformer',
+    ]
+    
+    userRecordFields.forEach((field) => {
+      if (recordsData[field]?.userId) {
+        userIds.add(recordsData[field].userId)
+      }
+    })
+    
+    // Fetch user images
+    if (userIds.size > 0) {
+      const users = await prisma.user.findMany({
+        where: { id: { in: Array.from(userIds) } },
+        select: { id: true, image: true },
+      })
+      
+      const userImageMap = new Map(users.map(u => [u.id, u.image]))
+      
+      // Enrich user records with images
+      userRecordFields.forEach((field) => {
+        if (recordsData[field]?.userId) {
+          recordsData[field].image = userImageMap.get(recordsData[field].userId) || null
+        }
+      })
+    }
+  }
 
   return (
     <main className={`flex min-h-screen flex-col pt-8 pb-24 px-6 md:px-12 lg:px-24 ${themeClass} bg-gradient-to-b from-[var(--theme-background-from)] to-[var(--theme-background-to)]`}>
@@ -48,6 +95,7 @@ export default async function RecordsPage({ params }: { params: { id: string } }
         <RecordsClient 
           groupId={group.id}
           initialRecords={records}
+          memberCount={memberCount}
         />
       </div>
     </main>

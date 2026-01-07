@@ -1066,6 +1066,12 @@ async function calculatePhase6Records(
     return records
   }
 
+  // Skip user records calculation if fewer than 3 members
+  if (members.length < 3) {
+    await phaseStart.end(`Skipped: Only ${members.length} member(s), need at least 3 for user awards`)
+    return records
+  }
+
   const userIds = members.map(m => m.user.id)
   const userMap = new Map(members.map(m => [m.user.id, m.user]))
 
@@ -1079,6 +1085,11 @@ async function calculatePhase6Records(
       SUM(ucvs."vibeScore")::float as total_vs
     FROM "user_chart_entry_vs" ucvs
     INNER JOIN "group_members" gm ON ucvs."userId" = gm."userId"
+    INNER JOIN "group_chart_entries" gce ON 
+      gce."groupId" = ${groupId}::text AND
+      gce."chartType" = ucvs."chartType" AND
+      gce."entryKey" = ucvs."entryKey" AND
+      gce."weekStart" = ucvs."weekStart"
     WHERE gm."groupId" = ${groupId}::text
       AND ucvs."userId" IS NOT NULL
     GROUP BY ucvs."userId"
@@ -1107,6 +1118,11 @@ async function calculatePhase6Records(
       SUM(ucvs.playcount)::bigint as total_plays
     FROM "user_chart_entry_vs" ucvs
     INNER JOIN "group_members" gm ON ucvs."userId" = gm."userId"
+    INNER JOIN "group_chart_entries" gce ON 
+      gce."groupId" = ${groupId}::text AND
+      gce."chartType" = ucvs."chartType" AND
+      gce."entryKey" = ucvs."entryKey" AND
+      gce."weekStart" = ucvs."weekStart"
     WHERE gm."groupId" = ${groupId}::text
       AND ucvs."userId" IS NOT NULL
     GROUP BY ucvs."userId"
@@ -1132,9 +1148,14 @@ async function calculatePhase6Records(
   }>>`
     SELECT 
       ucvs."userId",
-      COUNT(DISTINCT ucvs."entryKey")::bigint as distinct_entries
+      COUNT(DISTINCT CONCAT(ucvs."entryKey", '|', ucvs."chartType"))::bigint as distinct_entries
     FROM "user_chart_entry_vs" ucvs
     INNER JOIN "group_members" gm ON ucvs."userId" = gm."userId"
+    INNER JOIN "group_chart_entries" gce ON 
+      gce."groupId" = ${groupId}::text AND
+      gce."chartType" = ucvs."chartType" AND
+      gce."entryKey" = ucvs."entryKey" AND
+      gce."weekStart" = ucvs."weekStart"
     WHERE gm."groupId" = ${groupId}::text
       AND ucvs."userId" IS NOT NULL
     GROUP BY ucvs."userId"
@@ -1160,13 +1181,18 @@ async function calculatePhase6Records(
   }>>`
     SELECT 
       ucvs."userId",
-      COUNT(DISTINCT ucvs."entryKey")::bigint as distinct_entries
+      COUNT(DISTINCT CONCAT(ucvs."entryKey", '|', ucvs."chartType"))::bigint as distinct_entries
     FROM "user_chart_entry_vs" ucvs
     INNER JOIN "group_members" gm ON ucvs."userId" = gm."userId"
+    INNER JOIN "group_chart_entries" gce ON 
+      gce."groupId" = ${groupId}::text AND
+      gce."chartType" = ucvs."chartType" AND
+      gce."entryKey" = ucvs."entryKey" AND
+      gce."weekStart" = ucvs."weekStart"
     WHERE gm."groupId" = ${groupId}::text
       AND ucvs."userId" IS NOT NULL
     GROUP BY ucvs."userId"
-    HAVING COUNT(DISTINCT ucvs."entryKey") >= 1
+    HAVING COUNT(DISTINCT CONCAT(ucvs."entryKey", '|', ucvs."chartType")) >= 1
     ORDER BY distinct_entries ASC
     LIMIT 1
   `
@@ -1217,6 +1243,7 @@ async function calculatePhase6Records(
   }
 
   // Most weeks contributing
+  // Only count weeks where user contributed AND group has charts for that week
   const mostWeeksResult = await prisma.$queryRaw<Array<{
     userId: string
     distinct_weeks: bigint
@@ -1226,6 +1253,11 @@ async function calculatePhase6Records(
       COUNT(DISTINCT ucvs."weekStart")::bigint as distinct_weeks
     FROM "user_chart_entry_vs" ucvs
     INNER JOIN "group_members" gm ON ucvs."userId" = gm."userId"
+    INNER JOIN "group_chart_entries" gce ON 
+      gce."groupId" = ${groupId}::text AND
+      gce."weekStart" = ucvs."weekStart" AND
+      gce."chartType" = ucvs."chartType" AND
+      gce."entryKey" = ucvs."entryKey"
     WHERE gm."groupId" = ${groupId}::text
       AND ucvs."userId" IS NOT NULL
     GROUP BY ucvs."userId"
@@ -1305,13 +1337,18 @@ async function calculatePhase6Records(
     SELECT 
       ucvs."userId",
       AVG(ucvs."vibeScore")::float as avg_vs,
-      COUNT(DISTINCT ucvs."entryKey")::bigint as entry_count
+      COUNT(DISTINCT CONCAT(ucvs."entryKey", '|', ucvs."chartType"))::bigint as entry_count
     FROM "user_chart_entry_vs" ucvs
     INNER JOIN "group_members" gm ON ucvs."userId" = gm."userId"
+    INNER JOIN "group_chart_entries" gce ON 
+      gce."groupId" = ${groupId}::text AND
+      gce."chartType" = ucvs."chartType" AND
+      gce."entryKey" = ucvs."entryKey" AND
+      gce."weekStart" = ucvs."weekStart"
     WHERE gm."groupId" = ${groupId}::text
       AND ucvs."userId" IS NOT NULL
     GROUP BY ucvs."userId"
-    HAVING COUNT(DISTINCT ucvs."entryKey") >= 5
+    HAVING COUNT(DISTINCT CONCAT(ucvs."entryKey", '|', ucvs."chartType")) >= 5
     ORDER BY avg_vs DESC
     LIMIT 1
   `

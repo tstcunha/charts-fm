@@ -24,9 +24,51 @@ export async function GET(
       })
     }
 
+    // Enrich user records with user images
+    let enrichedRecords = records.records
+    if (records.status === 'completed' && enrichedRecords) {
+      const recordsData = enrichedRecords as any
+      
+      // Get all user IDs from user records
+      const userIds = new Set<string>()
+      const userRecordFields = [
+        'userMostVS',
+        'userMostPlays',
+        'userMostEntries',
+        'userLeastEntries',
+        'userMostNumberOnes',
+        'userMostWeeksContributing',
+        'userTasteMaker',
+        'userPeakPerformer',
+      ]
+      
+      userRecordFields.forEach((field) => {
+        if (recordsData[field]?.userId) {
+          userIds.add(recordsData[field].userId)
+        }
+      })
+      
+      // Fetch user images
+      if (userIds.size > 0) {
+        const users = await prisma.user.findMany({
+          where: { id: { in: Array.from(userIds) } },
+          select: { id: true, image: true },
+        })
+        
+        const userImageMap = new Map(users.map(u => [u.id, u.image]))
+        
+        // Enrich user records with images
+        userRecordFields.forEach((field) => {
+          if (recordsData[field]?.userId) {
+            recordsData[field].image = userImageMap.get(recordsData[field].userId) || null
+          }
+        })
+      }
+    }
+
     return NextResponse.json({
       status: records.status,
-      records: records.status === 'completed' ? records.records : null,
+      records: records.status === 'completed' ? enrichedRecords : null,
       calculationStartedAt: records.calculationStartedAt,
       chartsGeneratedAt: records.chartsGeneratedAt,
     })
