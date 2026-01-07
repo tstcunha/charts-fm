@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import "react-day-picker/dist/style.css";
 import "./globals.css";
-import SessionProvider from "@/components/SessionProvider";
-import { NavigationProvider } from "@/contexts/NavigationContext";
-import Navbar from "@/components/Navbar";
 import { Oswald, Inter } from "next/font/google";
 
 const oswald = Oswald({
@@ -28,26 +25,17 @@ export const metadata: Metadata = {
   description: "Create beautiful charts and visualizations from your Last.fm listening data",
 };
 
+// Root layout - must have html and body tags
+// The locale-specific content is in app/[locale]/layout.tsx
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`antialiased ${oswald.variable} ${inter.variable}`}>
-        {/* Background elements - fixed to viewport for all pages */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-40 right-20 w-96 h-96 bg-pink-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-orange-400/20 rounded-full blur-3xl"></div>
-        </div>
-        <SessionProvider>
-          <NavigationProvider>
-            <Navbar />
-            {children}
-          </NavigationProvider>
-        </SessionProvider>
+        {children}
       </body>
     </html>
   );

@@ -3,7 +3,7 @@
 import { useState, memo } from 'react'
 import { ArtistChartEntry } from '@/lib/chart-deep-dive'
 import LiquidGlassTabs from '@/components/LiquidGlassTabs'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 
 interface ArtistEntriesTableProps {
   tracks: ArtistChartEntry[]

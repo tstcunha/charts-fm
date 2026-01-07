@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, useMemo } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { formatWeekDate, formatWeekLabel } from '@/lib/weekly-utils'
 import Tooltip from '@/components/Tooltip'
 

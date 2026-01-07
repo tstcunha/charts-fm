@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, memo } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import SafeImage from '@/components/SafeImage'
 import { getDefaultGroupImage } from '@/lib/default-images'
 import { formatWeekLabel } from '@/lib/weekly-utils'

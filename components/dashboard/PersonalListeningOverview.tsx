@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, memo } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMusic, faMicrophone, faCompactDisc, faArrowUp, faArrowDown, faMinus, faSpinner } from '@fortawesome/free-solid-svg-icons'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { formatWeekLabel } from '@/lib/weekly-utils'
 
 interface PersonalListeningStats {

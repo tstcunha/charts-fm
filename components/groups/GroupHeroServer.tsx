@@ -1,11 +1,11 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import SafeImage from '@/components/SafeImage'
 import { prisma } from '@/lib/prisma'
 import { getWeekStartForDay, getWeekEndForDay, formatWeekLabel } from '@/lib/weekly-utils'
 import { getLastChartWeek } from '@/lib/group-service'
 import UpdateChartsButton from './UpdateChartsButton'
-import ShareGroupButton from '@/app/groups/[id]/ShareGroupButton'
-import QuickAccessButton from '@/app/groups/[id]/QuickAccessButton'
+import ShareGroupButton from '@/app/[locale]/groups/[id]/ShareGroupButton'
+import QuickAccessButton from '@/app/[locale]/groups/[id]/QuickAccessButton'
 import { LiquidGlassLink } from '@/components/LiquidGlassButton'
 
 interface GroupHeroServerProps {

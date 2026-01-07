@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import SafeImage from '@/components/SafeImage'
 
 interface BreadcrumbSegment {

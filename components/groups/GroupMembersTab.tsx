@@ -4,11 +4,11 @@ import { useState, useEffect, useCallback } from 'react'
 import SafeImage from '@/components/SafeImage'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
-import InviteMemberButton from '@/app/groups/[id]/InviteMemberButton'
-import RemoveMemberButton from '@/app/groups/[id]/RemoveMemberButton'
-import RevokeInviteButton from '@/app/groups/[id]/RevokeInviteButton'
-import LeaveGroupButton from '@/app/groups/[id]/LeaveGroupButton'
-import RequestsButton from '@/app/groups/[id]/RequestsButton'
+import InviteMemberButton from '@/app/[locale]/groups/[id]/InviteMemberButton'
+import RemoveMemberButton from '@/app/[locale]/groups/[id]/RemoveMemberButton'
+import RevokeInviteButton from '@/app/[locale]/groups/[id]/RevokeInviteButton'
+import LeaveGroupButton from '@/app/[locale]/groups/[id]/LeaveGroupButton'
+import RequestsButton from '@/app/[locale]/groups/[id]/RequestsButton'
 
 const MAX_GROUP_MEMBERS = 100
 

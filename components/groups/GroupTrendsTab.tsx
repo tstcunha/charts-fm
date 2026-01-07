@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFire, faSpinner, faArrowUp, faArrowDown, faMusic, faMicrophone, faCompactDisc, faTrophy } from '@fortawesome/free-solid-svg-icons'
 import { LiquidGlassLink } from '@/components/LiquidGlassButton'

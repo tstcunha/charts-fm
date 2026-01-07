@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { signIn, useSession } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
+import { useSearchParams } from 'next/navigation'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
 
 interface SignInModalProps {

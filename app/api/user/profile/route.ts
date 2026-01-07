@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { routing } from '@/i18n/routing'
 
 // GET - Get user profile
 export async function GET() {
@@ -18,6 +19,7 @@ export async function GET() {
       email: true,
       image: true,
       lastfmUsername: true,
+      locale: true,
     },
   })
 
@@ -45,7 +47,7 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json()
-  const { name, image } = body
+  const { name, image, locale } = body
 
   // Validate name if provided
   if (name !== undefined) {
@@ -88,6 +90,22 @@ export async function PATCH(request: Request) {
     }
   }
 
+  // Validate locale if provided
+  if (locale !== undefined && locale !== null) {
+    if (typeof locale !== 'string') {
+      return NextResponse.json(
+        { error: 'Locale must be a string' },
+        { status: 400 }
+      )
+    }
+    if (!routing.locales.includes(locale)) {
+      return NextResponse.json(
+        { error: `Locale must be one of: ${routing.locales.join(', ')}` },
+        { status: 400 }
+      )
+    }
+  }
+
   // Check if name is being updated and if it's different
   // Normalize both values: trim and convert empty strings to null for comparison
   const newNameValue = name !== undefined ? (name.trim() || null) : undefined
@@ -99,6 +117,7 @@ export async function PATCH(request: Request) {
     data: {
       ...(name !== undefined && { name: name.trim() || null }),
       ...(image !== undefined && { image: image.trim() || null }),
+      ...(locale !== undefined && { locale: locale || null }),
     },
     select: {
       id: true,
@@ -106,6 +125,7 @@ export async function PATCH(request: Request) {
       email: true,
       image: true,
       lastfmUsername: true,
+      locale: true,
     },
   })
 

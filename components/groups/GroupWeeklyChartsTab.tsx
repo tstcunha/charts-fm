@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMusic, faMicrophone, faCompactDisc, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import PositionMovementIcon from '@/components/PositionMovementIcon'

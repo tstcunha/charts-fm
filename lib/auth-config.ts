@@ -137,8 +137,9 @@ export const authOptions: NextAuthOptions = {
     },
     async redirect({ url, baseUrl }) {
       // After successful login, redirect to dashboard
+      // The middleware will handle adding the locale prefix based on user preference
       if (url === `${baseUrl}/api/auth/signin` || url === baseUrl) {
-        return `${baseUrl}/dashboard`
+        return `${baseUrl}/en/dashboard`
       }
       return url.startsWith(baseUrl) ? url : baseUrl
     },

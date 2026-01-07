@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import { faMusic, faMicrophone, faCompactDisc, faUser } from '@fortawesome/free-solid-svg-icons'

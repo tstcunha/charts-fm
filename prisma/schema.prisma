@@ -26,6 +26,7 @@ model User {
   lastPasswordResetEmailSentAt  DateTime?
   passwordResetToken            String?
   passwordResetTokenExpires     DateTime?
+  locale                        String?
   chartEntryStatsAsMajorDriver  ChartEntryStats[]
   friendshipsAsFriend           Friendship[]                   @relation("FriendFriendships")
   friendshipsAsUser             Friendship[]                   @relation("UserFriendships")

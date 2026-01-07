@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { useRouter, usePathname } from 'next/navigation'
-import Link from 'next/link'
+import { useRouter } from '@/i18n/routing'
+import { Link, usePathname } from '@/i18n/routing'
 import dynamic from 'next/dynamic'
 import SafeImage from '@/components/SafeImage'
 import { useNavigation } from '@/contexts/NavigationContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { GROUP_THEMES } from '@/lib/group-themes'
+import { useTranslations } from 'next-intl'
 
 // Lazy load SignInModal to reduce initial bundle size
 const SignInModal = dynamic(() => import('@/components/SignInModal'), {
@@ -28,6 +29,7 @@ export default function Navbar() {
   const router = useRouter()
   const pathname = usePathname()
   const { isLoading } = useNavigation()
+  const t = useTranslations('navbar')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 })
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -119,7 +121,9 @@ export default function Navbar() {
 
   // Refetch when navigating away from profile page
   useEffect(() => {
-    if (prevPathnameRef.current === '/profile' && pathname !== '/profile' && session?.user?.email) {
+    const prevPathWithoutLocale = prevPathnameRef.current?.replace(/^\/[^/]+/, '') || ''
+    const currentPathWithoutLocale = pathname?.replace(/^\/[^/]+/, '') || ''
+    if (prevPathWithoutLocale === '/profile' && currentPathWithoutLocale !== '/profile' && session?.user?.email) {
       setIsUserDataLoading(true)
       fetch('/api/user/me')
         .then(res => res.json())
@@ -178,7 +182,9 @@ export default function Navbar() {
   const isSessionLoading = status === 'loading'
 
   // Don't show navbar on auth pages, but still show loading screen if signing out
-  if (pathname?.startsWith('/auth/')) {
+  // usePathname() from next-intl already returns pathname without locale prefix
+  const pathnameWithoutLocale = pathname || ''
+  if (pathnameWithoutLocale?.startsWith('/auth/')) {
     return isSigningOut ? (
       <div 
         className="fixed inset-0 z-[9999] flex items-center justify-center"
@@ -237,12 +243,12 @@ export default function Navbar() {
                 <Link
                   href="/dashboard"
                   className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 leading-tight ${
-                    pathname === '/dashboard'
+                    pathnameWithoutLocale === '/dashboard'
                       ? 'text-black'
                       : 'text-gray-200 hover:text-white'
                   }`}
                   style={
-                    pathname === '/dashboard'
+                    pathnameWithoutLocale === '/dashboard'
                       ? {
                           background: 'var(--theme-primary)',
                           border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -257,29 +263,29 @@ export default function Navbar() {
                         }
                   }
                   onMouseEnter={(e) => {
-                    if (pathname !== '/dashboard') {
+                    if (pathnameWithoutLocale !== '/dashboard') {
                       e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
                       e.currentTarget.style.filter = 'brightness(1.1)'
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (pathname !== '/dashboard') {
+                    if (pathnameWithoutLocale !== '/dashboard') {
                       e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
                       e.currentTarget.style.filter = ''
                     }
                   }}
                 >
-                  Main Page
+                  {t('dashboard')}
                 </Link>
                 <Link
                   href="/groups"
                   className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 leading-tight ${
-                    pathname?.startsWith('/groups') && !pathname?.startsWith('/groups/discover')
+                    pathnameWithoutLocale?.startsWith('/groups') && !pathnameWithoutLocale?.startsWith('/groups/discover')
                       ? 'text-black'
                       : 'text-gray-200 hover:text-white'
                   }`}
                   style={
-                    pathname?.startsWith('/groups') && !pathname?.startsWith('/groups/discover')
+                    pathnameWithoutLocale?.startsWith('/groups') && !pathnameWithoutLocale?.startsWith('/groups/discover')
                       ? {
                           background: 'var(--theme-primary)',
                           border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -294,13 +300,13 @@ export default function Navbar() {
                         }
                   }
                   onMouseEnter={(e) => {
-                    if (!(pathname?.startsWith('/groups') && !pathname?.startsWith('/groups/discover'))) {
+                    if (!(pathnameWithoutLocale?.startsWith('/groups') && !pathnameWithoutLocale?.startsWith('/groups/discover'))) {
                       e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
                       e.currentTarget.style.filter = 'brightness(1.1)'
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!(pathname?.startsWith('/groups') && !pathname?.startsWith('/groups/discover'))) {
+                    if (!(pathnameWithoutLocale?.startsWith('/groups') && !pathnameWithoutLocale?.startsWith('/groups/discover'))) {
                       e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
                       e.currentTarget.style.filter = ''
                     }
@@ -311,12 +317,12 @@ export default function Navbar() {
                 <Link
                   href="/groups/discover"
                   className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 leading-tight ${
-                    pathname?.startsWith('/groups/discover')
+                    pathnameWithoutLocale?.startsWith('/groups/discover')
                       ? 'text-black'
                       : 'text-gray-200 hover:text-white'
                   }`}
                   style={
-                    pathname?.startsWith('/groups/discover')
+                    pathnameWithoutLocale?.startsWith('/groups/discover')
                       ? {
                           background: 'var(--theme-primary)',
                           border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -331,13 +337,13 @@ export default function Navbar() {
                         }
                   }
                   onMouseEnter={(e) => {
-                    if (!pathname?.startsWith('/groups/discover')) {
+                    if (!pathnameWithoutLocale?.startsWith('/groups/discover')) {
                       e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
                       e.currentTarget.style.filter = 'brightness(1.1)'
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!pathname?.startsWith('/groups/discover')) {
+                    if (!pathnameWithoutLocale?.startsWith('/groups/discover')) {
                       e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
                       e.currentTarget.style.filter = ''
                     }
@@ -566,7 +572,7 @@ export default function Navbar() {
                           e.currentTarget.style.background = 'transparent'
                         }}
                       >
-                        Edit Profile
+                        {t('profile')}
                       </Link>
                       {userData?.isSuperuser && (
                         <>
@@ -608,7 +614,7 @@ export default function Navbar() {
                           e.currentTarget.style.background = 'transparent'
                         }}
                       >
-                        Sign Out
+                        {t('signOut')}
                       </button>
                     </div>
                   </div>
@@ -637,7 +643,7 @@ export default function Navbar() {
                   e.currentTarget.style.filter = ''
                 }}
               >
-                Log In
+                {t('signIn')}
               </button>
               <Link
                 href="/auth/signup"

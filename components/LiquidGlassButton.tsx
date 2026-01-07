@@ -1,7 +1,7 @@
 'use client'
 
 import { ButtonHTMLAttributes, ReactNode, forwardRef, AnchorHTMLAttributes } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 
 interface LiquidGlassButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'neutral'

@@ -1,0 +1,38 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "submit": "Submit",
+    "back": "Back"
+  },
+  "profile": {
+    "title": "Edit Profile",
+    "subtitle": "Update your profile information",
+    "name": "Name",
+    "profilePicture": "Profile Picture (Image URL)",
+    "profilePicturePreview": "Profile Picture Preview",
+    "lastfmUsername": "Last.fm Username",
+    "lastfmUsernameTooltip": "This was set when the account was created, and cannot be changed",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "profileUpdated": "Profile updated successfully!",
+    "failedToLoad": "Failed to load profile",
+    "failedToUpdate": "Failed to update profile",
+    "language": "Language",
+    "selectLanguage": "Select Language"
+  },
+  "navbar": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "signIn": "Sign In",
+    "signOut": "Sign Out"
+  }
+}
+
