@@ -191,59 +191,62 @@ export async function getEntryStats(
 
     calculatedStats.currentlyCharting = currentlyCharting
 
-    // Update or create cache
+    // Update or create cache using upsert to handle race conditions
     const slug = generateSlug(entryKey, chartType)
-    if (stats) {
-      await prisma.chartEntryStats.update({
-        where: { id: stats.id },
-        data: {
-          peakPosition: calculatedStats.peakPosition,
-          weeksAtPeak: calculatedStats.weeksAtPeak,
-          debutPosition: calculatedStats.debutPosition,
-          weeksInTop10: calculatedStats.weeksInTop10,
-          totalWeeksCharting: calculatedStats.totalWeeksCharting,
-          longestStreak: calculatedStats.longestStreak,
-          isStreakOngoing: calculatedStats.isStreakOngoing,
-          latestAppearance: calculatedStats.latestAppearance,
-          statsStale: false,
-          statsLastUpdated: new Date(),
-        },
-      })
-    } else {
-      // Get totals for new cache entry
-      const totals = await prisma.groupChartEntry.aggregate({
-        where: {
-          groupId,
-          chartType,
-          entryKey,
-        },
-        _sum: {
-          vibeScore: true,
-          playcount: true,
-        },
-      })
+    
+    // Get totals (needed for create, and may need refresh for update)
+    const totals = await prisma.groupChartEntry.aggregate({
+      where: {
+        groupId,
+        chartType,
+        entryKey,
+      },
+      _sum: {
+        vibeScore: true,
+        playcount: true,
+      },
+    })
 
-      await prisma.chartEntryStats.create({
-        data: {
+    // Use upsert to atomically handle create/update and avoid race conditions
+    await prisma.chartEntryStats.upsert({
+      where: {
+        groupId_chartType_entryKey: {
           groupId,
           chartType,
           entryKey,
-          slug,
-          peakPosition: calculatedStats.peakPosition,
-          weeksAtPeak: calculatedStats.weeksAtPeak,
-          debutPosition: calculatedStats.debutPosition,
-          weeksInTop10: calculatedStats.weeksInTop10,
-          totalWeeksCharting: calculatedStats.totalWeeksCharting,
-          longestStreak: calculatedStats.longestStreak,
-          isStreakOngoing: calculatedStats.isStreakOngoing,
-          latestAppearance: calculatedStats.latestAppearance,
-          totalVS: totals._sum.vibeScore,
-          totalPlays: totals._sum.playcount || 0,
-          statsStale: false,
-          statsLastUpdated: new Date(),
         },
-      })
-    }
+      },
+      update: {
+        peakPosition: calculatedStats.peakPosition,
+        weeksAtPeak: calculatedStats.weeksAtPeak,
+        debutPosition: calculatedStats.debutPosition,
+        weeksInTop10: calculatedStats.weeksInTop10,
+        totalWeeksCharting: calculatedStats.totalWeeksCharting,
+        longestStreak: calculatedStats.longestStreak,
+        isStreakOngoing: calculatedStats.isStreakOngoing,
+        latestAppearance: calculatedStats.latestAppearance,
+        statsStale: false,
+        statsLastUpdated: new Date(),
+      },
+      create: {
+        groupId,
+        chartType,
+        entryKey,
+        slug,
+        peakPosition: calculatedStats.peakPosition,
+        weeksAtPeak: calculatedStats.weeksAtPeak,
+        debutPosition: calculatedStats.debutPosition,
+        weeksInTop10: calculatedStats.weeksInTop10,
+        totalWeeksCharting: calculatedStats.totalWeeksCharting,
+        longestStreak: calculatedStats.longestStreak,
+        isStreakOngoing: calculatedStats.isStreakOngoing,
+        latestAppearance: calculatedStats.latestAppearance,
+        totalVS: totals._sum.vibeScore,
+        totalPlays: totals._sum.playcount || 0,
+        statsStale: false,
+        statsLastUpdated: new Date(),
+      },
+    })
 
     return calculatedStats
   }

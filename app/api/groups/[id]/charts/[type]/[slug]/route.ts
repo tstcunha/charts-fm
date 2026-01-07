@@ -27,7 +27,7 @@ export async function GET(
     }
 
     // Find entry by slug to get entryKey
-    const entry = await prisma.groupChartEntry.findFirst({
+    let entry = await prisma.groupChartEntry.findFirst({
       where: {
         groupId: group.id,
         chartType,
@@ -38,7 +38,40 @@ export async function GET(
         name: true,
         artist: true,
       },
+      orderBy: {
+        weekStart: 'desc',
+      },
     })
+
+    // Fallback: if not found by slug, try to find by matching entryKey pattern
+    // This handles cases where the slug field might not be set or doesn't match exactly
+    if (!entry) {
+      const { generateSlug } = await import('@/lib/chart-slugs')
+      // Try to find entries where the slug would match the entryKey
+      const allEntries = await prisma.groupChartEntry.findMany({
+        where: {
+          groupId: group.id,
+          chartType,
+        },
+        select: {
+          entryKey: true,
+          name: true,
+          artist: true,
+        },
+        orderBy: {
+          weekStart: 'desc',
+        },
+      })
+
+      // Find entry where slug would match entryKey
+      for (const e of allEntries) {
+        const expectedSlug = generateSlug(e.entryKey, chartType)
+        if (expectedSlug === params.slug) {
+          entry = e
+          break
+        }
+      }
+    }
 
     if (!entry) {
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })

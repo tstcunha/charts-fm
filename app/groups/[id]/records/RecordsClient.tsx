@@ -369,7 +369,7 @@ export default function RecordsClient({ groupId, initialRecords, memberCount }: 
                   </div>
                   <Link
                     href={`/groups/${groupId}/charts/artist/${previewData.artist.slug}`}
-                    className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
+                    className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1 break-words"
                   >
                     {previewData.artist.name}
                   </Link>
@@ -405,12 +405,12 @@ export default function RecordsClient({ groupId, initialRecords, memberCount }: 
                   </div>
                   <Link
                     href={`/groups/${groupId}/charts/track/${previewData.track.slug}`}
-                    className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
+                    className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1 break-words"
                   >
                     {previewData.track.name}
                   </Link>
                   {previewData.track.artist && (
-                    <p className="text-xs text-gray-600 mb-1">by {previewData.track.artist}</p>
+                    <p className="text-xs text-gray-600 mb-1 break-words">by {previewData.track.artist}</p>
                   )}
                   <p className="text-sm text-gray-600">
                     {previewData.track.value} {previewData.track.value === 1 ? 'week' : 'weeks'}
@@ -444,12 +444,12 @@ export default function RecordsClient({ groupId, initialRecords, memberCount }: 
                   </div>
                   <Link
                     href={`/groups/${groupId}/charts/album/${previewData.album.slug}`}
-                    className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
+                    className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1 break-words"
                   >
                     {previewData.album.name}
                   </Link>
                   {previewData.album.artist && (
-                    <p className="text-xs text-gray-600 mb-1">by {previewData.album.artist}</p>
+                    <p className="text-xs text-gray-600 mb-1 break-words">by {previewData.album.artist}</p>
                   )}
                   <p className="text-sm text-gray-600">
                     {previewData.album.value} {previewData.album.value === 1 ? 'week' : 'weeks'}

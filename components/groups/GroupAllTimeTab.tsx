@@ -127,7 +127,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
                 </div>
                 <Link
                   href={`/groups/${groupId}/charts/artist/${previewData.artist.slug}`}
-                  className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
+                  className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1 break-words"
                 >
                   {previewData.artist.name}
                 </Link>
@@ -144,12 +144,12 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
                 </div>
                 <Link
                   href={`/groups/${groupId}/charts/track/${previewData.track.slug}`}
-                  className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
+                  className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1 break-words"
                 >
                   {previewData.track.name}
                 </Link>
                 {previewData.track.artist && (
-                  <p className="text-xs text-gray-600 mb-1">by {previewData.track.artist}</p>
+                  <p className="text-xs text-gray-600 mb-1 break-words">by {previewData.track.artist}</p>
                 )}
                 <p className="text-sm text-gray-600">
                   {previewData.track.value} {previewData.track.value === 1 ? 'week' : 'weeks'} on chart
@@ -164,12 +164,12 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
                 </div>
                 <Link
                   href={`/groups/${groupId}/charts/album/${previewData.album.slug}`}
-                  className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
+                  className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1 break-words"
                 >
                   {previewData.album.name}
                 </Link>
                 {previewData.album.artist && (
-                  <p className="text-xs text-gray-600 mb-1">by {previewData.album.artist}</p>
+                  <p className="text-xs text-gray-600 mb-1 break-words">by {previewData.album.artist}</p>
                 )}
                 <p className="text-sm text-gray-600">
                   {previewData.album.value} {previewData.album.value === 1 ? 'week' : 'weeks'} on chart
@@ -214,7 +214,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
                         href={`/groups/${groupId}/charts/artist/${generateSlug(entryKey, 'artists')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-semibold text-gray-900 truncate hover:text-[var(--theme-primary)] transition-colors"
+                        className="font-semibold text-gray-900 break-words hover:text-[var(--theme-primary)] transition-colors"
                       >
                         {artist.name}
                       </Link>
@@ -249,11 +249,11 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
                         href={`/groups/${groupId}/charts/track/${generateSlug(entryKey, 'tracks')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-semibold text-gray-900 truncate hover:text-[var(--theme-primary)] transition-colors"
+                        className="font-semibold text-gray-900 break-words hover:text-[var(--theme-primary)] transition-colors"
                       >
                         {track.name}
                       </Link>
-                      <div className="text-xs text-gray-600 truncate">by {track.artist}</div>
+                      <div className="text-xs text-gray-600 break-words">by {track.artist}</div>
                       <div className="text-sm text-[var(--theme-text)] mt-0.5">{track.playcount.toLocaleString()} plays</div>
                     </div>
                   </li>
@@ -285,11 +285,11 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
                         href={`/groups/${groupId}/charts/album/${generateSlug(entryKey, 'albums')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-semibold text-gray-900 truncate hover:text-[var(--theme-primary)] transition-colors"
+                        className="font-semibold text-gray-900 break-words hover:text-[var(--theme-primary)] transition-colors"
                       >
                         {album.name}
                       </Link>
-                      <div className="text-xs text-gray-600 truncate">by {album.artist}</div>
+                      <div className="text-xs text-gray-600 break-words">by {album.artist}</div>
                       <div className="text-sm text-[var(--theme-text)] mt-0.5">{album.playcount.toLocaleString()} plays</div>
                     </div>
                   </li>

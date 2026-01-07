@@ -32,9 +32,9 @@ export default function AllTimeChartTable({ items, chartType }: AllTimeChartTabl
               </td>
               <td className="px-6 py-5 text-sm">
                 <div>
-                  <div className="font-medium text-gray-900">{item.name}</div>
+                  <div className="font-medium text-gray-900 break-words">{item.name}</div>
                   {item.artist && (
-                    <div className="text-gray-500 text-xs mt-1">by {item.artist}</div>
+                    <div className="text-gray-500 text-xs mt-1 break-words">by {item.artist}</div>
                   )}
                 </div>
               </td>
