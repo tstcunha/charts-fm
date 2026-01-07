@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react'
 import { Link } from '@/i18n/routing'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUsers, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 export default function EmptyStateCTA() {
+  const t = useSafeTranslations('dashboard.emptyState')
   const [groupsCount, setGroupsCount] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -50,10 +52,10 @@ export default function EmptyStateCTA() {
     >
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-3">
-          Ready to get started?
+          {t('title')}
         </h2>
         <p className="text-lg text-gray-600 mb-6">
-          Join or create a group to track stats, explore trends, and build a shared history of your music listening over time.
+          {t('description')}
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -62,7 +64,7 @@ export default function EmptyStateCTA() {
             className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black rounded-lg hover:from-yellow-600 hover:to-yellow-500 transition-all shadow-md hover:shadow-lg font-semibold text-lg"
           >
             <FontAwesomeIcon icon={faUsers} className="text-xl" />
-            <span>Discover Groups</span>
+            <span>{t('discoverGroups')}</span>
           </Link>
           
           <Link
@@ -70,7 +72,7 @@ export default function EmptyStateCTA() {
             className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black rounded-lg hover:from-yellow-600 hover:to-yellow-500 transition-all shadow-md hover:shadow-lg font-semibold text-lg"
           >
             <FontAwesomeIcon icon={faPlus} className="text-xl" />
-            <span>Create Your Own</span>
+            <span>{t('createYourOwn')}</span>
           </Link>
         </div>
       </div>

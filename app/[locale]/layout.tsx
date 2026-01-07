@@ -38,7 +38,7 @@ export default async function LocaleLayout({
         <div className="absolute top-40 right-20 w-96 h-96 bg-pink-400/20 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-orange-400/20 rounded-full blur-3xl"></div>
       </div>
-      <NextIntlClientProvider messages={messages}>
+      <NextIntlClientProvider messages={messages} locale={locale}>
         <SessionProvider>
           <NavigationProvider>
             <Navbar />

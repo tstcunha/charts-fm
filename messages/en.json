@@ -33,6 +33,103 @@
     "profile": "Profile",
     "signIn": "Sign In",
     "signOut": "Sign Out"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "quickActions": {
+      "title": "Quick Actions",
+      "createGroup": "Create Group",
+      "createGroupDescription": "Start a new listening group",
+      "viewAllGroups": "View All Groups",
+      "pendingInvites": "Pending Invites",
+      "joinRequests": "Join Requests",
+      "editProfile": "Edit Profile",
+      "updateSettings": "Update your settings",
+      "failedToLoad": "Failed to load quick actions",
+      "group": "group",
+      "groups": "groups",
+      "invite": "invite",
+      "invites": "invites",
+      "request": "request",
+      "requests": "requests"
+    },
+    "personalListening": {
+      "title": "Your Listening This Week",
+      "weekOf": "Week of {date}",
+      "totalPlays": "Total Plays",
+      "uniqueArtists": "Unique Artists",
+      "uniqueTracks": "Unique Tracks",
+      "topItems": "Top Items",
+      "topArtists": "Top Artists",
+      "topTracks": "Top Tracks",
+      "topAlbums": "Top Albums",
+      "plays": "{count} plays",
+      "by": "by {artist}",
+      "noChange": "No change",
+      "noData": "No listening data available yet.",
+      "noDataDescription": "Your weekly stats will appear here once your groups generate charts.",
+      "failedToLoad": "Failed to load stats"
+    },
+    "emptyState": {
+      "title": "Ready to get started?",
+      "description": "Join or create a group to track stats, explore trends, and build a shared history of your music listening over time.",
+      "discoverGroups": "Discover Groups",
+      "createYourOwn": "Create Your Own"
+    },
+    "activityFeed": {
+      "title": "Recent Activity",
+      "noActivity": "No recent activity to display.",
+      "failedToLoad": "Failed to load activity",
+      "justNow": "just now",
+      "minuteAgo": "{count} minute ago",
+      "minutesAgo": "{count} minutes ago",
+      "hourAgo": "{count} hour ago",
+      "hoursAgo": "{count} hours ago",
+      "dayAgo": "{count} day ago",
+      "daysAgo": "{count} days ago",
+      "weekAgo": "{count} week ago",
+      "weeksAgo": "{count} weeks ago",
+      "monthAgo": "{count} month ago",
+      "monthsAgo": "{count} months ago",
+      "messages": {
+        "chartUpdate": "New charts available for {groupName}",
+        "newMember": "{userName} joined {groupName}",
+        "invite": "You've been invited to join {groupName}",
+        "joinRequest": "{userName} wants to join {groupName}"
+      }
+    },
+    "groupsYouMightLike": {
+      "title": "Groups You Might Like",
+      "refresh": "Refresh",
+      "comingSoon": "Coming Soon!",
+      "comingSoonDescription": "Recommendations will be available in a future update",
+      "match": "{count}% Match",
+      "members": "{count} members",
+      "viewGroup": "View Group",
+      "notInterested": "Not interested"
+    },
+    "groupQuickView": {
+      "title": "Your Groups",
+      "viewAll": "View All →",
+      "member": "member",
+      "members": "members",
+      "noCharts": "No charts yet",
+      "youContributed": "You contributed {count} items",
+      "chartsUpdateToday": "Charts update today",
+      "nextChartTomorrow": "Next chart tomorrow",
+      "daysUntilNextChart": "{count} days until next chart",
+      "noGroups": "You're not in any groups yet.",
+      "createFirstGroup": "Create Your First Group",
+      "failedToLoad": "Failed to load groups",
+      "owner": "Owner",
+      "by": "by {artist}",
+      "plays": "{count} plays",
+      "chartMode": {
+        "vs": "VS",
+        "vsWeighted": "VS+",
+        "plays": "Plays"
+      }
+    }
   }
 }
 

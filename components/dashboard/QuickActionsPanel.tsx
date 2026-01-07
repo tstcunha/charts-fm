@@ -12,6 +12,7 @@ import {
   faHandPaper,
   faSpinner,
 } from '@fortawesome/free-solid-svg-icons'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface QuickActionsData {
   pendingInvitesCount: number
@@ -20,6 +21,7 @@ interface QuickActionsData {
 }
 
 export default function QuickActionsPanel() {
+  const t = useSafeTranslations('dashboard.quickActions')
   const [data, setData] = useState<QuickActionsData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -36,7 +38,7 @@ export default function QuickActionsPanel() {
         setIsLoading(false)
       })
       .catch((err) => {
-        setError('Failed to load quick actions')
+        setError(t('failedToLoad'))
         setIsLoading(false)
         console.error('Error fetching quick actions:', err)
       })
@@ -52,7 +54,7 @@ export default function QuickActionsPanel() {
           WebkitBackdropFilter: 'blur(12px) saturate(180%)',
         }}
       >
-        <h2 className="text-2xl font-bold mb-4 text-gray-900">Quick Actions</h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-900">{t('title')}</h2>
         <div className="flex items-center justify-center py-12">
           <FontAwesomeIcon icon={faSpinner} className="animate-spin text-4xl text-yellow-500" />
         </div>
@@ -71,7 +73,7 @@ export default function QuickActionsPanel() {
           WebkitBackdropFilter: 'blur(12px) saturate(180%)',
         }}
       >
-        <h2 className="text-2xl font-bold mb-4 text-gray-900">Quick Actions</h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-900">{t('title')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <Link
             href="/groups/create"
@@ -81,8 +83,8 @@ export default function QuickActionsPanel() {
               <FontAwesomeIcon icon={faPlus} />
             </div>
             <div>
-              <div className="font-bold">Create Group</div>
-              <div className="text-xs opacity-80">Start a new listening group</div>
+              <div className="font-bold">{t('createGroup')}</div>
+              <div className="text-xs opacity-80">{t('createGroupDescription')}</div>
             </div>
           </Link>
           <Link
@@ -93,7 +95,7 @@ export default function QuickActionsPanel() {
               <FontAwesomeIcon icon={faUsers} />
             </div>
             <div>
-              <div className="font-semibold text-gray-900">View All Groups</div>
+              <div className="font-semibold text-gray-900">{t('viewAllGroups')}</div>
             </div>
           </Link>
         </div>
@@ -111,7 +113,7 @@ export default function QuickActionsPanel() {
         WebkitBackdropFilter: 'blur(12px) saturate(180%)',
       }}
     >
-      <h2 className="text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">Quick Actions</h2>
+      <h2 className="text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">{t('title')}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <Link
           href="/groups/create"
@@ -121,8 +123,8 @@ export default function QuickActionsPanel() {
             <FontAwesomeIcon icon={faPlus} />
           </div>
           <div>
-            <div className="font-bold">Create Group</div>
-            <div className="text-xs opacity-80">Start a new listening group</div>
+            <div className="font-bold">{t('createGroup')}</div>
+            <div className="text-xs opacity-80">{t('createGroupDescription')}</div>
           </div>
         </Link>
 
@@ -139,10 +141,10 @@ export default function QuickActionsPanel() {
           <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200 text-gray-700">
             <FontAwesomeIcon icon={faUsers} />
           </div>
-          <div>
-            <div className="font-semibold text-gray-900">View All Groups</div>
-            <div className="text-xs text-gray-600">{groupsCount} {groupsCount === 1 ? 'group' : 'groups'}</div>
-          </div>
+            <div>
+              <div className="font-semibold text-gray-900">{t('viewAllGroups')}</div>
+              <div className="text-xs text-gray-600">{groupsCount} {groupsCount === 1 ? t('group') : t('groups')}</div>
+            </div>
         </Link>
 
         {pendingInvitesCount > 0 && (
@@ -163,8 +165,8 @@ export default function QuickActionsPanel() {
               </span>
             </div>
             <div>
-              <div className="font-semibold text-gray-900">Pending Invites</div>
-              <div className="text-xs text-gray-600">{pendingInvitesCount} {pendingInvitesCount === 1 ? 'invite' : 'invites'}</div>
+              <div className="font-semibold text-gray-900">{t('pendingInvites')}</div>
+              <div className="text-xs text-gray-600">{pendingInvitesCount} {pendingInvitesCount === 1 ? t('invite') : t('invites')}</div>
             </div>
           </Link>
         )}
@@ -187,8 +189,8 @@ export default function QuickActionsPanel() {
               </span>
             </div>
             <div>
-              <div className="font-semibold text-gray-900">Join Requests</div>
-              <div className="text-xs text-gray-600">{pendingRequestsCount} {pendingRequestsCount === 1 ? 'request' : 'requests'}</div>
+              <div className="font-semibold text-gray-900">{t('joinRequests')}</div>
+              <div className="text-xs text-gray-600">{pendingRequestsCount} {pendingRequestsCount === 1 ? t('request') : t('requests')}</div>
             </div>
           </Link>
         )}
@@ -207,8 +209,8 @@ export default function QuickActionsPanel() {
             <FontAwesomeIcon icon={faCog} />
           </div>
           <div>
-            <div className="font-semibold text-gray-900">Edit Profile</div>
-            <div className="text-xs text-gray-600">Update your settings</div>
+            <div className="font-semibold text-gray-900">{t('editProfile')}</div>
+            <div className="text-xs text-gray-600">{t('updateSettings')}</div>
           </div>
         </Link>
       </div>

@@ -6,10 +6,15 @@ import ActivityFeed from '@/components/dashboard/ActivityFeed'
 import QuickActionsPanel from '@/components/dashboard/QuickActionsPanel'
 import GroupsYouMightLike from '@/components/dashboard/GroupsYouMightLike'
 import EmptyStateCTA from '@/components/dashboard/EmptyStateCTA'
+import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = {
-  title: 'Dashboard',
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'dashboard' })
+  return {
+    title: t('title'),
+  }
 }
 
 export default async function DashboardPage({

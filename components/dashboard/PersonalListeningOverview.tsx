@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMusic, faMicrophone, faCompactDisc, faArrowUp, faArrowDown, faMinus, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { Link } from '@/i18n/routing'
 import { formatWeekLabel } from '@/lib/weekly-utils'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface PersonalListeningStats {
   currentWeek: {
@@ -22,6 +23,7 @@ interface PersonalListeningStats {
 }
 
 export default function PersonalListeningOverview() {
+  const t = useSafeTranslations('dashboard.personalListening')
   const [stats, setStats] = useState<PersonalListeningStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -38,7 +40,7 @@ export default function PersonalListeningOverview() {
         setIsLoading(false)
       })
       .catch((err) => {
-        setError('Failed to load stats')
+        setError(t('failedToLoad'))
         setIsLoading(false)
         console.error('Error fetching personal stats:', err)
       })
@@ -94,7 +96,7 @@ export default function PersonalListeningOverview() {
         className="rounded-xl shadow-lg p-6 border border-gray-200"
         style={glassStyle}
       >
-        <h2 className="text-2xl font-bold mb-4 text-gray-900">Your Listening This Week</h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-900">{t('title')}</h2>
         <div className="flex items-center justify-center py-12">
           <FontAwesomeIcon icon={faSpinner} className="animate-spin text-4xl text-yellow-500" />
         </div>
@@ -108,10 +110,10 @@ export default function PersonalListeningOverview() {
         className="rounded-xl shadow-lg p-6 border border-gray-200"
         style={glassStyle}
       >
-        <h2 className="text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">Your Listening This Week</h2>
+        <h2 className="text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">{t('title')}</h2>
         <div className="text-center py-8 text-gray-500">
-          <p className="mb-2">No listening data available yet.</p>
-          <p className="text-sm">Your weekly stats will appear here once your groups generate charts.</p>
+          <p className="mb-2">{t('noData')}</p>
+          <p className="text-sm">{t('noDataDescription')}</p>
         </div>
       </div>
     )
@@ -127,10 +129,10 @@ export default function PersonalListeningOverview() {
       }}
     >
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Your Listening This Week</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{t('title')}</h2>
         {currentWeek && (
           <span className="text-sm text-gray-500">
-            Week of {formatWeekLabel(weekStartDate)}
+            {t('weekOf', { date: formatWeekLabel(weekStartDate) })}
         </span>
         )}
       </div>
@@ -146,7 +148,7 @@ export default function PersonalListeningOverview() {
             borderColor: 'rgba(255, 255, 255, 0.3)',
           }}
         >
-          <div className="text-sm text-gray-600 font-medium mb-1">Total Plays</div>
+          <div className="text-sm text-gray-600 font-medium mb-1">{t('totalPlays')}</div>
           <div className="text-2xl font-bold text-gray-900">{currentWeek.totalPlays.toLocaleString()}</div>
           {playsChange !== null && (
             <div className="flex items-center gap-1 mt-1 text-xs">
@@ -165,7 +167,7 @@ export default function PersonalListeningOverview() {
               ) : (
                 <>
                   <FontAwesomeIcon icon={faMinus} className="text-gray-500" />
-                  <span className="text-gray-500">No change</span>
+                  <span className="text-gray-500">{t('noChange')}</span>
                 </>
               )}
             </div>
@@ -181,7 +183,7 @@ export default function PersonalListeningOverview() {
             borderColor: 'rgba(255, 255, 255, 0.3)',
           }}
         >
-          <div className="text-sm text-gray-600 font-medium mb-1">Unique Artists</div>
+          <div className="text-sm text-gray-600 font-medium mb-1">{t('uniqueArtists')}</div>
           <div className="text-2xl font-bold text-gray-900">{currentWeek.uniqueArtists}</div>
         </div>
 
@@ -194,7 +196,7 @@ export default function PersonalListeningOverview() {
             borderColor: 'rgba(255, 255, 255, 0.3)',
           }}
         >
-          <div className="text-sm text-gray-600 font-medium mb-1">Unique Tracks</div>
+          <div className="text-sm text-gray-600 font-medium mb-1">{t('uniqueTracks')}</div>
           <div className="text-2xl font-bold text-gray-900">{currentWeek.uniqueTracks}</div>
         </div>
 
@@ -207,7 +209,7 @@ export default function PersonalListeningOverview() {
             borderColor: 'rgba(255, 255, 255, 0.3)',
           }}
         >
-          <div className="text-sm text-gray-600 font-medium mb-1">Top Items</div>
+          <div className="text-sm text-gray-600 font-medium mb-1">{t('topItems')}</div>
           <div className="text-2xl font-bold text-gray-900">
             {currentWeek.topArtists.length + currentWeek.topTracks.length + currentWeek.topAlbums.length}
           </div>
@@ -228,7 +230,7 @@ export default function PersonalListeningOverview() {
         >
           <div className="flex items-center gap-2 mb-3">
             <FontAwesomeIcon icon={faMicrophone} className="text-gray-600" />
-            <h3 className="font-semibold text-gray-900">Top Artists</h3>
+            <h3 className="font-semibold text-gray-900">{t('topArtists')}</h3>
           </div>
           <ol className="space-y-2">
             {topArtists.map((artist, idx) => (
@@ -237,7 +239,7 @@ export default function PersonalListeningOverview() {
                   {idx + 1}
                 </span>
                 <span className="font-medium text-gray-900 truncate">{artist.name}</span>
-                <span className="ml-auto text-gray-500 text-xs">{artist.playcount} plays</span>
+                <span className="ml-auto text-gray-500 text-xs">{t('plays', { count: artist.playcount })}</span>
               </li>
             ))}
           </ol>
@@ -255,7 +257,7 @@ export default function PersonalListeningOverview() {
         >
           <div className="flex items-center gap-2 mb-3">
             <FontAwesomeIcon icon={faMusic} className="text-gray-600" />
-            <h3 className="font-semibold text-gray-900">Top Tracks</h3>
+            <h3 className="font-semibold text-gray-900">{t('topTracks')}</h3>
           </div>
           <ol className="space-y-2">
             {topTracks.map((track, idx) => (
@@ -265,7 +267,7 @@ export default function PersonalListeningOverview() {
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-gray-900 truncate">{track.name}</div>
-                  <div className="text-xs text-gray-500 truncate">by {track.artist}</div>
+                  <div className="text-xs text-gray-500 truncate">{t('by', { artist: track.artist })}</div>
                 </div>
                 <span className="ml-auto text-gray-500 text-xs flex-shrink-0">{track.playcount}</span>
               </li>
@@ -285,7 +287,7 @@ export default function PersonalListeningOverview() {
         >
           <div className="flex items-center gap-2 mb-3">
             <FontAwesomeIcon icon={faCompactDisc} className="text-gray-600" />
-            <h3 className="font-semibold text-gray-900">Top Albums</h3>
+            <h3 className="font-semibold text-gray-900">{t('topAlbums')}</h3>
           </div>
           <ol className="space-y-2">
             {topAlbums.map((album, idx) => (
@@ -295,7 +297,7 @@ export default function PersonalListeningOverview() {
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-gray-900 truncate">{album.name}</div>
-                  <div className="text-xs text-gray-500 truncate">by {album.artist}</div>
+                  <div className="text-xs text-gray-500 truncate">{t('by', { artist: album.artist })}</div>
                 </div>
                 <span className="ml-auto text-gray-500 text-xs flex-shrink-0">{album.playcount}</span>
               </li>

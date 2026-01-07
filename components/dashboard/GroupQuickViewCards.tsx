@@ -7,6 +7,7 @@ import { getDefaultGroupImage } from '@/lib/default-images'
 import { formatWeekLabel } from '@/lib/weekly-utils'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMusic, faMicrophone, faCrown, faUsers, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface GroupQuickView {
   id: string
@@ -29,7 +30,7 @@ interface GroupQuickView {
 }
 
 // Memoized group card component to prevent unnecessary re-renders
-const GroupCard = memo(({ group }: { group: GroupQuickView }) => {
+const GroupCard = memo(({ group, t }: { group: GroupQuickView; t: any }) => {
   const themeClass = `theme-${group.colorTheme.replace('_', '-')}`
   const groupImage = useMemo(() => group.image || getDefaultGroupImage(), [group.image])
 
@@ -50,12 +51,12 @@ const GroupCard = memo(({ group }: { group: GroupQuickView }) => {
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-bold text-[var(--theme-text)] truncate">{group.name}</h3>
             {group.isOwner && (
-              <FontAwesomeIcon icon={faCrown} className="text-[var(--theme-primary)] text-xs" title="Owner" />
+              <FontAwesomeIcon icon={faCrown} className="text-[var(--theme-primary)] text-xs" title={t('owner')} />
             )}
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-600">
             <FontAwesomeIcon icon={faUsers} className="text-xs" />
-            <span>{group.memberCount} {group.memberCount === 1 ? 'member' : 'members'}</span>
+            <span>{group.memberCount} {group.memberCount === 1 ? t('member') : t('members')}</span>
           </div>
         </div>
       </div>
@@ -74,7 +75,7 @@ const GroupCard = memo(({ group }: { group: GroupQuickView }) => {
               <FontAwesomeIcon icon={faMicrophone} className="text-[var(--theme-primary)] text-xs" />
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-gray-900 truncate">{group.latestWeek.topArtist.name}</div>
-                <div className="text-xs text-gray-500">{group.latestWeek.topArtist.playcount} plays</div>
+                <div className="text-xs text-gray-500">{t('plays', { count: group.latestWeek.topArtist.playcount })}</div>
               </div>
             </div>
           )}
@@ -90,18 +91,18 @@ const GroupCard = memo(({ group }: { group: GroupQuickView }) => {
               <FontAwesomeIcon icon={faMusic} className="text-[var(--theme-primary)] text-xs" />
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-gray-900 truncate">{group.latestWeek.topTrack.name}</div>
-                <div className="text-xs text-gray-500">by {group.latestWeek.topTrack.artist}</div>
+                <div className="text-xs text-gray-500">{t('by', { artist: group.latestWeek.topTrack.artist })}</div>
               </div>
             </div>
           )}
         </div>
       ) : (
-        <div className="text-sm text-gray-500 mb-3 italic">No charts yet</div>
+        <div className="text-sm text-gray-500 mb-3 italic">{t('noCharts')}</div>
       )}
 
       {group.userContributions.tracksInChart > 0 && (
         <div className="text-xs text-gray-600 mb-2">
-          <span className="font-medium">You contributed {group.userContributions.tracksInChart} items</span>
+          <span className="font-medium">{t('youContributed', { count: group.userContributions.tracksInChart })}</span>
           {group.userContributions.topContribution && (
             <span className="text-gray-500">
               {' '}• #{group.userContributions.topContribution.position} {group.userContributions.topContribution.name}
@@ -113,13 +114,13 @@ const GroupCard = memo(({ group }: { group: GroupQuickView }) => {
       <div className="flex items-center justify-between pt-2 border-t border-[var(--theme-border)]/50">
         <span className="text-xs text-gray-500">
           {group.daysUntilNextChart === 0
-            ? 'Charts update today'
+            ? t('chartsUpdateToday')
             : group.daysUntilNextChart === 1
-            ? 'Next chart tomorrow'
-            : `${group.daysUntilNextChart} days until next chart`}
+            ? t('nextChartTomorrow')
+            : t('daysUntilNextChart', { count: group.daysUntilNextChart })}
         </span>
         <span className="text-xs bg-[var(--theme-primary)] text-[var(--theme-button-text)] px-2 py-1 rounded font-medium">
-          {group.chartMode === 'vs' ? 'VS' : group.chartMode === 'vs_weighted' ? 'VS+' : 'Plays'}
+          {group.chartMode === 'vs' ? t('chartMode.vs') : group.chartMode === 'vs_weighted' ? t('chartMode.vsWeighted') : t('chartMode.plays')}
         </span>
       </div>
     </Link>
@@ -128,6 +129,7 @@ const GroupCard = memo(({ group }: { group: GroupQuickView }) => {
 GroupCard.displayName = 'GroupCard'
 
 export default function GroupQuickViewCards() {
+  const t = useSafeTranslations('dashboard.groupQuickView')
   const [groups, setGroups] = useState<GroupQuickView[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -144,7 +146,7 @@ export default function GroupQuickViewCards() {
         setIsLoading(false)
       })
       .catch((err) => {
-        setError('Failed to load groups')
+        setError(t('failedToLoad'))
         setIsLoading(false)
         console.error('Error fetching groups:', err)
       })
@@ -162,7 +164,7 @@ export default function GroupQuickViewCards() {
         className="rounded-xl shadow-lg p-6 border border-gray-200"
         style={glassStyle}
       >
-        <h2 className="text-2xl font-bold mb-4 text-gray-900">Your Groups</h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-900">{t('title')}</h2>
         <div className="flex items-center justify-center py-12">
           <FontAwesomeIcon icon={faSpinner} className="animate-spin text-4xl text-yellow-500" />
         </div>
@@ -176,14 +178,14 @@ export default function GroupQuickViewCards() {
         className="rounded-xl shadow-lg p-6 border border-gray-200"
         style={glassStyle}
       >
-        <h2 className="text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">Your Groups</h2>
+        <h2 className="text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">{t('title')}</h2>
         <div className="text-center py-8 text-gray-500">
-          <p className="mb-4">You're not in any groups yet.</p>
+          <p className="mb-4">{t('noGroups')}</p>
           <Link
             href="/groups/create"
             className="inline-block px-6 py-3 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold"
           >
-            Create Your First Group
+            {t('createFirstGroup')}
           </Link>
         </div>
       </div>
@@ -196,18 +198,18 @@ export default function GroupQuickViewCards() {
       style={glassStyle}
     >
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Your Groups</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{t('title')}</h2>
         <Link
           href="/groups"
           className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
         >
-          View All →
+          {t('viewAll')}
         </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {groups.map((group) => (
-          <GroupCard key={group.id} group={group} />
+          <GroupCard key={group.id} group={group} t={t} />
         ))}
       </div>
     </div>

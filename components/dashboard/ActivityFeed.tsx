@@ -12,26 +12,7 @@ import {
   faArrowDown,
   faSpinner,
 } from '@fortawesome/free-solid-svg-icons'
-
-// Simple relative time formatter
-function formatRelativeTime(date: Date): string {
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-
-  if (diffMins < 1) return 'just now'
-  if (diffMins < 60) return `${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'} ago`
-  if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`
-  if (diffDays < 7) return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`
-  
-  const diffWeeks = Math.floor(diffDays / 7)
-  if (diffWeeks < 4) return `${diffWeeks} ${diffWeeks === 1 ? 'week' : 'weeks'} ago`
-  
-  const diffMonths = Math.floor(diffDays / 30)
-  return `${diffMonths} ${diffMonths === 1 ? 'month' : 'months'} ago`
-}
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface ActivityItem {
   type: 'chart_update' | 'new_member' | 'invite' | 'join_request' | 'position_change'
@@ -43,9 +24,30 @@ interface ActivityItem {
 }
 
 export default function ActivityFeed() {
+  const t = useSafeTranslations('dashboard.activityFeed')
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Simple relative time formatter
+  function formatRelativeTime(date: Date): string {
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return t('justNow')
+    if (diffMins < 60) return t(diffMins === 1 ? 'minuteAgo' : 'minutesAgo', { count: diffMins })
+    if (diffHours < 24) return t(diffHours === 1 ? 'hourAgo' : 'hoursAgo', { count: diffHours })
+    if (diffDays < 7) return t(diffDays === 1 ? 'dayAgo' : 'daysAgo', { count: diffDays })
+    
+    const diffWeeks = Math.floor(diffDays / 7)
+    if (diffWeeks < 4) return t(diffWeeks === 1 ? 'weekAgo' : 'weeksAgo', { count: diffWeeks })
+    
+    const diffMonths = Math.floor(diffDays / 30)
+    return t(diffMonths === 1 ? 'monthAgo' : 'monthsAgo', { count: diffMonths })
+  }
 
   useEffect(() => {
     fetch('/api/dashboard/activity')
@@ -59,7 +61,7 @@ export default function ActivityFeed() {
         setIsLoading(false)
       })
       .catch((err) => {
-        setError('Failed to load activity')
+        setError(t('failedToLoad'))
         setIsLoading(false)
         console.error('Error fetching activity:', err)
       })
@@ -77,7 +79,7 @@ export default function ActivityFeed() {
         className="rounded-xl shadow-lg p-6 border border-gray-200"
         style={glassStyle}
       >
-        <h2 className="text-2xl font-bold mb-4 text-gray-900">Recent Activity</h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-900">{t('title')}</h2>
         <div className="flex items-center justify-center py-12">
           <FontAwesomeIcon icon={faSpinner} className="animate-spin text-4xl text-yellow-500" />
         </div>
@@ -91,9 +93,9 @@ export default function ActivityFeed() {
         className="rounded-xl shadow-lg p-6 border border-gray-200"
         style={glassStyle}
       >
-        <h2 className="text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">Recent Activity</h2>
+        <h2 className="text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">{t('title')}</h2>
         <div className="text-center py-8 text-gray-500">
-          <p>No recent activity to display.</p>
+          <p>{t('noActivity')}</p>
         </div>
       </div>
     )
@@ -142,7 +144,7 @@ export default function ActivityFeed() {
         WebkitBackdropFilter: 'blur(12px) saturate(180%)',
       }}
     >
-      <h2 className="text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">Recent Activity</h2>
+      <h2 className="text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">{t('title')}</h2>
       <div className="space-y-3">
         {activities.map((activity, idx) => (
           <Link
@@ -164,7 +166,29 @@ export default function ActivityFeed() {
               <FontAwesomeIcon icon={getActivityIcon(activity.type)} className="text-sm" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900">{activity.message}</p>
+              <p className="text-sm font-medium text-gray-900">
+                {(() => {
+                  // Translate activity messages based on type
+                  switch (activity.type) {
+                    case 'chart_update':
+                      return t('messages.chartUpdate', { groupName: activity.groupName })
+                    case 'new_member':
+                      return t('messages.newMember', { 
+                        userName: activity.metadata?.userName || 'Someone',
+                        groupName: activity.groupName 
+                      })
+                    case 'invite':
+                      return t('messages.invite', { groupName: activity.groupName })
+                    case 'join_request':
+                      return t('messages.joinRequest', { 
+                        userName: activity.metadata?.userName || 'Someone',
+                        groupName: activity.groupName 
+                      })
+                    default:
+                      return activity.message // Fallback to original message
+                  }
+                })()}
+              </p>
               <p className="text-xs text-gray-500 mt-1">
                 {formatRelativeTime(new Date(activity.timestamp))}
               </p>

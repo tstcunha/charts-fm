@@ -6,6 +6,7 @@ import SafeImage from '@/components/SafeImage'
 import { getDefaultGroupImage } from '@/lib/default-images'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner, faTimes, faUsers, faHeart } from '@fortawesome/free-solid-svg-icons'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface RecommendationGroup {
   group: {
@@ -33,6 +34,7 @@ interface RecommendationGroup {
 }
 
 export default function GroupsYouMightLike() {
+  const t = useSafeTranslations('dashboard.groupsYouMightLike')
   // TEMPORARY: Recommendations system hidden for launch
   // Using dummy data instead of fetching from API
   const [recommendations] = useState<RecommendationGroup[]>(() => {
@@ -262,13 +264,13 @@ export default function GroupsYouMightLike() {
       }}
     >
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Groups You Might Like</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{t('title')}</h2>
         {/* TEMPORARY: Refresh button disabled - recommendations system hidden for launch */}
         <button
           disabled
           className="text-sm text-gray-400 cursor-not-allowed font-medium"
         >
-          Refresh
+          {t('refresh')}
         </button>
       </div>
 
@@ -288,7 +290,7 @@ export default function GroupsYouMightLike() {
                 <button
                   disabled
                   className="absolute top-2 right-2 z-10 bg-white rounded-full p-2 shadow-sm opacity-50"
-                  title="Not interested"
+                  title={t('notInterested')}
                 >
                   <FontAwesomeIcon icon={faTimes} className="text-gray-500 text-sm" />
                 </button>
@@ -312,7 +314,7 @@ export default function GroupsYouMightLike() {
                   <div className="flex items-center gap-2 mb-3">
                     <FontAwesomeIcon icon={faHeart} className="text-red-500" />
                     <span className="font-semibold text-gray-900">
-                      {Math.round(rec.score)}% Match
+                      {t('match', { count: Math.round(rec.score) })}
                     </span>
                   </div>
 
@@ -320,14 +322,14 @@ export default function GroupsYouMightLike() {
                   <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                     <div className="flex items-center gap-1">
                       <FontAwesomeIcon icon={faUsers} className="text-xs" />
-                      <span>{rec.group._count.members} members</span>
+                      <span>{t('members', { count: rec.group._count.members })}</span>
                     </div>
                   </div>
 
                   {/* View Button */}
                   <div className="mt-4">
                     <div className="w-full px-4 py-2 bg-yellow-500 text-black rounded-lg text-center font-semibold">
-                      View Group
+                      {t('viewGroup')}
                     </div>
                   </div>
                 </div>
@@ -339,8 +341,8 @@ export default function GroupsYouMightLike() {
         {/* Opaque overlay with "Coming Soon!" text */}
         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg z-10">
           <div className="text-center">
-            <h3 className="text-3xl font-bold text-gray-900 mb-2">Coming Soon!</h3>
-            <p className="text-gray-600">Recommendations will be available in a future update</p>
+            <h3 className="text-3xl font-bold text-gray-900 mb-2">{t('comingSoon')}</h3>
+            <p className="text-gray-600">{t('comingSoonDescription')}</p>
           </div>
         </div>
       </div>

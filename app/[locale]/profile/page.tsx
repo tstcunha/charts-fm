@@ -25,6 +25,7 @@ export default function ProfilePage() {
     image: '',
     locale: 'en',
   })
+  const [originalLocale, setOriginalLocale] = useState<string>('en')
   const [lastfmUsername, setLastfmUsername] = useState<string | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
@@ -37,11 +38,13 @@ export default function ProfilePage() {
       .then(res => res.json())
       .then(data => {
         if (data.user) {
+          const userLocale = data.user.locale || 'en'
           setFormData({
             name: data.user.name || '',
             image: data.user.image || '',
-            locale: data.user.locale || 'en',
+            locale: userLocale,
           })
+          setOriginalLocale(userLocale)
           setLastfmUsername(data.user.lastfmUsername || null)
         }
         setIsLoading(false)
@@ -77,7 +80,9 @@ export default function ProfilePage() {
       setTimeout(() => setSuccess(false), 3000)
       
       // If locale changed, set cookie and reload the page to apply the new locale
-      if (formData.locale !== data.user?.locale) {
+      if (formData.locale !== originalLocale) {
+        // Update original locale to prevent multiple redirects
+        setOriginalLocale(formData.locale)
         // Set cookie for middleware to use
         document.cookie = `NEXT_LOCALE=${formData.locale}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
         // Redirect to new locale

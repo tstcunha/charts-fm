@@ -1,0 +1,135 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "close": "Fechar",
+    "submit": "Enviar",
+    "back": "Voltar"
+  },
+  "profile": {
+    "title": "Editar Perfil",
+    "subtitle": "Atualize suas informações de perfil",
+    "name": "Nome",
+    "profilePicture": "Foto de Perfil (URL da Imagem)",
+    "profilePicturePreview": "Preview da Foto de Perfil",
+    "lastfmUsername": "Nome de Usuário do Last.fm",
+    "lastfmUsernameTooltip": "Seu usuário foi definido quando a conta foi criada e não pode ser alterado",
+    "saveChanges": "Salvar Alterações",
+    "saving": "Salvando...",
+    "profileUpdated": "Perfil atualizado com sucesso!",
+    "failedToLoad": "Falha ao carregar perfil",
+    "failedToUpdate": "Falha ao atualizar perfil",
+    "language": "Idioma",
+    "selectLanguage": "Selecionar Idioma"
+  },
+  "navbar": {
+    "home": "Início",
+    "dashboard": "Painel",
+    "profile": "Perfil",
+    "signIn": "Entrar",
+    "signOut": "Sair"
+  },
+  "dashboard": {
+    "title": "Painel",
+    "quickActions": {
+      "title": "Ações Rápidas",
+      "createGroup": "Criar Comunidade",
+      "createGroupDescription": "Crie uma nova comunidade musical",
+      "viewAllGroups": "Suas Comunidades",
+      "pendingInvites": "Convites Pendentes",
+      "joinRequests": "Solicitações de Entrada",
+      "editProfile": "Editar Perfil",
+      "updateSettings": "Atualize suas configurações",
+      "failedToLoad": "Falha ao carregar ações rápidas",
+      "group": "comunidade",
+      "groups": "comunidades",
+      "invite": "convite",
+      "invites": "convites",
+      "request": "solicitação",
+      "requests": "solicitações"
+    },
+    "personalListening": {
+      "title": "O Que Você Anda Escutando?",
+      "weekOf": "Semana de {date}",
+      "totalPlays": "Total de Plays",
+      "uniqueArtists": "Artistas Distintos",
+      "uniqueTracks": "Músicas Distintas",
+      "topItems": "Itens Charteando",
+      "topArtists": "Top Artistas",
+      "topTracks": "Top Músicas",
+      "topAlbums": "Top Álbuns",
+      "plays": "{count} reproduções",
+      "by": "por {artist}",
+      "noChange": "Sem mudança",
+      "noData": "Ainda não há dados de escuta disponíveis.",
+      "noDataDescription": "Suas estatísticas semanais aparecerão aqui assim que suas comunidades gerarem gráficos.",
+      "failedToLoad": "Falha ao carregar estatísticas"
+    },
+    "emptyState": {
+      "title": "Pronto para começar?",
+      "description": "Junte-se ou crie uma comunidade musical para explorar tendências e construir um histórico compartilhado da sua escuta musical ao longo do tempo.",
+      "discoverGroups": "Descobrir Comunidades",
+      "createYourOwn": "Crie a Sua"
+    },
+    "activityFeed": {
+      "title": "Atividade Recente",
+      "noActivity": "Nenhuma atividade recente para exibir.",
+      "failedToLoad": "Falha ao carregar atividade",
+      "justNow": "agora mesmo",
+      "minuteAgo": "há {count} minuto",
+      "minutesAgo": "há {count} minutos",
+      "hourAgo": "há {count} hora",
+      "hoursAgo": "há {count} horas",
+      "dayAgo": "há {count} dia",
+      "daysAgo": "há {count} dias",
+      "weekAgo": "há {count} semana",
+      "weeksAgo": "há {count} semanas",
+      "monthAgo": "há {count} mês",
+      "monthsAgo": "há {count} meses",
+      "messages": {
+        "chartUpdate": "Novos charts disponíveis para {groupName}",
+        "newMember": "{userName} entrou em {groupName}",
+        "invite": "Você foi convidado para entrar em {groupName}",
+        "joinRequest": "{userName} quer entrar em {groupName}"
+      }
+    },
+    "groupsYouMightLike": {
+      "title": "Comunidades que Você Pode Gostar",
+      "refresh": "Atualizar",
+      "comingSoon": "Em Breve!",
+      "comingSoonDescription": "Recomendações estarão disponíveis em uma atualização futura",
+      "match": "{count}% Compatível",
+      "members": "{count} membros",
+      "viewGroup": "Ver Grupo",
+      "notInterested": "Não tenho interesse"
+    },
+    "groupQuickView": {
+      "title": "Suas Comunidades",
+      "viewAll": "Ver Todas →",
+      "member": "membro",
+      "members": "membros",
+      "noCharts": "Ainda não há charts",
+      "youContributed": "Você contribuiu com {count} itens",
+      "chartsUpdateToday": "Os charts atualizam hoje",
+      "nextChartTomorrow": "Próximos charts amanhã",
+      "daysUntilNextChart": "{count} dias até os próximos charts",
+      "noGroups": "Você ainda não está em nenhuma comunidade.",
+      "createFirstGroup": "Crie Sua Primeira Comunidade",
+      "failedToLoad": "Falha ao carregar comunidades",
+      "owner": "Dono",
+      "by": "por {artist}",
+      "plays": "{count} plays",
+      "chartMode": {
+        "vs": "VS",
+        "vsWeighted": "VS+",
+        "plays": "plays"
+      }
+    }
+  }
+}
+
