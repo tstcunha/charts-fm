@@ -7,10 +7,116 @@ import { faMusic, faMicrophone, faCompactDisc, faSpinner } from '@fortawesome/fr
 import PositionMovementIcon from '@/components/PositionMovementIcon'
 import { LiquidGlassLink } from '@/components/LiquidGlassButton'
 import { generateSlug, ChartType } from '@/lib/chart-slugs'
+import SafeImage from '@/components/SafeImage'
 
 interface GroupWeeklyChartsTabProps {
   groupId: string
   isOwner: boolean
+}
+
+// Image cache helpers
+const IMAGE_CACHE_PREFIX = 'chartsfm_image_cache_'
+const CACHE_EXPIRY_DAYS = 30 // Cache images for 30 days
+
+interface CachedImage {
+  url: string | null
+  timestamp: number
+}
+
+function getCacheKey(type: 'artist' | 'album', identifier: string): string {
+  return `${IMAGE_CACHE_PREFIX}${type}_${identifier.toLowerCase().trim()}`
+}
+
+/**
+ * Get cached image URL
+ * Returns:
+ * - string: cached image URL
+ * - null: cached as "no image available" (don't retry)
+ * - undefined: not cached (should fetch)
+ */
+function getCachedImage(type: 'artist' | 'album', identifier: string): string | null | undefined {
+  if (typeof window === 'undefined') return undefined
+  
+  try {
+    const cacheKey = getCacheKey(type, identifier)
+    const cached = localStorage.getItem(cacheKey)
+    if (!cached) return undefined // Not cached yet
+    
+    const data: CachedImage = JSON.parse(cached)
+    const now = Date.now()
+    const expiryTime = data.timestamp + (CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000)
+    
+    // Check if cache is expired
+    if (now > expiryTime) {
+      localStorage.removeItem(cacheKey)
+      return undefined // Expired, treat as not cached
+    }
+    
+    // Return the cached value (could be string URL or null for failed attempts)
+    return data.url
+  } catch (error) {
+    console.error('Error reading image cache:', error)
+    return undefined // Error reading, treat as not cached
+  }
+}
+
+function setCachedImage(type: 'artist' | 'album', identifier: string, url: string | null): void {
+  if (typeof window === 'undefined') return
+  
+  try {
+    const cacheKey = getCacheKey(type, identifier)
+    const data: CachedImage = {
+      url,
+      timestamp: Date.now(),
+    }
+    localStorage.setItem(cacheKey, JSON.stringify(data))
+  } catch (error) {
+    console.error('Error writing image cache:', error)
+    // If localStorage is full, try to clear old entries
+    try {
+      clearExpiredCache()
+      const cacheKey = getCacheKey(type, identifier)
+      const data: CachedImage = {
+        url,
+        timestamp: Date.now(),
+      }
+      localStorage.setItem(cacheKey, JSON.stringify(data))
+    } catch (e) {
+      // If still fails, just skip caching
+    }
+  }
+}
+
+function clearExpiredCache(): void {
+  if (typeof window === 'undefined') return
+  
+  try {
+    const now = Date.now()
+    const keysToRemove: string[] = []
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith(IMAGE_CACHE_PREFIX)) {
+        try {
+          const cached = localStorage.getItem(key)
+          if (cached) {
+            const data: CachedImage = JSON.parse(cached)
+            const expiryTime = data.timestamp + (CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000)
+            if (now > expiryTime) {
+              keysToRemove.push(key)
+            }
+          }
+        } catch {
+          // Invalid cache entry, remove it
+          keysToRemove.push(key)
+        }
+      }
+    }
+    
+    keysToRemove.forEach(key => localStorage.removeItem(key))
+  } catch (error) {
+    console.error('Error clearing expired cache:', error)
+  }
 }
 
 // Helper functions
@@ -41,8 +147,29 @@ export default function GroupWeeklyChartsTab({ groupId, isOwner }: GroupWeeklyCh
   const [data, setData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [images, setImages] = useState<{
+    topArtist: string | null
+    topTrackArtist: string | null
+    topAlbum: string | null
+  }>({
+    topArtist: null,
+    topTrackArtist: null,
+    topAlbum: null,
+  })
+  const [imagesLoading, setImagesLoading] = useState<{
+    topArtist: boolean
+    topTrackArtist: boolean
+    topAlbum: boolean
+  }>({
+    topArtist: false,
+    topTrackArtist: false,
+    topAlbum: false,
+  })
 
   useEffect(() => {
+    // Clean up expired cache entries on mount
+    clearExpiredCache()
+    
     fetch(`/api/groups/${groupId}/weekly-charts`)
       .then((res) => res.json())
       .then((data) => {
@@ -50,6 +177,92 @@ export default function GroupWeeklyChartsTab({ groupId, isOwner }: GroupWeeklyCh
           setError(data.error)
         } else {
           setData(data)
+          
+          // Fetch images for top items with caching
+          if (data.latestWeek) {
+            const { topArtists, topTracks, topAlbums } = data.latestWeek
+            
+            // Fetch top artist image
+            if (topArtists && topArtists.length > 0) {
+              const artistName = topArtists[0].name
+              const cachedUrl = getCachedImage('artist', artistName)
+              
+              if (cachedUrl !== undefined) {
+                // Use cached image (could be URL string or null for failed attempts)
+                setImages((prev) => ({ ...prev, topArtist: cachedUrl }))
+              } else {
+                // Not cached yet, fetch from API
+                setImagesLoading((prev) => ({ ...prev, topArtist: true }))
+                fetch(`/api/images/artist?artist=${encodeURIComponent(artistName)}`)
+                  .then((res) => res.json())
+                  .then((result) => {
+                    const imageUrl = result.imageUrl || null
+                    setImages((prev) => ({ ...prev, topArtist: imageUrl }))
+                    setCachedImage('artist', artistName, imageUrl) // Cache result (URL or null)
+                    setImagesLoading((prev) => ({ ...prev, topArtist: false }))
+                  })
+                  .catch(() => {
+                    setImages((prev) => ({ ...prev, topArtist: null }))
+                    setCachedImage('artist', artistName, null) // Cache null to avoid repeated failed requests
+                    setImagesLoading((prev) => ({ ...prev, topArtist: false }))
+                  })
+              }
+            }
+            
+            // Fetch top track artist image
+            if (topTracks && topTracks.length > 0 && topTracks[0].artist) {
+              const artistName = topTracks[0].artist
+              const cachedUrl = getCachedImage('artist', artistName)
+              
+              if (cachedUrl !== undefined) {
+                // Use cached image (could be URL string or null for failed attempts)
+                setImages((prev) => ({ ...prev, topTrackArtist: cachedUrl }))
+              } else {
+                // Not cached yet, fetch from API
+                setImagesLoading((prev) => ({ ...prev, topTrackArtist: true }))
+                fetch(`/api/images/artist?artist=${encodeURIComponent(artistName)}`)
+                  .then((res) => res.json())
+                  .then((result) => {
+                    const imageUrl = result.imageUrl || null
+                    setImages((prev) => ({ ...prev, topTrackArtist: imageUrl }))
+                    setCachedImage('artist', artistName, imageUrl) // Cache result (URL or null)
+                    setImagesLoading((prev) => ({ ...prev, topTrackArtist: false }))
+                  })
+                  .catch(() => {
+                    setImages((prev) => ({ ...prev, topTrackArtist: null }))
+                    setCachedImage('artist', artistName, null) // Cache null to avoid repeated failed requests
+                    setImagesLoading((prev) => ({ ...prev, topTrackArtist: false }))
+                  })
+              }
+            }
+            
+            // Fetch top album image
+            if (topAlbums && topAlbums.length > 0 && topAlbums[0].artist && topAlbums[0].name) {
+              const albumKey = `${topAlbums[0].artist}|${topAlbums[0].name}`
+              const cachedUrl = getCachedImage('album', albumKey)
+              
+              if (cachedUrl !== undefined) {
+                // Use cached image (could be URL string or null for failed attempts)
+                setImages((prev) => ({ ...prev, topAlbum: cachedUrl }))
+              } else {
+                // Not cached yet, fetch from API
+                setImagesLoading((prev) => ({ ...prev, topAlbum: true }))
+                fetch(`/api/images/album?artist=${encodeURIComponent(topAlbums[0].artist)}&album=${encodeURIComponent(topAlbums[0].name)}`)
+                  .then((res) => res.json())
+                  .then((result) => {
+                    const imageUrl = result.imageUrl || null
+                    setImages((prev) => ({ ...prev, topAlbum: imageUrl }))
+                    setCachedImage('album', albumKey, imageUrl) // Cache result (URL or null)
+                    setImagesLoading((prev) => ({ ...prev, topAlbum: false }))
+                  })
+                  .catch(() => {
+                    setImages((prev) => ({ ...prev, topAlbum: null }))
+                    setCachedImage('album', albumKey, null) // Cache null to avoid repeated failed requests
+                    setImagesLoading((prev) => ({ ...prev, topAlbum: false }))
+                  })
+              }
+            }
+          }
         }
         setIsLoading(false)
       })
@@ -134,6 +347,25 @@ export default function GroupWeeklyChartsTab({ groupId, isOwner }: GroupWeeklyCh
               <FontAwesomeIcon icon={faMicrophone} className="text-lg" />
               Top Artists
             </h4>
+            {topArtists && topArtists.length > 0 && (
+              <div className="mb-4 flex justify-center">
+                <div className="w-24 h-24 rounded-lg border-2 border-[var(--theme-border)] overflow-hidden bg-gray-100">
+                  {imagesLoading.topArtist ? (
+                    <div className="w-full h-full bg-gray-200 animate-pulse" />
+                  ) : images.topArtist ? (
+                    <SafeImage
+                      src={images.topArtist}
+                      alt={topArtists[0].name}
+                      className="w-full h-full object-cover"
+                      width={96}
+                      height={96}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200" />
+                  )}
+                </div>
+              </div>
+            )}
             <div className="space-y-3">
               {topArtists.slice(0, 3).map((artist: any, idx: number) => {
                 const displayValue = formatDisplayValue(artist, 'artists', showVS, vsMapObj)
@@ -202,6 +434,25 @@ export default function GroupWeeklyChartsTab({ groupId, isOwner }: GroupWeeklyCh
               <FontAwesomeIcon icon={faMusic} className="text-lg" />
               Top Tracks
             </h4>
+            {topTracks && topTracks.length > 0 && topTracks[0].artist && (
+              <div className="mb-4 flex justify-center">
+                <div className="w-24 h-24 rounded-lg border-2 border-[var(--theme-border)] overflow-hidden bg-gray-100">
+                  {imagesLoading.topTrackArtist ? (
+                    <div className="w-full h-full bg-gray-200 animate-pulse" />
+                  ) : images.topTrackArtist ? (
+                    <SafeImage
+                      src={images.topTrackArtist}
+                      alt={topTracks[0].artist}
+                      className="w-full h-full object-cover"
+                      width={96}
+                      height={96}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200" />
+                  )}
+                </div>
+              </div>
+            )}
             <div className="space-y-3">
               {topTracks.slice(0, 3).map((track: any, idx: number) => {
                 const displayValue = formatDisplayValue(track, 'tracks', showVS, vsMapObj)
@@ -272,6 +523,25 @@ export default function GroupWeeklyChartsTab({ groupId, isOwner }: GroupWeeklyCh
               <FontAwesomeIcon icon={faCompactDisc} className="text-lg" />
               Top Albums
             </h4>
+            {topAlbums && topAlbums.length > 0 && (
+              <div className="mb-4 flex justify-center">
+                <div className="w-24 h-24 rounded-lg border-2 border-[var(--theme-border)] overflow-hidden bg-gray-100">
+                  {imagesLoading.topAlbum ? (
+                    <div className="w-full h-full bg-gray-200 animate-pulse" />
+                  ) : images.topAlbum ? (
+                    <SafeImage
+                      src={images.topAlbum}
+                      alt={topAlbums[0].name}
+                      className="w-full h-full object-cover"
+                      width={96}
+                      height={96}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200" />
+                  )}
+                </div>
+              </div>
+            )}
             <div className="space-y-3">
               {topAlbums.slice(0, 3).map((album: any, idx: number) => {
                 const displayValue = formatDisplayValue(album, 'albums', showVS, vsMapObj)

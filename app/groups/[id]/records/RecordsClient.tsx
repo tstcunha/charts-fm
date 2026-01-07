@@ -7,6 +7,101 @@ import LiquidGlassTabs, { TabItem } from '@/components/LiquidGlassTabs'
 import RecordBlock from '@/components/records/RecordBlock'
 import Link from 'next/link'
 import { generateSlug } from '@/lib/chart-slugs'
+import SafeImage from '@/components/SafeImage'
+
+// Image cache helpers (same as GroupWeeklyChartsTab)
+const IMAGE_CACHE_PREFIX = 'chartsfm_image_cache_'
+const CACHE_EXPIRY_DAYS = 30
+
+interface CachedImage {
+  url: string | null
+  timestamp: number
+}
+
+function getCacheKey(type: 'artist' | 'album', identifier: string): string {
+  return `${IMAGE_CACHE_PREFIX}${type}_${identifier.toLowerCase().trim()}`
+}
+
+function getCachedImage(type: 'artist' | 'album', identifier: string): string | null | undefined {
+  if (typeof window === 'undefined') return undefined
+  
+  try {
+    const cacheKey = getCacheKey(type, identifier)
+    const cached = localStorage.getItem(cacheKey)
+    if (!cached) return undefined
+    
+    const data: CachedImage = JSON.parse(cached)
+    const now = Date.now()
+    const expiryTime = data.timestamp + (CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000)
+    
+    if (now > expiryTime) {
+      localStorage.removeItem(cacheKey)
+      return undefined
+    }
+    
+    return data.url
+  } catch (error) {
+    console.error('Error reading image cache:', error)
+    return undefined
+  }
+}
+
+function setCachedImage(type: 'artist' | 'album', identifier: string, url: string | null): void {
+  if (typeof window === 'undefined') return
+  
+  try {
+    const cacheKey = getCacheKey(type, identifier)
+    const data: CachedImage = {
+      url,
+      timestamp: Date.now(),
+    }
+    localStorage.setItem(cacheKey, JSON.stringify(data))
+  } catch (error) {
+    console.error('Error writing image cache:', error)
+    try {
+      clearExpiredCache()
+      const cacheKey = getCacheKey(type, identifier)
+      const data: CachedImage = {
+        url,
+        timestamp: Date.now(),
+      }
+      localStorage.setItem(cacheKey, JSON.stringify(data))
+    } catch (e) {
+      // If still fails, just skip caching
+    }
+  }
+}
+
+function clearExpiredCache(): void {
+  if (typeof window === 'undefined') return
+  
+  try {
+    const now = Date.now()
+    const keysToRemove: string[] = []
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith(IMAGE_CACHE_PREFIX)) {
+        try {
+          const cached = localStorage.getItem(key)
+          if (cached) {
+            const data: CachedImage = JSON.parse(cached)
+            const expiryTime = data.timestamp + (CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000)
+            if (now > expiryTime) {
+              keysToRemove.push(key)
+            }
+          }
+        } catch {
+          keysToRemove.push(key)
+        }
+      }
+    }
+    
+    keysToRemove.forEach(key => localStorage.removeItem(key))
+  } catch (error) {
+    console.error('Error clearing expired cache:', error)
+  }
+}
 
 interface RecordsClientProps {
   groupId: string
@@ -20,8 +115,29 @@ export default function RecordsClient({ groupId, initialRecords, memberCount }: 
   const [previewData, setPreviewData] = useState<any>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(true)
   const [activeTab, setActiveTab] = useState<'artists' | 'tracks' | 'albums' | 'users'>('users')
+  const [previewImages, setPreviewImages] = useState<{
+    artist: string | null
+    track: string | null
+    album: string | null
+  }>({
+    artist: null,
+    track: null,
+    album: null,
+  })
+  const [previewImagesLoading, setPreviewImagesLoading] = useState<{
+    artist: boolean
+    track: boolean
+    album: boolean
+  }>({
+    artist: false,
+    track: false,
+    album: false,
+  })
 
   useEffect(() => {
+    // Clean up expired cache entries on mount
+    clearExpiredCache()
+    
     // Fetch records status
     fetch(`/api/groups/${groupId}/records`)
       .then((res) => res.json())
@@ -54,6 +170,84 @@ export default function RecordsClient({ groupId, initialRecords, memberCount }: 
 
   // Extract records data from API response
   const recordsData = records?.records || (initialRecords?.status === 'completed' ? initialRecords.records : null)
+
+  // Fetch images for preview cards
+  useEffect(() => {
+    if (!previewData) return
+
+    // Fetch artist image
+    if (previewData.artist?.name) {
+      const cachedUrl = getCachedImage('artist', previewData.artist.name)
+      
+      if (cachedUrl !== undefined) {
+        setPreviewImages((prev) => ({ ...prev, artist: cachedUrl }))
+      } else {
+        setPreviewImagesLoading((prev) => ({ ...prev, artist: true }))
+        fetch(`/api/images/artist?artist=${encodeURIComponent(previewData.artist.name)}`)
+          .then((res) => res.json())
+          .then((result) => {
+            const imageUrl = result.imageUrl || null
+            setPreviewImages((prev) => ({ ...prev, artist: imageUrl }))
+            setCachedImage('artist', previewData.artist.name, imageUrl)
+            setPreviewImagesLoading((prev) => ({ ...prev, artist: false }))
+          })
+          .catch(() => {
+            setPreviewImages((prev) => ({ ...prev, artist: null }))
+            setCachedImage('artist', previewData.artist.name, null)
+            setPreviewImagesLoading((prev) => ({ ...prev, artist: false }))
+          })
+      }
+    }
+
+    // Fetch track artist image
+    if (previewData.track?.artist) {
+      const cachedUrl = getCachedImage('artist', previewData.track.artist)
+      
+      if (cachedUrl !== undefined) {
+        setPreviewImages((prev) => ({ ...prev, track: cachedUrl }))
+      } else {
+        setPreviewImagesLoading((prev) => ({ ...prev, track: true }))
+        fetch(`/api/images/artist?artist=${encodeURIComponent(previewData.track.artist)}`)
+          .then((res) => res.json())
+          .then((result) => {
+            const imageUrl = result.imageUrl || null
+            setPreviewImages((prev) => ({ ...prev, track: imageUrl }))
+            setCachedImage('artist', previewData.track.artist, imageUrl)
+            setPreviewImagesLoading((prev) => ({ ...prev, track: false }))
+          })
+          .catch(() => {
+            setPreviewImages((prev) => ({ ...prev, track: null }))
+            setCachedImage('artist', previewData.track.artist, null)
+            setPreviewImagesLoading((prev) => ({ ...prev, track: false }))
+          })
+      }
+    }
+
+    // Fetch album image
+    if (previewData.album?.artist && previewData.album?.name) {
+      const albumKey = `${previewData.album.artist}|${previewData.album.name}`
+      const cachedUrl = getCachedImage('album', albumKey)
+      
+      if (cachedUrl !== undefined) {
+        setPreviewImages((prev) => ({ ...prev, album: cachedUrl }))
+      } else {
+        setPreviewImagesLoading((prev) => ({ ...prev, album: true }))
+        fetch(`/api/images/album?artist=${encodeURIComponent(previewData.album.artist)}&album=${encodeURIComponent(previewData.album.name)}`)
+          .then((res) => res.json())
+          .then((result) => {
+            const imageUrl = result.imageUrl || null
+            setPreviewImages((prev) => ({ ...prev, album: imageUrl }))
+            setCachedImage('album', albumKey, imageUrl)
+            setPreviewImagesLoading((prev) => ({ ...prev, album: false }))
+          })
+          .catch(() => {
+            setPreviewImages((prev) => ({ ...prev, album: null }))
+            setCachedImage('album', albumKey, null)
+            setPreviewImagesLoading((prev) => ({ ...prev, album: false }))
+          })
+      }
+    }
+  }, [previewData])
 
   const tabs: TabItem[] = [
     { id: 'users', label: 'Users', icon: faUsers },
@@ -150,60 +344,117 @@ export default function RecordsClient({ groupId, initialRecords, memberCount }: 
         ) : previewData && (previewData.artist || previewData.track || previewData.album) ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {previewData.artist && (
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <FontAwesomeIcon icon={faMicrophone} className="text-[var(--theme-primary)]" />
-                  <span className="text-sm font-semibold text-gray-600">Artist</span>
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm relative overflow-hidden">
+                {(previewImagesLoading.artist || previewImages.artist !== null) && (
+                  <div className="absolute top-0 right-0 bottom-0 w-1/3 h-full pointer-events-none overflow-hidden" style={{ borderRadius: '0 0.75rem 0.75rem 0' }}>
+                    {previewImagesLoading.artist ? (
+                      <div className="w-full h-full bg-gray-200 animate-pulse" />
+                    ) : previewImages.artist ? (
+                      <SafeImage
+                        src={previewImages.artist}
+                        alt={previewData.artist.name}
+                        className="w-full h-full"
+                        fill
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/40 to-transparent z-10" />
+                  </div>
+                )}
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FontAwesomeIcon icon={faMicrophone} className="text-[var(--theme-primary)]" />
+                    <span className="text-sm font-semibold text-gray-600">Artist</span>
+                  </div>
+                  <Link
+                    href={`/groups/${groupId}/charts/artist/${previewData.artist.slug}`}
+                    className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
+                  >
+                    {previewData.artist.name}
+                  </Link>
+                  <p className="text-sm text-gray-600">
+                    {previewData.artist.value} {previewData.artist.value === 1 ? 'week' : 'weeks'}
+                  </p>
                 </div>
-                <Link
-                  href={`/groups/${groupId}/charts/artist/${previewData.artist.slug}`}
-                  className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
-                >
-                  {previewData.artist.name}
-                </Link>
-                <p className="text-sm text-gray-600">
-                  {previewData.artist.value} {previewData.artist.value === 1 ? 'week' : 'weeks'}
-                </p>
               </div>
             )}
             {previewData.track && (
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <FontAwesomeIcon icon={faMusic} className="text-[var(--theme-primary)]" />
-                  <span className="text-sm font-semibold text-gray-600">Track</span>
-                </div>
-                <Link
-                  href={`/groups/${groupId}/charts/track/${previewData.track.slug}`}
-                  className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
-                >
-                  {previewData.track.name}
-                </Link>
-                {previewData.track.artist && (
-                  <p className="text-xs text-gray-600 mb-1">by {previewData.track.artist}</p>
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm relative overflow-hidden">
+                {(previewImagesLoading.track || previewImages.track !== null) && (
+                  <div className="absolute top-0 right-0 bottom-0 w-1/3 h-full pointer-events-none overflow-hidden" style={{ borderRadius: '0 0.75rem 0.75rem 0' }}>
+                    {previewImagesLoading.track ? (
+                      <div className="w-full h-full bg-gray-200 animate-pulse" />
+                    ) : previewImages.track ? (
+                      <SafeImage
+                        src={previewImages.track}
+                        alt={previewData.track.artist || previewData.track.name}
+                        className="w-full h-full"
+                        fill
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/40 to-transparent z-10" />
+                  </div>
                 )}
-                <p className="text-sm text-gray-600">
-                  {previewData.track.value} {previewData.track.value === 1 ? 'week' : 'weeks'}
-                </p>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FontAwesomeIcon icon={faMusic} className="text-[var(--theme-primary)]" />
+                    <span className="text-sm font-semibold text-gray-600">Track</span>
+                  </div>
+                  <Link
+                    href={`/groups/${groupId}/charts/track/${previewData.track.slug}`}
+                    className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
+                  >
+                    {previewData.track.name}
+                  </Link>
+                  {previewData.track.artist && (
+                    <p className="text-xs text-gray-600 mb-1">by {previewData.track.artist}</p>
+                  )}
+                  <p className="text-sm text-gray-600">
+                    {previewData.track.value} {previewData.track.value === 1 ? 'week' : 'weeks'}
+                  </p>
+                </div>
               </div>
             )}
             {previewData.album && (
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <FontAwesomeIcon icon={faCompactDisc} className="text-[var(--theme-primary)]" />
-                  <span className="text-sm font-semibold text-gray-600">Album</span>
-                </div>
-                <Link
-                  href={`/groups/${groupId}/charts/album/${previewData.album.slug}`}
-                  className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
-                >
-                  {previewData.album.name}
-                </Link>
-                {previewData.album.artist && (
-                  <p className="text-xs text-gray-600 mb-1">by {previewData.album.artist}</p>
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-theme shadow-sm relative overflow-hidden">
+                {(previewImagesLoading.album || previewImages.album !== null) && (
+                  <div className="absolute top-0 right-0 bottom-0 w-1/3 h-full pointer-events-none overflow-hidden" style={{ borderRadius: '0 0.75rem 0.75rem 0' }}>
+                    {previewImagesLoading.album ? (
+                      <div className="w-full h-full bg-gray-200 animate-pulse" />
+                    ) : previewImages.album ? (
+                      <SafeImage
+                        src={previewImages.album}
+                        alt={previewData.album.name}
+                        className="w-full h-full"
+                        fill
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/40 to-transparent z-10" />
+                  </div>
                 )}
-                <p className="text-sm text-gray-600">
-                  {previewData.album.value} {previewData.album.value === 1 ? 'week' : 'weeks'}
-                </p>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FontAwesomeIcon icon={faCompactDisc} className="text-[var(--theme-primary)]" />
+                    <span className="text-sm font-semibold text-gray-600">Album</span>
+                  </div>
+                  <Link
+                    href={`/groups/${groupId}/charts/album/${previewData.album.slug}`}
+                    className="font-bold text-lg text-gray-900 hover:text-[var(--theme-primary)] transition-colors block mb-1"
+                  >
+                    {previewData.album.name}
+                  </Link>
+                  {previewData.album.artist && (
+                    <p className="text-xs text-gray-600 mb-1">by {previewData.album.artist}</p>
+                  )}
+                  <p className="text-sm text-gray-600">
+                    {previewData.album.value} {previewData.album.value === 1 ? 'week' : 'weeks'}
+                  </p>
+                </div>
               </div>
             )}
           </div>
