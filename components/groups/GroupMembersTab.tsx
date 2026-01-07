@@ -10,6 +10,8 @@ import RevokeInviteButton from '@/app/groups/[id]/RevokeInviteButton'
 import LeaveGroupButton from '@/app/groups/[id]/LeaveGroupButton'
 import RequestsButton from '@/app/groups/[id]/RequestsButton'
 
+const MAX_GROUP_MEMBERS = 100
+
 interface GroupMembersTabProps {
   groupId: string
 }

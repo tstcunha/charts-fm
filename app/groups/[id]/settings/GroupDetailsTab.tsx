@@ -18,8 +18,8 @@ interface GroupDetailsTabProps {
 }
 
 const ICON_SOURCES = [
-  { value: 'top_artist', label: 'Top Artist' },
   { value: 'top_album', label: 'Top Album' },
+  { value: 'top_artist', label: 'Top Artist' },
   { value: 'top_track_artist', label: 'Artist of Top Track' },
 ]
 
@@ -38,7 +38,7 @@ export default function GroupDetailsTab({
   const [isPrivate, setIsPrivate] = useState(initialIsPrivate)
   const [allowFreeJoin, setAllowFreeJoin] = useState(initialAllowFreeJoin)
   const [dynamicIconEnabled, setDynamicIconEnabled] = useState(initialDynamicIconEnabled)
-  const [dynamicIconSource, setDynamicIconSource] = useState(initialDynamicIconSource || 'top_artist')
+  const [dynamicIconSource, setDynamicIconSource] = useState(initialDynamicIconSource || 'top_album')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)

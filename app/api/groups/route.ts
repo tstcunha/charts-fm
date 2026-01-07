@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json()
-  const { name, image, chartSize, trackingDayOfWeek, chartMode, isPrivate, allowFreeJoin } = body
+  const { name, image, chartSize, trackingDayOfWeek, chartMode, isPrivate, allowFreeJoin, dynamicIconEnabled, dynamicIconSource } = body
 
   if (!name || typeof name !== 'string' || name.trim().length === 0) {
     return NextResponse.json(
@@ -82,6 +82,22 @@ export async function POST(request: Request) {
     )
   }
 
+  // Validate dynamicIconSource if dynamicIconEnabled is true
+  if (dynamicIconEnabled === true) {
+    if (!dynamicIconSource || typeof dynamicIconSource !== 'string') {
+      return NextResponse.json(
+        { error: 'dynamicIconSource is required when dynamicIconEnabled is true' },
+        { status: 400 }
+      )
+    }
+    if (!['top_artist', 'top_album', 'top_track_artist'].includes(dynamicIconSource)) {
+      return NextResponse.json(
+        { error: 'dynamicIconSource must be "top_artist", "top_album", or "top_track_artist"' },
+        { status: 400 }
+      )
+    }
+  }
+
   // Create group
   const group = await prisma.group.create({
     data: {
@@ -92,6 +108,8 @@ export async function POST(request: Request) {
       chartMode: chartMode !== undefined ? chartMode : 'vs', // Default to 'vs' instead of schema default
       isPrivate: isPrivate === true,
       allowFreeJoin: isPrivate === true ? false : (allowFreeJoin === true), // Only allow free join for public groups
+      dynamicIconEnabled: dynamicIconEnabled === true,
+      dynamicIconSource: dynamicIconEnabled === true ? dynamicIconSource : null,
       creatorId: user.id,
       members: {
         create: {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import CustomSelect from '@/components/CustomSelect'
+import Toggle from '@/components/Toggle'
 
 const DAYS_OF_WEEK = [
   { value: 0, label: 'Sunday' },
@@ -37,6 +38,12 @@ const CHART_MODES = [
   },
 ]
 
+const ICON_SOURCES = [
+  { value: 'top_album', label: 'Top Album' },
+  { value: 'top_artist', label: 'Top Artist' },
+  { value: 'top_track_artist', label: 'Artist of Top Track' },
+]
+
 export default function CreateGroupPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
@@ -46,6 +53,8 @@ export default function CreateGroupPage() {
     // Step 1: Group details
     name: '',
     image: '',
+    dynamicIconEnabled: false,
+    dynamicIconSource: 'top_album',
     // Step 2: Chart settings
     chartSize: 10,
     trackingDayOfWeek: 0,
@@ -175,6 +184,8 @@ export default function CreateGroupPage() {
         body: JSON.stringify({
           name: formData.name,
           image: formData.image,
+          dynamicIconEnabled: formData.dynamicIconEnabled,
+          dynamicIconSource: formData.dynamicIconEnabled ? formData.dynamicIconSource : null,
           chartSize: formData.chartSize,
           trackingDayOfWeek: formData.trackingDayOfWeek,
           chartMode: formData.chartMode,
@@ -272,6 +283,43 @@ export default function CreateGroupPage() {
         <p className="text-xs text-gray-500 mt-1">
           Optional: Enter a URL to an image for your group icon
         </p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Dynamic Icon
+        </label>
+        <p className="text-xs text-gray-500 mb-3">
+          Automatically update the group icon based on the latest weekly chart. The icon will update whenever new charts are generated.
+        </p>
+        
+        <div className="mb-4">
+          <Toggle
+            id="dynamicIconEnabled"
+            checked={formData.dynamicIconEnabled}
+            onChange={(checked) => setFormData({ ...formData, dynamicIconEnabled: checked })}
+            disabled={isLoading}
+            label="Enable Dynamic Icon"
+          />
+        </div>
+
+        {formData.dynamicIconEnabled && (
+          <div>
+            <label htmlFor="dynamicIconSource" className="block text-sm font-medium text-gray-700 mb-2">
+              Icon Source
+            </label>
+            <CustomSelect
+              id="dynamicIconSource"
+              options={ICON_SOURCES.map(source => ({ value: source.value, label: source.label }))}
+              value={formData.dynamicIconSource}
+              onChange={(value) => setFormData({ ...formData, dynamicIconSource: String(value) })}
+              disabled={isLoading}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Choose what the group icon should display from the latest weekly chart
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )
