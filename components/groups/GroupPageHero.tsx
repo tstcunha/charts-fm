@@ -15,13 +15,14 @@ interface GroupPageHeroProps {
   breadcrumbs: BreadcrumbSegment[]
   subheader: string | React.ReactNode
   actionButton?: React.ReactNode
+  narrow?: boolean
 }
 
-export default function GroupPageHero({ group, breadcrumbs, subheader, actionButton }: GroupPageHeroProps) {
+export default function GroupPageHero({ group, breadcrumbs, subheader, actionButton, narrow = false }: GroupPageHeroProps) {
   return (
-    <div className="mb-6">
-      <div className="bg-[var(--theme-background-from)] rounded-xl shadow-lg p-4 border border-theme">
-        <nav className="mb-3 flex items-center gap-2 text-sm">
+    <div className={narrow ? "mb-4" : "mb-6"}>
+      <div className={`bg-[var(--theme-background-from)] rounded-xl shadow-lg border border-theme ${narrow ? 'p-3' : 'p-4'}`}>
+        <nav className={`flex items-center gap-2 text-sm ${narrow ? 'mb-2' : 'mb-3'}`}>
           {breadcrumbs.map((segment, index) => (
             <span key={index} className="flex items-center gap-2">
               {segment.href ? (
@@ -39,8 +40,8 @@ export default function GroupPageHero({ group, breadcrumbs, subheader, actionBut
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <div className="relative w-12 h-12 flex-shrink-0">
-            <div className="w-12 h-12 rounded-lg overflow-hidden shadow-md ring-2 ring-[var(--theme-ring)]/30 bg-[var(--theme-primary-lighter)]">
+          <div className={`relative flex-shrink-0 ${narrow ? 'w-10 h-10' : 'w-12 h-12'}`}>
+            <div className={`${narrow ? 'w-10 h-10' : 'w-12 h-12'} rounded-lg overflow-hidden shadow-md ring-2 ring-[var(--theme-ring)]/30 bg-[var(--theme-primary-lighter)]`}>
               <SafeImage
                 src={group.image}
                 alt={group.name}
@@ -49,13 +50,13 @@ export default function GroupPageHero({ group, breadcrumbs, subheader, actionBut
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-[var(--theme-primary-dark)] mb-1">
+            <h1 className={`font-bold text-[var(--theme-primary-dark)] ${narrow ? 'text-xl mb-0.5' : 'text-2xl mb-1'}`}>
               {group.name}
             </h1>
             {typeof subheader === 'string' ? (
-              <p className="text-xs text-gray-500 mt-1">{subheader}</p>
+              <p className={`text-gray-500 ${narrow ? 'text-xs mt-0.5' : 'text-xs mt-1'}`}>{subheader}</p>
             ) : (
-              <div className="text-xs text-gray-500 mt-1">{subheader}</div>
+              <div className={`text-gray-500 ${narrow ? 'text-xs mt-0.5' : 'text-xs mt-1'}`}>{subheader}</div>
             )}
           </div>
           {actionButton && (

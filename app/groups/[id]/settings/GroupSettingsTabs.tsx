@@ -21,14 +21,14 @@ export default function GroupSettingsTabs({
   shoutboxContent,
   deleteGroupContent,
 }: GroupSettingsTabsProps) {
-  const [activeTab, setActiveTab] = useState<TabId>('regenerate')
+  const [activeTab, setActiveTab] = useState<TabId>('group-details')
 
   const tabs = [
-    { id: 'regenerate' as TabId, label: 'Regenerate Charts' },
-    { id: 'chart-creation' as TabId, label: 'Chart Creation' },
     { id: 'group-details' as TabId, label: 'Group Details' },
+    { id: 'chart-creation' as TabId, label: 'Charts' },
     { id: 'styling' as TabId, label: 'Styling' },
     { id: 'shoutbox' as TabId, label: 'Shoutbox' },
+    { id: 'regenerate' as TabId, label: 'Regenerate Charts' },
     { id: 'delete' as TabId, label: 'Delete Group' },
   ]
 
@@ -55,24 +55,65 @@ export default function GroupSettingsTabs({
     <div className="flex gap-8">
       {/* Left sidebar with tabs */}
       <div className="w-64 flex-shrink-0">
-        <nav className="space-y-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                activeTab === tab.id
-                  ? tab.id === 'delete'
-                    ? 'bg-red-500 text-white font-semibold'
-                    : 'bg-yellow-500 text-black font-semibold'
-                  : tab.id === 'delete'
-                  ? 'text-red-600 hover:bg-red-50'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <nav 
+          className="space-y-2 p-2 rounded-lg"
+          style={{
+            background: 'rgba(255, 255, 255, 0.4)',
+            backdropFilter: 'blur(12px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          }}
+        >
+          {tabs.map((tab) => {
+            const isSelected = activeTab === tab.id
+            const isDelete = tab.id === 'delete'
+            
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`
+                  w-full text-left px-4 py-3 rounded-lg transition-all duration-200
+                  ${isSelected ? 'font-semibold shadow-lg' : 'hover:shadow-md'}
+                `}
+                style={{
+                  background: isSelected
+                    ? isDelete
+                      ? 'rgba(239, 68, 68, 0.8)'
+                      : 'var(--theme-primary)'
+                    : 'rgba(255, 255, 255, 0.4)',
+                  color: isSelected
+                    ? isDelete
+                      ? 'white'
+                      : 'var(--theme-button-text)'
+                    : isDelete
+                    ? 'rgb(220 38 38)'
+                    : 'var(--theme-text)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  backdropFilter: 'blur(8px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(8px) saturate(180%)',
+                  boxShadow: isSelected
+                    ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                    : '0 2px 4px -1px rgba(0, 0, 0, 0.05)',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.filter = 'brightness(1.1)'
+                    e.currentTarget.style.transform = 'scale(1.02)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.filter = ''
+                    e.currentTarget.style.transform = ''
+                  }
+                }}
+              >
+                {tab.label}
+              </button>
+            )
+          })}
         </nav>
       </div>
 

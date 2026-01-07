@@ -1,5 +1,8 @@
 import { requireGroupCreator } from '@/lib/group-auth'
+import { getSuperuser } from '@/lib/admin'
+import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
+import GroupPageHero from '@/components/groups/GroupPageHero'
 import GroupSettingsTabs from './GroupSettingsTabs'
 import RegenerateChartsTab from './RegenerateChartsTab'
 import GroupSettingsForm from './GroupSettingsForm'
@@ -41,33 +44,44 @@ export default async function GroupSettingsPage({ params }: { params: { id: stri
     )
   }
 
+  // Fetch the latest group state to check lock status
+  const latestGroup = await prisma.group.findUnique({
+    where: { id: group.id },
+    select: {
+      chartGenerationInProgress: true,
+    },
+  })
+
+  const superuser = await getSuperuser()
+  const isSuperuser = superuser !== null
+  const chartGenerationInProgress = latestGroup?.chartGenerationInProgress || false
+
   return (
     <main className="flex min-h-screen flex-col pt-8 pb-24 px-6 md:px-12 lg:px-24 relative">
       <div className="max-w-6xl w-full mx-auto relative z-10">
-        <div className="mb-8">
-          <nav className="mb-6 flex items-center gap-2 text-sm">
-            <Link 
-              href="/groups" 
-              className="text-gray-500 hover:text-gray-900 transition-colors"
-            >
-              Groups
-            </Link>
-            <span className="text-gray-400">/</span>
-            <Link 
-              href={`/groups/${group.id}`}
-              className="text-gray-500 hover:text-gray-900 transition-colors"
-            >
-              {group.name}
-            </Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-900 font-medium">Settings</span>
-          </nav>
-          <h1 className="text-4xl font-bold mb-2">Group Settings</h1>
-          <p className="text-gray-600">Configure settings for {group.name}</p>
-        </div>
+        <GroupPageHero
+          group={{
+            id: group.id,
+            name: group.name,
+            image: group.image,
+          }}
+          breadcrumbs={[
+            { label: 'Groups', href: '/groups' },
+            { label: group.name, href: `/groups/${group.id}` },
+            { label: 'Settings' },
+          ]}
+          subheader="Configure settings for your group"
+          narrow={true}
+        />
 
         <GroupSettingsTabs
-          regenerateChartsContent={<RegenerateChartsTab groupId={group.id} />}
+          regenerateChartsContent={
+            <RegenerateChartsTab 
+              groupId={group.id} 
+              isSuperuser={isSuperuser}
+              initialInProgress={chartGenerationInProgress}
+            />
+          }
           chartCreationContent={
             <GroupSettingsForm
               groupId={group.id}
