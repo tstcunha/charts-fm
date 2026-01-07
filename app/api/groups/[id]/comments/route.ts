@@ -23,8 +23,12 @@ export async function GET(
     }
 
     const url = new URL(request.url)
-    const page = parseInt(url.searchParams.get('page') || '1')
-    const limit = parseInt(url.searchParams.get('limit') || '20')
+    const pageParam = url.searchParams.get('page') || '1'
+    const limitParam = url.searchParams.get('limit') || '20'
+    
+    // Validate and parse page and limit
+    const page = Math.max(1, parseInt(pageParam, 10) || 1)
+    const limit = Math.max(1, Math.min(100, parseInt(limitParam, 10) || 20)) // Max 100 items per page
 
     const skip = (page - 1) * limit
 

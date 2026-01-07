@@ -50,6 +50,14 @@ export async function POST(request: Request) {
     )
   }
 
+  const trimmedName = name.trim()
+  if (trimmedName.length > 100) {
+    return NextResponse.json(
+      { error: 'Group name cannot exceed 100 characters' },
+      { status: 400 }
+    )
+  }
+
   // Validate chartSize if provided
   if (chartSize !== undefined && ![10, 20, 50, 100].includes(Number(chartSize))) {
     return NextResponse.json(
@@ -77,7 +85,7 @@ export async function POST(request: Request) {
   // Create group
   const group = await prisma.group.create({
     data: {
-      name: name.trim(),
+      name: trimmedName,
       image: image?.trim() || null,
       chartSize: chartSize !== undefined ? Number(chartSize) : 10,
       trackingDayOfWeek: trackingDayOfWeek !== undefined ? Number(trackingDayOfWeek) : 0,

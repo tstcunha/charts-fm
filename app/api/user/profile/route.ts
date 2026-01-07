@@ -47,6 +47,47 @@ export async function PATCH(request: Request) {
   const body = await request.json()
   const { name, image } = body
 
+  // Validate name if provided
+  if (name !== undefined) {
+    if (typeof name !== 'string') {
+      return NextResponse.json(
+        { error: 'Name must be a string' },
+        { status: 400 }
+      )
+    }
+    const trimmedName = name.trim()
+    if (trimmedName.length > 100) {
+      return NextResponse.json(
+        { error: 'Name cannot exceed 100 characters' },
+        { status: 400 }
+      )
+    }
+  }
+
+  // Validate image URL if provided
+  if (image !== undefined && image !== null) {
+    if (typeof image !== 'string') {
+      return NextResponse.json(
+        { error: 'Image must be a string' },
+        { status: 400 }
+      )
+    }
+    const trimmedImage = image.trim()
+    if (trimmedImage.length > 500) {
+      return NextResponse.json(
+        { error: 'Image URL cannot exceed 500 characters' },
+        { status: 400 }
+      )
+    }
+    // Basic URL validation
+    if (trimmedImage && !trimmedImage.match(/^https?:\/\/.+/i) && !trimmedImage.startsWith('/')) {
+      return NextResponse.json(
+        { error: 'Image must be a valid URL or path' },
+        { status: 400 }
+      )
+    }
+  }
+
   // Check if name is being updated and if it's different
   // Normalize both values: trim and convert empty strings to null for comparison
   const newNameValue = name !== undefined ? (name.trim() || null) : undefined

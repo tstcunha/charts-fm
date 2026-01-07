@@ -23,8 +23,9 @@ export async function GET(request: Request) {
   const allowFreeJoinParam = searchParams.get('allowFreeJoin')
   const minMembersParam = searchParams.get('minMembers')
   const sort = searchParams.get('sort') || 'newest'
-  const page = parseInt(searchParams.get('page') || '1', 10)
-  const limit = parseInt(searchParams.get('limit') || '20', 10)
+  // Validate and parse page and limit
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
+  const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '20', 10) || 20)) // Max 100 items per page
   const skip = (page - 1) * limit
 
   // Build where clause
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
 
   // Min members filter
   if (minMembersParam) {
-    const minMembers = parseInt(minMembersParam, 10)
+    const minMembers = Math.max(0, parseInt(minMembersParam, 10) || 0)
     if (!isNaN(minMembers) && minMembers > 0) {
       // This will be handled via having clause or post-query filtering
       // For now, we'll filter after fetching
@@ -106,7 +107,7 @@ export async function GET(request: Request) {
   // Filter by min members if specified
   let filteredGroups = groups
   if (minMembersParam) {
-    const minMembers = parseInt(minMembersParam, 10)
+    const minMembers = Math.max(0, parseInt(minMembersParam, 10) || 0)
     if (!isNaN(minMembers) && minMembers > 0) {
       filteredGroups = groups.filter((g) => g._count.members >= minMembers)
     }

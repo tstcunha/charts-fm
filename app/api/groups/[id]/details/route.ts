@@ -48,6 +48,7 @@ export async function PATCH(
   }
 
   // Validate name
+  let validatedName: string | undefined
   if (name !== undefined) {
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json(
@@ -55,6 +56,14 @@ export async function PATCH(
         { status: 400 }
       )
     }
+    const trimmedName = name.trim()
+    if (trimmedName.length > 100) {
+      return NextResponse.json(
+        { error: 'Group name cannot exceed 100 characters' },
+        { status: 400 }
+      )
+    }
+    validatedName = trimmedName
   }
 
   // Validate isPrivate
@@ -119,7 +128,7 @@ export async function PATCH(
   const updatedGroup = await prisma.group.update({
     where: { id: groupId },
     data: {
-      ...(name !== undefined && { name: name.trim() }),
+      ...(validatedName !== undefined && { name: validatedName }),
       ...(isPrivate !== undefined && { isPrivate: finalIsPrivate }),
       ...(allowFreeJoin !== undefined && { allowFreeJoin: finalAllowFreeJoin }),
       ...(dynamicIconEnabled !== undefined && { dynamicIconEnabled: finalDynamicIconEnabled }),
