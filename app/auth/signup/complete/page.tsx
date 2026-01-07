@@ -201,7 +201,7 @@ function CompleteSignUpPageContent() {
 
                 <div>
                   <label htmlFor="name" className="block text-sm font-semibold text-gray-800 mb-2">
-                    Full Name *
+                    Display Name *
                   </label>
                   <input
                     type="text"
