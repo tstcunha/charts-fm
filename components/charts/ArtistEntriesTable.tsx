@@ -4,6 +4,7 @@ import { useState, memo } from 'react'
 import { ArtistChartEntry } from '@/lib/chart-deep-dive'
 import LiquidGlassTabs from '@/components/LiquidGlassTabs'
 import { Link } from '@/i18n/routing'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface ArtistEntriesTableProps {
   tracks: ArtistChartEntry[]
@@ -12,11 +13,12 @@ interface ArtistEntriesTableProps {
 }
 
 const ArtistEntriesTable = memo(function ArtistEntriesTable({ tracks, albums, groupId }: ArtistEntriesTableProps) {
+  const t = useSafeTranslations('deepDive.artistEntries')
   const [activeTab, setActiveTab] = useState<'tracks' | 'albums'>('tracks')
 
   const tabs = [
-    { id: 'tracks', label: 'Tracks', count: tracks.length },
-    { id: 'albums', label: 'Albums', count: albums.length },
+    { id: 'tracks', label: t('tracks'), count: tracks.length },
+    { id: 'albums', label: t('albums'), count: albums.length },
   ]
 
   const currentEntries = activeTab === 'tracks' ? tracks : albums
@@ -69,7 +71,7 @@ const ArtistEntriesTable = memo(function ArtistEntriesTable({ tracks, albums, gr
 
   return (
     <div className="bg-white/40 backdrop-blur-md rounded-xl p-6 border border-white/30" style={{ contain: 'layout style paint' }}>
-      <h2 className="text-xl font-bold text-gray-900 mb-4">This Artist's Chart Entries</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-4">{t('title')}</h2>
       
       <div className="mb-6 flex justify-center">
         <LiquidGlassTabs
@@ -81,29 +83,29 @@ const ArtistEntriesTable = memo(function ArtistEntriesTable({ tracks, albums, gr
 
       {currentEntries.length === 0 ? (
         <div className="text-center py-8 text-gray-600">
-          No {activeTab} by this artist have charted yet.
+          {activeTab === 'tracks' ? t('noTracks') : t('noAlbums')}
         </div>
       ) : (
         <div className="overflow-x-auto">
           <div className="text-sm text-gray-600 mb-3 text-center">
-            Total: {currentEntries.length} {currentEntries.length === 1 ? 'entry' : 'entries'}
+            {t('total')} {currentEntries.length} {currentEntries.length === 1 ? t('entry') : t('entries')}
             <span className="mx-2">•</span>
-            #1 weeks: {totalNumberOneWeeks}
+            {t('numberOneWeeks')} {totalNumberOneWeeks}
           </div>
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200/50">
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Peak
+                  {t('peak')}
                 </th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Weeks at Peak
+                  {t('weeksAtPeak')}
                 </th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Name
+                  {t('name')}
                 </th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Weeks on Chart
+                  {t('weeksOnChart')}
                 </th>
               </tr>
             </thead>

@@ -1,5 +1,6 @@
 import GroupPageHero from '@/components/groups/GroupPageHero'
 import { ChartType } from '@/lib/chart-slugs'
+import { getTranslations } from 'next-intl/server'
 
 interface DeepDiveHeroProps {
   group: {
@@ -15,18 +16,22 @@ interface DeepDiveHeroProps {
   artistSlug?: string | null
 }
 
-export default function DeepDiveHero({ group, entry, chartType, artistSlug }: DeepDiveHeroProps) {
+export default async function DeepDiveHero({ group, entry, chartType, artistSlug }: DeepDiveHeroProps) {
+  const t = await getTranslations('deepDive.hero')
+  const tGroups = await getTranslations('groups')
+  const tCharts = await getTranslations('charts')
+  
   // Determine subheader text based on chart type
   const getSubheaderText = () => {
     switch (chartType) {
       case 'artists':
-        return 'Artist Chart History'
+        return t('artistChartHistory')
       case 'tracks':
-        return 'Track Chart History'
+        return t('trackChartHistory')
       case 'albums':
-        return 'Album Chart History'
+        return t('albumChartHistory')
       default:
-        return 'Chart History'
+        return t('chartHistory')
     }
   }
 
@@ -46,9 +51,9 @@ export default function DeepDiveHero({ group, entry, chartType, artistSlug }: De
 
   // Build breadcrumbs
   const breadcrumbs = [
-    { label: 'Groups', href: '/groups' },
+    { label: tGroups('title'), href: '/groups' },
     { label: group.name, href: `/groups/${group.id}` },
-    { label: 'Charts', href: `/groups/${group.id}/charts` },
+    { label: tCharts('title'), href: `/groups/${group.id}/charts` },
   ]
 
   // Add artist to breadcrumb for tracks/albums if available
@@ -74,7 +79,7 @@ export default function DeepDiveHero({ group, entry, chartType, artistSlug }: De
           rel="noopener noreferrer"
           className="bg-red-800 hover:bg-red-900 text-white px-4 py-2 rounded-lg font-bold transition-colors flex items-center gap-2 whitespace-nowrap"
         >
-          View in Last.fm →
+          {t('viewInLastfm')}
         </a>
       }
     />

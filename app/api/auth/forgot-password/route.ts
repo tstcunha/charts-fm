@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateVerificationToken, sendPasswordResetEmail } from '@/lib/email'
+import { detectLocale } from '@/lib/locale-utils'
 
 export async function POST(request: Request) {
   try {
@@ -78,7 +79,9 @@ export async function POST(request: Request) {
 
     // Send password reset email
     try {
-      await sendPasswordResetEmail(user.email, resetToken, user.name || 'User')
+      // Detect locale from request (will fall back to user's saved locale in email function)
+      const locale = await detectLocale(request)
+      await sendPasswordResetEmail(user.email, resetToken, user.name || 'User', locale)
     } catch (error) {
       console.error('Failed to send password reset email:', error)
       return NextResponse.json(

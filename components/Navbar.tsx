@@ -10,7 +10,7 @@ import { useNavigation } from '@/contexts/NavigationContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { GROUP_THEMES } from '@/lib/group-themes'
-import { useTranslations } from 'next-intl'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 // Lazy load SignInModal to reduce initial bundle size
 const SignInModal = dynamic(() => import('@/components/SignInModal'), {
@@ -29,7 +29,7 @@ export default function Navbar() {
   const router = useRouter()
   const pathname = usePathname()
   const { isLoading } = useNavigation()
-  const t = useTranslations('navbar')
+  const t = useSafeTranslations('navbar')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 })
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -196,7 +196,7 @@ export default function Navbar() {
       >
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-gray-300 border-t-[var(--theme-primary)] rounded-full animate-spin"></div>
-          <p className="text-white text-lg font-semibold">Signing out...</p>
+          <p className="text-white text-lg font-semibold">{t('signingOut')}</p>
         </div>
       </div>
     ) : null
@@ -215,7 +215,7 @@ export default function Navbar() {
         >
           <div className="flex flex-col items-center gap-4">
             <div className="w-12 h-12 border-4 border-gray-300 border-t-[var(--theme-primary)] rounded-full animate-spin"></div>
-            <p className="text-white text-lg font-semibold">Signing out...</p>
+            <p className="text-white text-lg font-semibold">{t('signingOut')}</p>
           </div>
         </div>
       )}
@@ -312,7 +312,7 @@ export default function Navbar() {
                     }
                   }}
                 >
-                  Groups
+                  {t('groups')}
                 </Link>
                 <Link
                   href="/groups/discover"
@@ -349,7 +349,7 @@ export default function Navbar() {
                     }
                   }}
                 >
-                  Discover
+                  {t('discover')}
                 </Link>
               </div>
             )}
@@ -479,7 +479,7 @@ export default function Navbar() {
                     e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
                     e.currentTarget.style.filter = ''
                   }}
-                  aria-label="Add group to quick access"
+                  aria-label={t('addGroupToQuickAccess')}
                 >
                   <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
                 </button>
@@ -510,11 +510,11 @@ export default function Navbar() {
                   <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border-2 border-yellow-500">
                     <SafeImage
                       src={userData?.image}
-                      alt={userData?.name || 'User'}
+                      alt={userData?.name || t('user')}
                       className="object-cover w-8 h-8 rounded-full"
                     />
                   </div>
-                  <span>{userData?.name || session?.user?.name || 'User'}</span>
+                  <span>{userData?.name || session?.user?.name || t('user')}</span>
                   <svg
                     className={`w-4 h-4 transition-transform ${
                       isDropdownOpen ? 'transform rotate-180' : ''
@@ -553,7 +553,7 @@ export default function Navbar() {
                     <div className="py-1">
                       <div className="px-4 py-2 border-b border-gray-700/50">
                         <p className="text-sm font-bold text-white">
-                          {userData?.name || session?.user?.name || 'User'}
+                          {userData?.name || session?.user?.name || t('user')}
                         </p>
                         {userData?.lastfmUsername && (
                           <p className="text-xs font-bold text-gray-400">
@@ -587,7 +587,7 @@ export default function Navbar() {
                               e.currentTarget.style.background = 'transparent'
                             }}
                           >
-                            Create User
+                            {t('createUser')}
                           </Link>
                           <Link
                             href="/admin/bulk-generate"
@@ -600,7 +600,7 @@ export default function Navbar() {
                               e.currentTarget.style.background = 'transparent'
                             }}
                           >
-                            Bulk Generate
+                            {t('bulkGenerate')}
                           </Link>
                         </>
                       )}
@@ -660,7 +660,7 @@ export default function Navbar() {
                   e.currentTarget.style.filter = ''
                 }}
               >
-                Sign Up
+                {t('signUp')}
               </Link>
             </div>
           ) : null}

@@ -5,6 +5,7 @@ import { useRouter } from '@/i18n/routing'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface UpdateChartsButtonProps {
   groupId: string
@@ -16,6 +17,7 @@ export default function UpdateChartsButton({ groupId, initialInProgress = false,
   const [isUpdating, setIsUpdating] = useState(initialInProgress)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const t = useSafeTranslations('groups.weeklyCharts')
 
   const pollForCompletion = async () => {
     const pollInterval = 2500 // 2.5 seconds
@@ -69,13 +71,13 @@ export default function UpdateChartsButton({ groupId, initialInProgress = false,
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to update charts')
+        throw new Error(data.error || t('failedToUpdate'))
       }
 
       // Start polling for completion
       pollForCompletion()
     } catch (err: any) {
-      setError(err.message || 'Failed to update charts')
+      setError(err.message || t('failedToUpdate'))
       setIsUpdating(false)
     }
   }
@@ -97,7 +99,7 @@ export default function UpdateChartsButton({ groupId, initialInProgress = false,
       useTheme
       icon={isUpdating ? <FontAwesomeIcon icon={faSpinner} className="animate-spin" /> : undefined}
     >
-      {isUpdating ? 'Updating charts...' : 'Update charts'}
+      {isUpdating ? t('updatingCharts') : t('updateCharts')}
     </LiquidGlassButton>
   )
 }

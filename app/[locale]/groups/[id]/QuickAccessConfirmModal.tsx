@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface QuickAccessConfirmModalProps {
   isOpen: boolean
@@ -15,6 +16,7 @@ export default function QuickAccessConfirmModal({
   onConfirm,
   onCancel,
 }: QuickAccessConfirmModalProps) {
+  const t = useSafeTranslations('navbar.quickAccess')
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -56,7 +58,7 @@ export default function QuickAccessConfirmModal({
         <div className="bg-white rounded-lg shadow-2xl p-6 relative">
           <div className="space-y-4 mb-6">
             <p className="text-sm text-gray-700">
-              Do you want to replace your quick access group?
+              {t('replaceConfirm')}
             </p>
           </div>
 
@@ -67,7 +69,7 @@ export default function QuickAccessConfirmModal({
               size="md"
               useTheme={false}
             >
-              No
+              {t('no')}
             </LiquidGlassButton>
             <LiquidGlassButton
               onClick={onConfirm}
@@ -75,7 +77,7 @@ export default function QuickAccessConfirmModal({
               size="md"
               useTheme={false}
             >
-              Yes
+              {t('yes')}
             </LiquidGlassButton>
           </div>
         </div>

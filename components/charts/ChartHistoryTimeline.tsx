@@ -5,6 +5,7 @@ import { ChartHistoryEntry } from '@/lib/chart-deep-dive'
 import PositionBubble from './PositionBubble'
 import { formatWeekDate, formatWeekLabel } from '@/lib/weekly-utils'
 import Tooltip from '@/components/Tooltip'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface ChartHistoryTimelineProps {
   history: ChartHistoryEntry[]
@@ -24,6 +25,7 @@ function ChartHistoryTimeline({
   groupId,
   chartType,
 }: ChartHistoryTimelineProps) {
+  const t = useSafeTranslations('deepDive.timeline')
   // Memoize expensive timeline processing
   const { timelineItems, firstAppearanceDate } = useMemo(() => {
     if (history.length === 0) {
@@ -121,14 +123,14 @@ function ChartHistoryTimeline({
   if (history.length === 0) {
     return (
       <div className="bg-white/40 backdrop-blur-xl rounded-xl p-8 text-center border border-white/30">
-        <p className="text-gray-600">No chart history available</p>
+        <p className="text-gray-600">{t('noHistory')}</p>
       </div>
     )
   }
 
   return (
     <div className="bg-white/40 backdrop-blur-md rounded-xl p-6 border border-white/30" style={{ overflow: 'visible', contain: 'layout style paint' }}>
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Chart History</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-6">{t('title')}</h2>
       <div className="relative" style={{ overflow: 'visible' }}>
         {/* Timeline items container with repeating lines on all rows */}
         <div 
@@ -168,7 +170,7 @@ function ChartHistoryTimeline({
               return (
                 <Tooltip 
                   key={`gap-${index}`}
-                  content={`Out for ${item.gapWeeks} ${item.gapWeeks === 1 ? 'week' : 'weeks'}`}
+                  content={item.gapWeeks === 1 ? t('outFor', { count: item.gapWeeks }) : t('outForPlural', { count: item.gapWeeks })}
                   position="top"
                 >
                   <div 

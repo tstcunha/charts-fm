@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import LiquidGlassButton, { LiquidGlassLink } from '@/components/LiquidGlassButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 // Lazy load SignInModal to reduce initial bundle size
 const SignInModal = dynamic(() => import('@/components/SignInModal'), {
@@ -13,6 +14,7 @@ const SignInModal = dynamic(() => import('@/components/SignInModal'), {
 
 export default function LandingPageClient() {
   const searchParams = useSearchParams()
+  const t = useSafeTranslations('landing')
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
   const [animationPhase, setAnimationPhase] = useState<'fade-in' | 'together-apart'>('fade-in')
   const musicRef = useRef<HTMLSpanElement>(null)
@@ -72,7 +74,7 @@ export default function LandingPageClient() {
                 }`}
                 style={{ lineHeight: '1.2', paddingBottom: '0.1em' }}
               >
-                Your Music
+                {t('titlePart1')}
               </span>
               <span 
                 ref={togetherRef} 
@@ -81,14 +83,14 @@ export default function LandingPageClient() {
                 }`}
                 style={animationPhase === 'fade-in' ? { animationDelay: '0.1s', lineHeight: '1.2', paddingBottom: '0.1em' } : { lineHeight: '1.2', paddingBottom: '0.1em' }}
               >
-                Together
+                {t('titlePart2')}
               </span>
             </h1>
             <p className="text-xl sm:text-2xl text-gray-700 mb-4 max-w-3xl mx-auto font-inter">
-              Create groups with friends and build a shared listening history
+              {t('subtitle')}
             </p>
             <p className="text-lg text-gray-600 mb-10 max-w-2xl mx-auto font-inter">
-              Track what you're listening to, discover trends, and explore your music taste through combined charts and stats
+              {t('description')}
             </p>
             <div className="flex justify-center">
               <LiquidGlassLink
@@ -97,7 +99,7 @@ export default function LandingPageClient() {
                 size="lg"
                 className="text-lg"
               >
-                Get Started
+                {t('getStarted')}
               </LiquidGlassLink>
             </div>
           </div>
@@ -118,9 +120,9 @@ export default function LandingPageClient() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400/30 to-orange-400/30 rounded-full blur-2xl"></div>
               <div className="relative z-10">
                 <div className="text-5xl mb-4">🎵</div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">Create Groups</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">{t('features.createGroups.title')}</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Start a group with friends and combine your listening histories. See what everyone's playing, find your shared favorites, and build a collective music history together.
+                  {t('features.createGroups.description')}
                 </p>
               </div>
             </div>
@@ -139,9 +141,9 @@ export default function LandingPageClient() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-400/30 to-purple-400/30 rounded-full blur-2xl"></div>
               <div className="relative z-10">
                 <div className="text-5xl mb-4">📊</div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">Stats & Trends</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">{t('features.statsTrends.title')}</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Watch your favorite artists climb the charts, see what's trending in your group, and explore your listening patterns over time.
+                  {t('features.statsTrends.description')}
                 </p>
               </div>
             </div>
@@ -160,9 +162,9 @@ export default function LandingPageClient() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400/30 to-red-400/30 rounded-full blur-2xl"></div>
               <div className="relative z-10">
                 <div className="text-5xl mb-4">🌟</div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">Share Your Taste</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">{t('features.shareTaste.title')}</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  See how your music taste compares with others, discover new artists through compatibility, and celebrate what makes your listening unique.
+                  {t('features.shareTaste.description')}
                 </p>
               </div>
             </div>
@@ -182,10 +184,10 @@ export default function LandingPageClient() {
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-orange-400/20 to-pink-400/20"></div>
             <div className="relative z-10">
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
-                Ready to get started?
+                {t('cta.title')}
               </h2>
               <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto font-inter">
-                Connect your Last.fm account and start building shared listening histories with your friends.
+                {t('cta.description')}
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <LiquidGlassButton
@@ -194,7 +196,7 @@ export default function LandingPageClient() {
                   size="lg"
                   className="text-lg"
                 >
-                  Log In
+                  {t('cta.logIn')}
                 </LiquidGlassButton>
                 <LiquidGlassLink
                   href="/auth/signup"
@@ -202,7 +204,7 @@ export default function LandingPageClient() {
                   size="lg"
                   className="text-lg"
                 >
-                  Create Account
+                  {t('cta.createAccount')}
                 </LiquidGlassLink>
               </div>
             </div>

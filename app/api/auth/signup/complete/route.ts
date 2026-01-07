@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { generateVerificationToken, sendVerificationEmail } from '@/lib/email'
+import { detectLocale } from '@/lib/locale-utils'
 
 export async function POST(request: Request) {
   try {
@@ -104,7 +105,9 @@ export async function POST(request: Request) {
 
     // Send verification email
     try {
-      await sendVerificationEmail(email, verificationToken, name)
+      // Detect locale from request for new users
+      const locale = await detectLocale(request)
+      await sendVerificationEmail(email, verificationToken, name, locale)
     } catch (error) {
       console.error('Failed to send verification email:', error)
       // Continue even if email fails - user can request resend

@@ -25,14 +25,72 @@
     "failedToLoad": "Failed to load profile",
     "failedToUpdate": "Failed to update profile",
     "language": "Language",
-    "selectLanguage": "Select Language"
+    "selectLanguage": "Select Language",
+    "dangerZone": {
+      "title": "Danger Zone",
+      "description": "Irreversible and destructive actions",
+      "deleteAccount": {
+        "title": "Delete Account",
+        "description": "Permanently delete your account and all associated data. This action cannot be undone.",
+        "button": "Delete Account"
+      }
+    },
+    "deleteAccountModal": {
+      "title": "Delete Account",
+      "close": "Close",
+      "warning": "This action cannot be undone. Are you sure you want to delete your account?",
+      "loadingGroups": "Loading your groups...",
+      "ownedGroupsMessage": "You own the following groups. Ownership will be transferred to the oldest member:",
+      "whatWillBeDeleted": "What will be deleted:",
+      "deletedItems": {
+        "accountAndProfile": "Your account and profile information",
+        "groupMemberships": "Your group memberships",
+        "personalStatistics": "Your personal statistics and listening data",
+        "friendshipsAndRecommendations": "Your friendships and recommendations"
+      },
+      "whatWillBePreserved": "What will be preserved:",
+      "preservedItems": {
+        "groupCharts": "Group charts and historical statistics (your contributions remain but are anonymized)",
+        "groupComments": "Group comments (anonymized as \"Deleted User\")",
+        "groupsYouCreated": "Groups you created (ownership transferred if you own them)"
+      },
+      "typeToConfirmBefore": "Type",
+      "typeToConfirmAfter": "to confirm:",
+      "confirmPlaceholder": "DELETE",
+      "cancel": "Cancel",
+      "deleting": "Deleting...",
+      "deleteButton": "Delete Account",
+      "errors": {
+        "pleaseTypeDelete": "Please type \"DELETE\" to confirm deletion",
+        "failedToDelete": "Failed to delete account"
+      }
+    }
   },
   "navbar": {
     "home": "Home",
     "dashboard": "Dashboard",
     "profile": "Profile",
     "signIn": "Sign In",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "signingOut": "Signing out...",
+    "groups": "Groups",
+    "discover": "Discover",
+    "signUp": "Sign Up",
+    "user": "User",
+    "addGroupToQuickAccess": "Add group to quick access",
+    "createUser": "Create User",
+    "bulkGenerate": "Bulk Generate",
+    "quickAccess": {
+      "title": "Quick Access",
+      "close": "Close",
+      "description": "Pin a group to your navbar for quick access! Visit any group page and click the",
+      "descriptionButton": "+",
+      "descriptionEnd": "button in the header area to add it here.",
+      "description2": "Once added, the group will appear in your navbar, making it easy to jump to your favorite group anytime.",
+      "replaceConfirm": "Do you want to replace your quick access group?",
+      "yes": "Yes",
+      "no": "No"
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -201,6 +259,9 @@
       "noChartsAvailable": "No charts available yet.",
       "startTracking": "Start tracking your group's listening habits!",
       "generateCharts": "Generate Charts",
+      "updateCharts": "Update charts",
+      "updatingCharts": "Updating charts...",
+      "failedToUpdate": "Failed to update charts",
       "plays": "{count} plays",
       "vs": "VS",
       "failedToLoad": "Failed to load charts"
@@ -648,6 +709,46 @@
         "remove": "Remove",
         "noInvitesYet": "No invites added yet. You can skip this step and invite users later."
       }
+    },
+    "discover": {
+      "title": "Discover Groups",
+      "searchPlaceholder": "Search groups...",
+      "hideFilters": "Hide Filters",
+      "showFilters": "Show Filters",
+      "freeJoinOnly": "Free Join Only",
+      "minMembers": "Min Members",
+      "maxMembers": "Max Members",
+      "any": "Any",
+      "activity": "Activity",
+      "sortBy": "Sort By",
+      "gridView": "Grid View",
+      "listView": "List View",
+      "loading": "Loading...",
+      "noGroupsMatchFilters": "No groups match your filters",
+      "noGroupsAvailable": "No groups available",
+      "tryAdjustingFilters": "Try adjusting your search or filters",
+      "beFirstToCreate": "Be the first to create a group!",
+      "createGroup": "Create Group",
+      "failedToLoadGroups": "Failed to load groups",
+      "failedToFetchGroups": "Failed to fetch groups",
+      "owner": "Owner",
+      "member": "member",
+      "members": "members",
+      "weekTracked": "week tracked",
+      "weeksTracked": "weeks tracked",
+      "freeJoin": "Free Join",
+      "sortOptions": {
+        "newest": "Newest",
+        "oldest": "Oldest",
+        "mostMembers": "Most Members",
+        "leastMembers": "Least Members",
+        "mostActive": "Most Active"
+      },
+      "activityOptions": {
+        "all": "All Groups",
+        "active": "Active This Week",
+        "recent": "Active This Month"
+      }
     }
   },
   "charts": {
@@ -676,6 +777,75 @@
     "openCalendar": "Open calendar",
     "selectDate": "Select Date",
     "close": "Close"
+  },
+  "deepDive": {
+    "hero": {
+      "artistChartHistory": "Artist Chart History",
+      "trackChartHistory": "Track Chart History",
+      "albumChartHistory": "Album Chart History",
+      "chartHistory": "Chart History",
+      "viewInLastfm": "View in Last.fm →"
+    },
+    "client": {
+      "track": "Track",
+      "album": "Album",
+      "by": "by"
+    },
+    "timeline": {
+      "title": "Chart History",
+      "noHistory": "No chart history available",
+      "outFor": "Out for {count} week",
+      "outForPlural": "Out for {count} weeks"
+    },
+    "quickStats": {
+      "title": "Quick Stats",
+      "totalVS": "Total VS",
+      "totalPlays": "Total Plays",
+      "majorChartDriver": "Major Chart Driver",
+      "weeksAtNumberOne": "Weeks at #1",
+      "numberOneTracks": "#1 Tracks",
+      "numberOneAlbums": "#1 Albums"
+    },
+    "entryStats": {
+      "title": "Statistics",
+      "peakPosition": "Peak Position",
+      "debutPosition": "Debut Position",
+      "debutDate": "Debut Date",
+      "weeksInTop10": "Weeks in Top 10",
+      "weeksCharting": "Weeks Charting",
+      "longestStreak": "Longest Streak",
+      "latestAppearance": "Latest Appearance",
+      "currentlyCharting": "Currently charting",
+      "never": "Never",
+      "today": "Today",
+      "dayAgo": "1 day ago",
+      "daysAgo": "{count} days ago",
+      "week": "week",
+      "weeks": "weeks",
+      "weeksAgo": "{count} week ago",
+      "weeksAgoPlural": "{count} weeks ago",
+      "notAvailable": "N/A"
+    },
+    "artistEntries": {
+      "title": "This Artist's Chart Entries",
+      "tracks": "Tracks",
+      "albums": "Albums",
+      "noTracks": "No tracks by this artist have charted yet.",
+      "noAlbums": "No albums by this artist have charted yet.",
+      "total": "Total:",
+      "entry": "entry",
+      "entries": "entries",
+      "numberOneWeeks": "#1 weeks:",
+      "peak": "Peak",
+      "weeksAtPeak": "Weeks at Peak",
+      "name": "Name",
+      "weeksOnChart": "Weeks on Chart"
+    },
+    "metadata": {
+      "artist": "Artist",
+      "track": "Track",
+      "album": "Album"
+    }
   },
   "records": {
     "title": "Records",
@@ -754,6 +924,159 @@
         "hiddenGemHunter": "The member who helped the fewest entries chart. They keep it niche and curated.",
         "consistencyChampion": "The member who contributed to charts for the most weeks. They show up every time.",
         "tasteMaker": "This is the member who introduced the most entries that later became #1 hits. They have that magic touch."
+      }
+    }
+  },
+  "landing": {
+    "titlePart1": "Your Music",
+    "titlePart2": "Together",
+    "subtitle": "Create groups with friends and build a shared listening history",
+    "description": "Track what you're listening to, discover trends, and explore your music taste through combined charts and stats",
+    "getStarted": "Get Started",
+    "features": {
+      "createGroups": {
+        "title": "Create Groups",
+        "description": "Start a group with friends and combine your listening histories. See what everyone's playing, find your shared favorites, and build a collective music history together."
+      },
+      "statsTrends": {
+        "title": "Stats & Trends",
+        "description": "Watch your favorite artists climb the charts, see what's trending in your group, and explore your listening patterns over time."
+      },
+      "shareTaste": {
+        "title": "Share Your Taste",
+        "description": "See how your music taste compares with others, discover new artists through compatibility, and celebrate what makes your listening unique."
+      }
+    },
+    "cta": {
+      "title": "Ready to get started?",
+      "description": "Connect your Last.fm account and start building shared listening histories with your friends.",
+      "logIn": "Log In",
+      "createAccount": "Create Account"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Log In",
+      "subtitle": "Log in to your ChartsFM account",
+      "emailVerified": "Email verified successfully! You can now log in.",
+      "accountCreated": "Account created successfully! Please log in.",
+      "verifyEmail": "Please verify your email address before logging in. Check your inbox for the verification link.",
+      "invalidCredentials": "Invalid email or password",
+      "error": "An error occurred. Please try again.",
+      "enterEmail": "Please enter your email address",
+      "sending": "Sending...",
+      "resendVerification": "Resend verification email",
+      "verificationSent": "Verification email sent! Please check your inbox.",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "your.email@example.com",
+      "passwordLabel": "Password",
+      "forgotPassword": "Forgot password?",
+      "passwordPlaceholder": "Enter your password",
+      "loggingIn": "Logging in...",
+      "logInButton": "Log In",
+      "or": "Or",
+      "redirecting": "Redirecting...",
+      "logInWithLastfm": "Log in with Last.fm",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up"
+    },
+    "signup": {
+      "title": "Create Your Account",
+      "subtitle": "Connect your Last.fm account to get started",
+      "subtitle2": "You'll be able to add additional details after connecting",
+      "step1Title": "Step 1: Connect Last.fm",
+      "step1Description": "We need to connect to your Last.fm account to create your ChartsFM profile.",
+      "connectWithLastfm": "Connect with Last.fm",
+      "redirecting": "Redirecting...",
+      "redirectMessage": "You'll be redirected to Last.fm to authorize this application.",
+      "alreadyHaveAccount": "Already have an account?",
+      "logIn": "Log in",
+      "errors": {
+        "noToken": "No authentication token received from Last.fm",
+        "config": "Server configuration error. Please contact support.",
+        "authenticationFailed": "Failed to authenticate with Last.fm. Please try again.",
+        "generic": "An error occurred during authentication"
+      }
+    },
+    "signupComplete": {
+      "title": "Complete Your Account",
+      "subtitle": "Add your details to finish creating your ChartsFM account",
+      "connected": "Connected to Last.fm",
+      "username": "Username: {username}",
+      "noSession": "No Last.fm session found. Please start over.",
+      "verifyFailed": "Failed to verify Last.fm connection. Please start over.",
+      "emailLabel": "Email Address *",
+      "emailPlaceholder": "your.email@example.com",
+      "nameLabel": "Display Name *",
+      "namePlaceholder": "John Doe",
+      "passwordLabel": "Password *",
+      "passwordPlaceholder": "At least 8 characters with 1 special character",
+      "passwordHint": "Password must be at least 8 characters and include at least one special character (!@#$%^&* etc.)",
+      "confirmPasswordLabel": "Confirm Password *",
+      "confirmPasswordPlaceholder": "Re-enter your password",
+      "creatingAccount": "Creating Account...",
+      "createAccount": "Create Account",
+      "alreadyHaveAccount": "Already have an account?",
+      "logIn": "Log in",
+      "errors": {
+        "fillAllFields": "Please fill in all fields",
+        "passwordsDontMatch": "Passwords do not match",
+        "passwordTooShort": "Password must be at least 8 characters",
+        "passwordNoSpecialChar": "Password must contain at least one special character",
+        "createFailed": "Failed to create account"
+      },
+      "verifying": "Verifying Last.fm connection..."
+    },
+    "verifyEmail": {
+      "title": "Verify Email",
+      "verifying": "Verifying Email...",
+      "verifyingDescription": "Please wait while we verify your email address.",
+      "successTitle": "Email Verified!",
+      "successDescription": "Your email has been successfully verified. You can now log in to your account.",
+      "goToLogin": "Go to Login",
+      "errorTitle": "Verification Failed",
+      "checkEmailTitle": "Check Your Email",
+      "checkEmailDescription": "We've sent a verification email to your address. Please check your inbox and click the verification link to activate your account.",
+      "linkExpires": "The verification link will expire in 24 hours.",
+      "didntReceive": "Didn't receive the email? We can send another one.",
+      "needNewEmail": "Need a new verification email? Enter your email address below.",
+      "emailRequired": "Email address is required",
+      "sending": "Sending...",
+      "resendEmail": "Resend Verification Email",
+      "emailSent": "Verification email sent! Please check your inbox.",
+      "backToLogin": "Back to Login",
+      "errors": {
+        "emailNotVerified": "Please verify your email address before logging in.",
+        "missingToken": "No verification token provided.",
+        "invalidToken": "Invalid or expired verification token. Please request a new one.",
+        "serverError": "An error occurred. Please try again.",
+        "verificationError": "An error occurred during verification.",
+        "verifyFailed": "An error occurred while verifying your email. Please try again.",
+        "resendFailed": "Failed to resend verification email"
+      }
+    },
+    "emails": {
+      "verification": {
+        "subject": "Verify your ChartsFM account",
+        "title": "Welcome to ChartsFM!",
+        "greeting": "Hi {name},",
+        "greetingFallback": "Hi there,",
+        "body": "Thank you for signing up! To complete your account setup, please verify your email address by clicking the button below:",
+        "button": "Verify Email Address",
+        "orCopyPaste": "Or copy and paste this link into your browser:",
+        "expires": "This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.",
+        "footer": "{year} ChartsFM. No rights reserved."
+      },
+      "passwordReset": {
+        "subject": "Reset your ChartsFM password",
+        "title": "Reset Your Password",
+        "greeting": "Hi {name},",
+        "greetingFallback": "Hi there,",
+        "body": "We received a request to reset your password. Click the button below to create a new password:",
+        "button": "Reset Password",
+        "orCopyPaste": "Or copy and paste this link into your browser:",
+        "expires": "This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.",
+        "footer": "{year} ChartsFM. No rights reserved."
       }
     }
   }

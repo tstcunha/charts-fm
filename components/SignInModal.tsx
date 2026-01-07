@@ -5,6 +5,7 @@ import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from '@/i18n/routing'
 import { useSearchParams } from 'next/navigation'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface SignInModalProps {
   isOpen: boolean
@@ -15,6 +16,7 @@ interface SignInModalProps {
 export default function SignInModal({ isOpen, onClose, showSuccessMessage = false }: SignInModalProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useSafeTranslations('auth.login')
   const { data: session, status } = useSession()
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingLastFM, setIsLoadingLastFM] = useState(false)
@@ -73,14 +75,14 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
           const checkData = await checkResponse.json()
 
           if (checkData.exists && !checkData.verified) {
-            setError('Please verify your email address before logging in. Check your inbox for the verification link.')
+            setError(t('verifyEmail'))
             setShowResendVerification(true)
           } else {
-            setError('Invalid email or password')
+            setError(t('invalidCredentials'))
           }
         } catch {
           // If check fails, show generic error
-          setError('Invalid email or password')
+          setError(t('invalidCredentials'))
         }
         setIsLoading(false)
       } else {
@@ -90,14 +92,14 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
         router.refresh()
       }
     } catch (err) {
-      setError('An error occurred. Please try again.')
+      setError(t('error'))
       setIsLoading(false)
     }
   }
 
   const handleResendVerification = async () => {
     if (!formData.email) {
-      setError('Please enter your email address')
+      setError(t('enterEmail'))
       return
     }
 
@@ -117,13 +119,13 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to resend verification email')
+        throw new Error(data.error || t('resendVerification'))
       }
 
       setResendSuccess(true)
       setError(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to resend verification email')
+      setError(err instanceof Error ? err.message : t('resendVerification'))
     } finally {
       setIsResending(false)
     }
@@ -200,17 +202,17 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
           </button>
 
           <h1 className="text-3xl font-bold text-center mb-2 text-gray-900">
-            Log In
+            {t('title')}
           </h1>
           <p className="text-center text-gray-600 mb-6">
-            Log in to your ChartsFM account
+            {t('subtitle')}
           </p>
 
           {showSuccessMessage && (
             <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
               {searchParams?.get('verified') === 'true' 
-                ? 'Email verified successfully! You can now log in.'
-                : 'Account created successfully! Please log in.'}
+                ? t('emailVerified')
+                : t('accountCreated')}
             </div>
           )}
 
@@ -225,11 +227,11 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
                     disabled={isResending}
                     className="text-sm underline hover:no-underline disabled:opacity-50"
                   >
-                    {isResending ? 'Sending...' : 'Resend verification email'}
+                    {isResending ? t('sending') : t('resendVerification')}
                   </button>
                   {resendSuccess && (
                     <p className="text-sm text-green-700 mt-2">
-                      Verification email sent! Please check your inbox.
+                      {t('verificationSent')}
                     </p>
                   )}
                 </div>
@@ -240,7 +242,7 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                {t('emailLabel')}
               </label>
               <input
                 type="email"
@@ -249,7 +251,7 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors"
-                placeholder="your.email@example.com"
+                placeholder={t('emailPlaceholder')}
                 disabled={isLoading}
                 autoFocus
               />
@@ -258,7 +260,7 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
+                  {t('passwordLabel')}
                 </label>
                 <a
                   href="/auth/forgot-password"
@@ -269,7 +271,7 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
                     router.push('/auth/forgot-password')
                   }}
                 >
-                  Forgot password?
+                  {t('forgotPassword')}
                 </a>
               </div>
               <input
@@ -279,7 +281,7 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors"
-                placeholder="Enter your password"
+                placeholder={t('passwordPlaceholder')}
                 disabled={isLoading}
               />
             </div>
@@ -292,7 +294,7 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
               fullWidth
               useTheme={false}
             >
-              {isLoading ? 'Logging in...' : 'Log In'}
+              {isLoading ? t('loggingIn') : t('logInButton')}
             </LiquidGlassButton>
           </form>
 
@@ -301,7 +303,7 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or</span>
+              <span className="px-2 bg-white text-gray-500">{t('or')}</span>
             </div>
           </div>
 
@@ -331,14 +333,14 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
               )
             }
           >
-            {isLoadingLastFM ? 'Redirecting...' : 'Log in with Last.fm'}
+            {isLoadingLastFM ? t('redirecting') : t('logInWithLastfm')}
           </LiquidGlassButton>
 
           <div className="text-center mt-6">
             <p className="text-gray-600">
-              Don't have an account?{' '}
+              {t('noAccount')}{' '}
               <a href="/auth/signup" className="text-yellow-600 hover:underline">
-                Sign up
+                {t('signUp')}
               </a>
             </p>
           </div>

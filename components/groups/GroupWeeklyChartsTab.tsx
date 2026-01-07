@@ -303,7 +303,7 @@ export default function GroupWeeklyChartsTab({ groupId, isOwner }: GroupWeeklyCh
           <p className="text-gray-500 text-sm mb-6">{t('startTracking')}</p>
           {isOwner && (
             <LiquidGlassLink
-              href={`/groups/${groupId}/generate`}
+              href={`/groups/${groupId}/settings?tab=regenerate`}
               variant="primary"
               useTheme
             >

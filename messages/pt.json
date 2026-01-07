@@ -25,14 +25,72 @@
     "failedToLoad": "Falha ao carregar perfil",
     "failedToUpdate": "Falha ao atualizar perfil",
     "language": "Idioma",
-    "selectLanguage": "Selecionar Idioma"
+    "selectLanguage": "Selecionar Idioma",
+    "dangerZone": {
+      "title": "Zona de perigo",
+      "description": "Ações irreversíveis e destrutivas",
+      "deleteAccount": {
+        "title": "Excluir conta",
+        "description": "Excluir permanentemente sua conta e todos os dados associados a ela. Esta ação não pode ser desfeita.",
+        "button": "Excluir conta"
+      }
+    },
+    "deleteAccountModal": {
+      "title": "Excluir conta",
+      "close": "Fechar",
+      "warning": "Esta ação não pode ser desfeita. Tem certeza que deseja excluir sua conta?",
+      "loadingGroups": "Carregando suas comunidades...",
+      "ownedGroupsMessage": "Você é dono das seguintes comunidades. Elas serão transferidas para o próximo membro mais antigo:",
+      "whatWillBeDeleted": "O que será excluído:",
+      "deletedItems": {
+        "accountAndProfile": "Sua conta e suas informações de perfil",
+        "groupMemberships": "Suas participações em comunidades",
+        "personalStatistics": "Suas estatísticas pessoais e dados de escuta",
+        "friendshipsAndRecommendations": "Suas recomendações"
+      },
+      "whatWillBePreserved": "O que será preservado:",
+      "preservedItems": {
+        "groupCharts": "Charts e estatísticas históricas nas comunidades em que você participou (suas contribuições permanecem, mas são anonimizadas)",
+        "groupComments": "Seus comentários nas comunidades (anonimizados como \"Usuário Excluído\")",
+        "groupsYouCreated": "Comunidades que você criou (a propriedade será transferida para o próximo membro mais antigo)"
+      },
+      "typeToConfirmBefore": "Digite",
+      "typeToConfirmAfter": "para confirmar a exclusão:",
+      "confirmPlaceholder": "DELETE",
+      "cancel": "Cancelar",
+      "deleting": "Excluindo...",
+      "deleteButton": "Excluir conta",
+      "errors": {
+        "pleaseTypeDelete": "Por favor, digite \"DELETE\" para confirmar a exclusão",
+        "failedToDelete": "Falha ao excluir conta"
+      }
+    }
   },
   "navbar": {
     "home": "Início",
     "dashboard": "Painel",
     "profile": "Perfil",
     "signIn": "Entrar",
-    "signOut": "Sair"
+    "signOut": "Sair",
+    "signingOut": "Saindo...",
+    "groups": "Comunidades",
+    "discover": "Descobrir",
+    "signUp": "Cadastrar",
+    "user": "Usuário",
+    "addGroupToQuickAccess": "Adicionar comunidade ao atalho",
+    "createUser": "Criar usuário",
+    "bulkGenerate": "Geração em massa",
+    "quickAccess": {
+      "title": "Atalho",
+      "close": "Fechar",
+      "description": "Adicione um atalho para uma comunidade na sua barra de navegação! Visite qualquer comunidade e clique no botão de",
+      "descriptionButton": "+",
+      "descriptionEnd": "na área do cabeçalho para adicioná-la aqui.",
+      "description2": "A comunidade ficará fixa nesta posição, para que você possa acessá-la de qualquer lugar.",
+      "replaceConfirm": "Você deseja substituir o seu atalho?",
+      "yes": "Sim",
+      "no": "Não"
+    }
   },
   "dashboard": {
     "title": "Painel",
@@ -72,7 +130,7 @@
     },
     "emptyState": {
       "title": "Pronto para começar?",
-      "description": "Junte-se ou crie uma comunidade musical para explorar tendências e construir um histórico compartilhado da sua escuta musical ao longo do tempo.",
+      "description": "Junte-se a uma comunidade musical, ou crie a sua, para explorar tendências e construir um histórico compartilhado das suas músicas favoritas ao longo do tempo.",
       "discoverGroups": "Descobrir comunidades",
       "createYourOwn": "Crie a sua"
     },
@@ -92,7 +150,7 @@
       "monthAgo": "há {count} mês",
       "monthsAgo": "há {count} meses",
       "messages": {
-        "chartUpdate": "Novos charts disponíveis para {groupName}",
+        "chartUpdate": "Novos charts disponíveis em {groupName}",
         "newMember": "{userName} entrou em {groupName}",
         "invite": "Você foi convidado para entrar em {groupName}",
         "joinRequest": "{userName} quer entrar em {groupName}"
@@ -102,7 +160,7 @@
       "title": "Comunidades que você pode gostar",
       "refresh": "Atualizar",
       "comingSoon": "Em breve!",
-      "comingSoonDescription": "Recomendações estarão disponíveis em uma atualização futura",
+      "comingSoonDescription": "As recomendações estarão disponíveis em uma atualização futura",
       "match": "{count}% Compatível",
       "members": "{count} membros",
       "viewGroup": "Ver Grupo",
@@ -119,7 +177,7 @@
       "nextChartTomorrow": "Próximos charts amanhã",
       "daysUntilNextChart": "{count} dias até os próximos charts",
       "noGroups": "Você ainda não está em nenhuma comunidade.",
-      "createFirstGroup": "Crie sua primeira comunidade",
+      "createFirstGroup": "Crie uma comunidade",
       "failedToLoad": "Falha ao carregar comunidades",
       "owner": "Dono",
       "by": "por {artist}",
@@ -200,7 +258,10 @@
       "andMore": "...e mais {count}",
       "noChartsAvailable": "Ainda não há charts disponíveis.",
       "startTracking": "Comece a rastrear os hábitos de escuta da sua comunidade!",
-      "generateCharts": "Gerar Charts",
+      "generateCharts": "Gerar charts",
+      "updateCharts": "Atualizar charts",
+      "updatingCharts": "Atualizando charts...",
+      "failedToUpdate": "Falha ao atualizar charts",
       "plays": "{count} plays",
       "vs": "VS",
       "failedToLoad": "Falha ao carregar charts"
@@ -298,8 +359,8 @@
       "backToGroup": "Voltar para Comunidade",
       "failedToLoad": "Falha ao carregar recordes",
       "noStatsAvailable": "Ainda não há recordes disponíveis.",
-      "generateChartsToStart": "Gere charts para começar a construir seus rankings de todos os tempos!",
-      "generateCharts": "Gerar Charts",
+      "generateChartsToStart": "Gere charts para começar a construir seus recordes!",
+      "generateCharts": "Gerar charts",
       "records": "Recordes",
       "viewAllRecords": "Ver todos os recordes",
       "artistMostConsecutive": "Artista (mais semanas consecutivas)",
@@ -648,6 +709,46 @@
         "remove": "Remover",
         "noInvitesYet": "Nenhum convite adicionado ainda. Você pode pular esta etapa e enviar convites mais tarde."
       }
+    },
+    "discover": {
+      "title": "Descobrir Comunidades",
+      "searchPlaceholder": "Buscar comunidades...",
+      "hideFilters": "Ocultar filtros",
+      "showFilters": "Mostrar filtros",
+      "freeJoinOnly": "Apenas entrada livre",
+      "minMembers": "Mín. de membros",
+      "maxMembers": "Máx. de membros",
+      "any": "Qualquer",
+      "activity": "Atividade",
+      "sortBy": "Ordenar por",
+      "gridView": "Visualização em grade",
+      "listView": "Visualização em lista",
+      "loading": "Carregando...",
+      "noGroupsMatchFilters": "Nenhuma comunidade corresponde aos seus filtros",
+      "noGroupsAvailable": "Nenhuma comunidade disponível",
+      "tryAdjustingFilters": "Tente ajustar sua busca ou filtros",
+      "beFirstToCreate": "Seja o primeiro a criar uma comunidade!",
+      "createGroup": "Criar comunidade",
+      "failedToLoadGroups": "Falha ao carregar comunidades",
+      "failedToFetchGroups": "Falha ao buscar comunidades",
+      "owner": "Dono",
+      "member": "membro",
+      "members": "membros",
+      "weekTracked": "semana rastreada",
+      "weeksTracked": "semanas rastreadas",
+      "freeJoin": "Entrada livre",
+      "sortOptions": {
+        "newest": "Mais recentes",
+        "oldest": "Mais antigas",
+        "mostMembers": "Mais membros",
+        "leastMembers": "Menos membros",
+        "mostActive": "Mais ativas"
+      },
+      "activityOptions": {
+        "all": "Todas as comunidades",
+        "active": "Ativas nesta semana",
+        "recent": "Ativas neste mês"
+      }
     }
   },
   "charts": {
@@ -676,6 +777,75 @@
     "openCalendar": "Abrir calendário",
     "selectDate": "Selecionar data",
     "close": "Fechar"
+  },
+  "deepDive": {
+    "hero": {
+      "artistChartHistory": "Histórico do Artista",
+      "trackChartHistory": "Histórico da Música",
+      "albumChartHistory": "Histórico do Álbum",
+      "chartHistory": "Histórico nos charts",
+      "viewInLastfm": "Ver no Last.fm →"
+    },
+    "client": {
+      "track": "Música",
+      "album": "Álbum",
+      "by": "por"
+    },
+    "timeline": {
+      "title": "Desempenho histórico",
+      "noHistory": "Nenhum histórico disponível",
+      "outFor": "Fora por {count} semana",
+      "outForPlural": "Fora por {count} semanas"
+    },
+    "quickStats": {
+      "title": "Estatísticas principais",
+      "totalVS": "Total de VS recebido",
+      "totalPlays": "Total de plays recebidos",
+      "majorChartDriver": "Principal ouvinte",
+      "weeksAtNumberOne": "Semanas em #1",
+      "numberOneTracks": "Músicas em #1",
+      "numberOneAlbums": "Álbuns em #1"
+    },
+    "entryStats": {
+      "title": "Estatísticas",
+      "peakPosition": "Maior posição atingida",
+      "debutPosition": "Posição de estreia",
+      "debutDate": "Data de estreia",
+      "weeksInTop10": "Semanas no top 10",
+      "weeksCharting": "Semanas charteando",
+      "longestStreak": "Maior sequência",
+      "latestAppearance": "Última aparição",
+      "currentlyCharting": "Ainda charteando",
+      "never": "Nunca",
+      "today": "Hoje",
+      "dayAgo": "há 1 dia",
+      "daysAgo": "há {count} dias",
+      "week": "semana",
+      "weeks": "semanas",
+      "weeksAgo": "há {count} semana",
+      "weeksAgoPlural": "há {count} semanas",
+      "notAvailable": "N/A"
+    },
+    "artistEntries": {
+      "title": "Itens deste artista nos charts",
+      "tracks": "Músicas",
+      "albums": "Álbuns",
+      "noTracks": "Nenhuma música deste artista charteou ainda.",
+      "noAlbums": "Nenhum álbum deste artista charteou ainda.",
+      "total": "Total:",
+      "entry": "item",
+      "entries": "itens",
+      "numberOneWeeks": "Semanas em #1:",
+      "peak": "Melhor posição",
+      "weeksAtPeak": "Semanas no pico",
+      "name": "Nome",
+      "weeksOnChart": "Semanas nos charts"
+    },
+    "metadata": {
+      "artist": "Artista",
+      "track": "Música",
+      "album": "Álbum"
+    }
   },
   "records": {
     "title": "Recordes",
@@ -754,6 +924,159 @@
         "hiddenGemHunter": "O gosto deste membro não foi feito pros charts. Ele é o que menos escutou de tudo que entrou.",
         "consistencyChampion": "Este é o membro que escutou itens dos charts por mais semanas. Ele gosta do que hita.",
         "tasteMaker": "Este é o membro que fez debutar mais itens que em seguida pegaram #1. E quando ele quiser, ele hita."
+      }
+    }
+  },
+  "landing": {
+    "titlePart1": "Sua Música Ganhou",
+    "titlePart2": "Companhia",
+    "subtitle": "Crie comunidades musicais com seus amigos e descubra as tendências entre vocês",
+    "description": "Descubra o que faz mais sucesso no grupo, e crie estatísticas que descrevem o seu gosto musical como um todo.",
+    "getStarted": "Comece Aqui",
+    "features": {
+      "createGroups": {
+        "title": "Comunidades Musicais",
+        "description": "Crie uma comunidade com amigos e combine seus hábitos de escuta. Veja o que todo mundo está ouvindo, descubra os favoritos do grupo e construa uma história musical coletivamente."
+      },
+      "statsTrends": {
+        "title": "Estatísticas e Tendências",
+        "description": "Veja seus artistas favoritos subirem nos charts, descubra o que está em alta na sua comunidade e explore a evolução dos trends ao longo do tempo."
+      },
+      "shareTaste": {
+        "title": "Compartilhe Seu Gosto",
+        "description": "Veja como seu gosto musical se compara com outros, descubra quem é o seu match musical e o que torna seu jeito de ouvir único."
+      }
+    },
+    "cta": {
+      "title": "Pronto para começar?",
+      "description": "Conecte sua conta do Last.fm e comece a compartilhar sua escuta com seus amigos.",
+      "logIn": "Entrar",
+      "createAccount": "Criar conta"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Entrar",
+      "subtitle": "Entre na sua conta ChartsFM",
+      "emailVerified": "Email verificado com sucesso! Agora você pode entrar.",
+      "accountCreated": "Conta criada com sucesso! Por favor, entre.",
+      "verifyEmail": "Por favor, verifique seu endereço de email antes de entrar. Encontre o link de verificação no seu email.",
+      "invalidCredentials": "Email ou senha inválidos",
+      "error": "Ocorreu um erro. Por favor, tente novamente.",
+      "enterEmail": "Por favor, digite seu endereço de email",
+      "sending": "Enviando...",
+      "resendVerification": "Reenviar email de verificação",
+      "verificationSent": "Email de verificação enviado! Por favor, verifique sua caixa de entrada.",
+      "emailLabel": "Endereço de email",
+      "emailPlaceholder": "seu.email@exemplo.com",
+      "passwordLabel": "Senha",
+      "forgotPassword": "Esqueceu a senha?",
+      "passwordPlaceholder": "Digite sua senha",
+      "loggingIn": "Entrando...",
+      "logInButton": "Entrar",
+      "or": "Ou",
+      "redirecting": "Redirecionando...",
+      "logInWithLastfm": "Entrar com Last.fm",
+      "noAccount": "Não tem uma conta?",
+      "signUp": "Cadastrar"
+    },
+    "signup": {
+      "title": "Criar Conta",
+      "subtitle": "Conecte sua conta do Last.fm para começar",
+      "subtitle2": "Você poderá adicionar detalhes à sua conta depois de conectar",
+      "step1Title": "Passo 1: Conectar Last.fm",
+      "step1Description": "Precisamos conectar sua conta do Last.fm para criar seu perfil ChartsFM.",
+      "connectWithLastfm": "Conectar com Last.fm",
+      "redirecting": "Redirecionando...",
+      "redirectMessage": "Você será redirecionado para o Last.fm para autorizar este aplicativo.",
+      "alreadyHaveAccount": "Já tem uma conta?",
+      "logIn": "Entrar",
+      "errors": {
+        "noToken": "Nenhum token de autenticação recebido do Last.fm",
+        "config": "Erro de configuração do servidor. Por favor, entre em contato com o suporte.",
+        "authenticationFailed": "Falha ao autenticar com Last.fm. Por favor, tente novamente.",
+        "generic": "Ocorreu um erro durante a autenticação"
+      }
+    },
+    "signupComplete": {
+      "title": "Complete sua Conta",
+      "subtitle": "Adicione estes detalhes para finalizar a criação da sua conta ChartsFM",
+      "connected": "Conectado ao Last.fm",
+      "username": "Nome de usuário: {username}",
+      "noSession": "Nenhuma sessão do Last.fm encontrada. Por favor, comece novamente.",
+      "verifyFailed": "Falha ao verificar conexão com Last.fm. Por favor, comece novamente.",
+      "emailLabel": "Endereço de email *",
+      "emailPlaceholder": "seu.email@exemplo.com",
+      "nameLabel": "Nome de exibição *",
+      "namePlaceholder": "Joãozinho",
+      "passwordLabel": "Senha *",
+      "passwordPlaceholder": "Pelo menos 8 caracteres, com pelo menos 1 caractere especial",
+      "passwordHint": "A senha deve ter pelo menos 8 caracteres e incluir pelo menos um caractere especial (!@#$%^&* etc.)",
+      "confirmPasswordLabel": "Confirmar senha *",
+      "confirmPasswordPlaceholder": "Digite sua senha novamente",
+      "creatingAccount": "Criando conta...",
+      "createAccount": "Criar conta",
+      "alreadyHaveAccount": "Já tem uma conta?",
+      "logIn": "Entrar",
+      "errors": {
+        "fillAllFields": "Por favor, preencha todos os campos",
+        "passwordsDontMatch": "As senhas não coincidem",
+        "passwordTooShort": "A senha deve ter pelo menos 8 caracteres",
+        "passwordNoSpecialChar": "A senha deve conter pelo menos um caractere especial",
+        "createFailed": "Falha ao criar conta"
+      },
+      "verifying": "Verificando conexão com Last.fm..."
+    },
+    "verifyEmail": {
+      "title": "Verificar email",
+      "verifying": "Verificando email...",
+      "verifyingDescription": "Por favor, aguarde enquanto verificamos seu endereço de email.",
+      "successTitle": "Email verificado!",
+      "successDescription": "Seu email foi verificado com sucesso. Agora você pode entrar na sua conta.",
+      "goToLogin": "Ir para login",
+      "errorTitle": "Falha na verificação",
+      "checkEmailTitle": "Verifique seu email",
+      "checkEmailDescription": "Enviamos um email de verificação para o seu endereço de email. Por favor, verifique sua caixa de entrada e clique no link de verificação para ativar sua conta.",
+      "linkExpires": "O link de verificação expira em 24 horas.",
+      "didntReceive": "Não recebeu o email? Podemos enviar outro.",
+      "needNewEmail": "Precisa de um novo email de verificação? Digite seu endereço de email abaixo.",
+      "emailRequired": "O endereço de email é obrigatório",
+      "sending": "Enviando...",
+      "resendEmail": "Reenviar email de verificação",
+      "emailSent": "Email de verificação enviado! Por favor, verifique sua caixa de entrada.",
+      "backToLogin": "Voltar para o login",
+      "errors": {
+        "emailNotVerified": "Por favor, verifique seu endereço de email antes de entrar.",
+        "missingToken": "Nenhum token de verificação fornecido.",
+        "invalidToken": "Token de verificação inválido ou expirado. Por favor, solicite um novo.",
+        "serverError": "Ocorreu um erro. Por favor, tente novamente.",
+        "verificationError": "Ocorreu um erro durante a verificação.",
+        "verifyFailed": "Ocorreu um erro ao verificar seu email. Por favor, tente novamente.",
+        "resendFailed": "Falha ao reenviar email de verificação"
+      }
+    },
+    "emails": {
+      "verification": {
+        "subject": "Verifique sua conta ChartsFM",
+        "title": "Bem-vindo ao ChartsFM!",
+        "greeting": "Olá {name},",
+        "greetingFallback": "Olá,",
+        "body": "Obrigado por se cadastrar! Para completar a ativação da sua conta, por favor verifique seu endereço de email clicando no botão abaixo:",
+        "button": "Verificar Endereço de Email",
+        "orCopyPaste": "Ou copie e cole este link no seu navegador:",
+        "expires": "Este link expira em 24 horas. Se você não criou uma conta, pode ignorar este email com segurança.",
+        "footer": "{year} ChartsFM. Nenhum direito reservado."
+      },
+      "passwordReset": {
+        "subject": "Redefina sua senha ChartsFM",
+        "title": "Redefinir sua senha",
+        "greeting": "Olá {name},",
+        "greetingFallback": "Olá,",
+        "body": "Recebemos uma solicitação para redefinir sua senha. Clique no botão abaixo para criar uma nova senha:",
+        "button": "Redefinir Senha",
+        "orCopyPaste": "Ou copie e cole este link no seu navegador:",
+        "expires": "Este link expira em 1 hora. Se você não solicitou uma redefinição de senha, pode ignorar este email com segurança.",
+        "footer": "{year} ChartsFM. Nenhum direito reservado."
       }
     }
   }

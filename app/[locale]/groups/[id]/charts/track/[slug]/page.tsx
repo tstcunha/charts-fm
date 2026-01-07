@@ -5,8 +5,10 @@ import { notFound } from '@/i18n/routing'
 import DeepDiveClient from '../../[type]/[slug]/DeepDiveClient'
 import DeepDiveHero from '@/components/charts/DeepDiveHero'
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 
 export async function generateMetadata({ params }: { params: { id: string; slug: string } }): Promise<Metadata> {
+  const t = await getTranslations('deepDive.metadata')
   try {
     const { group } = await requireGroupMembership(params.id)
     const entry = await prisma.groupChartEntry.findFirst({
@@ -25,7 +27,7 @@ export async function generateMetadata({ params }: { params: { id: string; slug:
     }
   } catch {}
   return {
-    title: 'Track',
+    title: t('track'),
   }
 }
 

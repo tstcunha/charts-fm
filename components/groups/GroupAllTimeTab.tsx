@@ -81,7 +81,7 @@ export default function GroupAllTimeTab({ groupId, isOwner }: GroupAllTimeTabPro
           <p className="text-gray-500 text-sm mb-6">{t('generateChartsToStart')}</p>
           {!data?.hasWeeklyStats && isOwner && (
             <LiquidGlassLink
-              href={`/groups/${groupId}/generate`}
+              href={`/groups/${groupId}/settings?tab=regenerate`}
               variant="primary"
               useTheme
             >

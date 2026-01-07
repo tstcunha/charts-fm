@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateVerificationToken, sendVerificationEmail } from '@/lib/email'
+import { detectLocale } from '@/lib/locale-utils'
 
 export async function POST(request: Request) {
   try {
@@ -76,7 +77,9 @@ export async function POST(request: Request) {
 
     // Send verification email
     try {
-      await sendVerificationEmail(user.email, verificationToken, user.name || 'User')
+      // Detect locale from request (will fall back to user's saved locale in email function)
+      const locale = await detectLocale(request)
+      await sendVerificationEmail(user.email, verificationToken, user.name || 'User', locale)
     } catch (error) {
       console.error('Failed to send verification email:', error)
       return NextResponse.json(

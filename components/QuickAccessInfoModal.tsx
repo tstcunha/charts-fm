@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface QuickAccessInfoModalProps {
   isOpen: boolean
@@ -14,6 +15,7 @@ export default function QuickAccessInfoModal({
   onClose,
   buttonRef,
 }: QuickAccessInfoModalProps) {
+  const t = useSafeTranslations('navbar.quickAccess')
   const [position, setPosition] = useState({ top: 0, right: 0 })
   const [mounted, setMounted] = useState(false)
   const [isPositioned, setIsPositioned] = useState(false)
@@ -91,11 +93,11 @@ export default function QuickAccessInfoModal({
           <div className="absolute -top-3 right-4 w-6 h-6 bg-white transform rotate-45 shadow-lg"></div>
           
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Quick Access</h2>
+            <h2 className="text-xl font-bold">{t('title')}</h2>
             <button
               onClick={handleClose}
               className="text-gray-500 hover:text-gray-700 text-xl leading-none w-8 h-8 flex items-center justify-center"
-              aria-label="Close"
+              aria-label={t('close')}
             >
               ×
             </button>
@@ -103,10 +105,10 @@ export default function QuickAccessInfoModal({
 
           <div className="space-y-4">
             <p className="text-sm text-gray-700">
-              Pin a group to your navbar for quick access! Visit any group page and click the <strong>+</strong> button in the header area to add it here.
+              {t('description')} <strong>{t('descriptionButton')}</strong> {t('descriptionEnd')}
             </p>
             <p className="text-sm text-gray-600">
-              Once added, the group will appear in your navbar, making it easy to jump to your favorite group anytime.
+              {t('description2')}
             </p>
           </div>
         </div>

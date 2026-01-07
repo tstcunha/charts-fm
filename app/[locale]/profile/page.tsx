@@ -327,25 +327,25 @@ export default function ProfilePage() {
             }}
           >
             <div className="relative z-10">
-              <h2 className="text-2xl font-bold text-red-600 mb-2">Danger Zone</h2>
+              <h2 className="text-2xl font-bold text-red-600 mb-2">{t('dangerZone.title')}</h2>
               <p className="text-sm text-gray-600 mb-4">
-                Irreversible and destructive actions
+                {t('dangerZone.description')}
               </p>
               <div className="pt-4 border-t border-red-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      Delete Account
+                      {t('dangerZone.deleteAccount.title')}
                     </h3>
                     <p className="text-sm text-gray-600">
-                      Permanently delete your account and all associated data. This action cannot be undone.
+                      {t('dangerZone.deleteAccount.description')}
                     </p>
                   </div>
                   <button
                     onClick={() => setIsDeleteModalOpen(true)}
                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                   >
-                    Delete Account
+                    {t('dangerZone.deleteAccount.button')}
                   </button>
                 </div>
               </div>

@@ -3,26 +3,28 @@
 import { memo, useMemo } from 'react'
 import { EntryStats } from '@/lib/chart-deep-dive'
 import { formatWeekLabel } from '@/lib/weekly-utils'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface EntryStatsTableProps {
   stats: EntryStats
 }
 
 function EntryStatsTable({ stats }: EntryStatsTableProps) {
+  const t = useSafeTranslations('deepDive.entryStats')
   const formatDaysAgo = (date: Date | null): string => {
-    if (!date) return 'Never'
+    if (!date) return t('never')
     
     const now = new Date()
     const diffTime = now.getTime() - date.getTime()
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
     
-    if (diffDays === 0) return 'Today'
-    if (diffDays === 1) return '1 day ago'
-    return `${diffDays} days ago`
+    if (diffDays === 0) return t('today')
+    if (diffDays === 1) return t('dayAgo')
+    return t('daysAgo', { count: diffDays })
   }
 
   const formatDate = (date: Date | null): string => {
-    if (!date) return 'N/A'
+    if (!date) return t('notAvailable')
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -51,7 +53,7 @@ function EntryStatsTable({ stats }: EntryStatsTableProps) {
         {formattedDate}
         {weeksAgo !== null && (
           <span className="text-gray-500 font-normal">
-            {' '}({weeksAgo} {weeksAgo === 1 ? 'week' : 'weeks'} ago)
+            {' '}({weeksAgo === 1 ? t('weeksAgo', { count: weeksAgo }) : t('weeksAgoPlural', { count: weeksAgo })})
           </span>
         )}
       </>
@@ -80,30 +82,30 @@ function EntryStatsTable({ stats }: EntryStatsTableProps) {
   // Memoize table data to prevent recalculation on every render
   const tableData = useMemo(() => [
     {
-      label: 'Peak Position',
-      value: `#${stats.peakPosition}${stats.weeksAtPeak > 1 ? ` (${stats.weeksAtPeak} weeks)` : ''}`,
+      label: t('peakPosition'),
+      value: `#${stats.peakPosition}${stats.weeksAtPeak > 1 ? ` (${stats.weeksAtPeak} ${stats.weeksAtPeak === 1 ? t('week') : t('weeks')})` : ''}`,
     },
     {
-      label: 'Debut Position',
+      label: t('debutPosition'),
       value: `#${stats.debutPosition}`,
     },
     {
-      label: 'Debut Date',
+      label: t('debutDate'),
       value: formatDebutDate(stats.debutDate),
     },
     {
-      label: 'Weeks in Top 10',
+      label: t('weeksInTop10'),
       value: stats.weeksInTop10.toString(),
     },
     {
-      label: 'Weeks Charting',
+      label: t('weeksCharting'),
       value: stats.totalWeeksCharting.toString(),
     },
     {
-      label: 'Longest Streak',
+      label: t('longestStreak'),
       value: (
         <>
-          {`${stats.longestStreak} week${stats.longestStreak !== 1 ? 's' : ''}${stats.isStreakOngoing ? ' 🔥' : ''}`}
+          {`${stats.longestStreak} ${stats.longestStreak !== 1 ? t('weeks') : t('week')}${stats.isStreakOngoing ? ' 🔥' : ''}`}
           {formatStreakDates(stats.longestStreakStartDate, stats.longestStreakEndDate) && (
             <span className="text-gray-500 font-normal">
               {' '}({formatStreakDates(stats.longestStreakStartDate, stats.longestStreakEndDate)})
@@ -113,14 +115,14 @@ function EntryStatsTable({ stats }: EntryStatsTableProps) {
       ),
     },
     {
-      label: 'Latest Appearance',
-      value: stats.currentlyCharting ? 'Currently charting' : formatDaysAgo(stats.latestAppearance),
+      label: t('latestAppearance'),
+      value: stats.currentlyCharting ? t('currentlyCharting') : formatDaysAgo(stats.latestAppearance),
     },
-  ], [stats])
+  ], [stats, t])
 
   return (
     <div className="bg-white/40 backdrop-blur-md rounded-xl p-6 border border-white/30" style={{ contain: 'layout style paint' }}>
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Statistics</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-4">{t('title')}</h2>
       <table className="w-full">
         <tbody className="divide-y divide-gray-200/50">
           {tableData.map((row, index) => (

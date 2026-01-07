@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from '@/i18n/routing'
 import { signOut } from 'next-auth/react'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface OwnedGroup {
   id: string
@@ -19,6 +20,8 @@ export default function DeleteAccountModal({
   onClose,
 }: DeleteAccountModalProps) {
   const router = useRouter()
+  const t = useSafeTranslations('profile.deleteAccountModal')
+  const tCommon = useSafeTranslations('common')
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingGroups, setIsLoadingGroups] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -50,7 +53,7 @@ export default function DeleteAccountModal({
 
   const handleDelete = async () => {
     if (confirmText !== 'DELETE') {
-      setError('Please type "DELETE" to confirm deletion')
+      setError(t('errors.pleaseTypeDelete'))
       return
     }
 
@@ -64,7 +67,7 @@ export default function DeleteAccountModal({
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to delete account')
+        throw new Error(data.error || t('errors.failedToDelete'))
       }
 
       // Sign out and redirect to home
@@ -72,7 +75,7 @@ export default function DeleteAccountModal({
       router.push('/')
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete account')
+      setError(err instanceof Error ? err.message : t('errors.failedToDelete'))
       setIsLoading(false)
     }
   }
@@ -88,11 +91,11 @@ export default function DeleteAccountModal({
       <div className="fixed inset-0 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-red-600">Delete Account</h2>
+            <h2 className="text-2xl font-bold text-red-600">{t('title')}</h2>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 text-2xl leading-none w-8 h-8 flex items-center justify-center"
-              aria-label="Close"
+              aria-label={t('close')}
               disabled={isLoading}
             >
               ×
@@ -107,15 +110,15 @@ export default function DeleteAccountModal({
 
           <div className="mb-6">
             <p className="text-gray-700 mb-4 font-semibold">
-              This action cannot be undone. Are you sure you want to delete your account?
+              {t('warning')}
             </p>
 
             {isLoadingGroups ? (
-              <p className="text-sm text-gray-600 mb-4">Loading your groups...</p>
+              <p className="text-sm text-gray-600 mb-4">{t('loadingGroups')}</p>
             ) : ownedGroups.length > 0 ? (
               <div className="mb-4">
                 <p className="text-sm text-gray-700 mb-2 font-medium">
-                  You own the following groups. Ownership will be transferred to the oldest member:
+                  {t('ownedGroupsMessage')}
                 </p>
                 <ul className="text-sm text-gray-600 list-disc list-inside mb-4 space-y-1 bg-gray-50 p-3 rounded">
                   {ownedGroups.map(group => (
@@ -127,30 +130,32 @@ export default function DeleteAccountModal({
 
             <div className="mb-4">
               <p className="text-sm text-gray-700 mb-2 font-medium">
-                What will be deleted:
+                {t('whatWillBeDeleted')}
               </p>
               <ul className="text-sm text-gray-600 list-disc list-inside mb-4 space-y-1">
-                <li>Your account and profile information</li>
-                <li>Your group memberships</li>
-                <li>Your personal statistics and listening data</li>
-                <li>Your friendships and recommendations</li>
+                <li>{t('deletedItems.accountAndProfile')}</li>
+                <li>{t('deletedItems.groupMemberships')}</li>
+                <li>{t('deletedItems.personalStatistics')}</li>
+                <li>{t('deletedItems.friendshipsAndRecommendations')}</li>
               </ul>
             </div>
 
             <div className="mb-4">
               <p className="text-sm text-gray-700 mb-2 font-medium">
-                What will be preserved:
+                {t('whatWillBePreserved')}
               </p>
               <ul className="text-sm text-gray-600 list-disc list-inside mb-4 space-y-1">
-                <li>Group charts and historical statistics (your contributions remain but are anonymized)</li>
-                <li>Group comments (anonymized as "Deleted User")</li>
-                <li>Groups you created (ownership transferred if you own them)</li>
+                <li>{t('preservedItems.groupCharts')}</li>
+                <li>{t('preservedItems.groupComments')}</li>
+                <li>{t('preservedItems.groupsYouCreated')}</li>
               </ul>
             </div>
 
             <div>
               <label htmlFor="confirmText" className="block text-sm font-medium text-gray-700 mb-2">
-                Type <span className="font-mono font-semibold">DELETE</span> to confirm:
+                {t('typeToConfirmBefore')}{' '}
+                <span className="font-mono font-semibold">DELETE</span>
+                {' '}{t('typeToConfirmAfter')}
               </label>
               <input
                 type="text"
@@ -158,7 +163,7 @@ export default function DeleteAccountModal({
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                placeholder="DELETE"
+                placeholder={t('confirmPlaceholder')}
                 disabled={isLoading}
                 autoFocus
               />
@@ -171,14 +176,14 @@ export default function DeleteAccountModal({
               disabled={isLoading}
               className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               onClick={handleDelete}
               disabled={isLoading || confirmText !== 'DELETE'}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Deleting...' : 'Delete Account'}
+              {isLoading ? t('deleting') : t('deleteButton')}
             </button>
           </div>
         </div>

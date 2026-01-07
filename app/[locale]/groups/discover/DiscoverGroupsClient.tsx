@@ -9,6 +9,7 @@ import CustomSelect from '@/components/CustomSelect'
 import Toggle from '@/components/Toggle'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUsers, faSearch, faTh, faList, faMusic, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface Group {
   id: string
@@ -45,6 +46,9 @@ export default function DiscoverGroupsClient({
   userId,
 }: DiscoverGroupsClientProps) {
   const router = useRouter()
+  const t = useSafeTranslations('groups.discover')
+  const tSort = useSafeTranslations('groups.discover.sortOptions')
+  const tActivity = useSafeTranslations('groups.discover.activityOptions')
   const [groups, setGroups] = useState<Group[]>(initialGroups)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -102,7 +106,7 @@ export default function DiscoverGroupsClient({
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch groups')
+        throw new Error(data.error || t('failedToFetchGroups'))
       }
 
       // Filter by maxMembers and activityLevel client-side (not supported by API yet)
@@ -139,7 +143,7 @@ export default function DiscoverGroupsClient({
       setHasMore(data.pagination?.hasMore || false)
       setError(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load groups')
+      setError(err instanceof Error ? err.message : t('failedToLoadGroups'))
     } finally {
       setIsLoading(false)
       setIsLoadingMore(false)
@@ -182,19 +186,19 @@ export default function DiscoverGroupsClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMore, isLoadingMore, isLoading, currentPage])
 
-  const sortOptions = [
-    { value: 'newest', label: 'Newest' },
-    { value: 'oldest', label: 'Oldest' },
-    { value: 'most_members', label: 'Most Members' },
-    { value: 'least_members', label: 'Least Members' },
-    { value: 'most_active', label: 'Most Active' },
-  ]
+  const sortOptions = useMemo(() => [
+    { value: 'newest', label: tSort('newest') },
+    { value: 'oldest', label: tSort('oldest') },
+    { value: 'most_members', label: tSort('mostMembers') },
+    { value: 'least_members', label: tSort('leastMembers') },
+    { value: 'most_active', label: tSort('mostActive') },
+  ], [tSort])
 
-  const activityOptions = [
-    { value: 'all', label: 'All Groups' },
-    { value: 'active', label: 'Active This Week' },
-    { value: 'recent', label: 'Active This Month' },
-  ]
+  const activityOptions = useMemo(() => [
+    { value: 'all', label: tActivity('all') },
+    { value: 'active', label: tActivity('active') },
+    { value: 'recent', label: tActivity('recent') },
+  ], [tActivity])
 
   const renderGroupCard = (group: Group) => {
     const colorTheme = group.colorTheme || 'white'
@@ -228,19 +232,19 @@ export default function DiscoverGroupsClient({
                 </h3>
                 {group.allowFreeJoin && (
                   <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">
-                    Free Join
+                    {t('freeJoin')}
                   </span>
                 )}
               </div>
               <div className="text-sm text-gray-600 flex items-center gap-4 flex-wrap">
-                <span>Owner: <span className="font-semibold">{group.creator.name || group.creator.lastfmUsername}</span></span>
+                <span>{t('owner')}: <span className="font-semibold">{group.creator.name || group.creator.lastfmUsername}</span></span>
                 <span className="flex items-center gap-1">
                   <FontAwesomeIcon icon={faUsers} className="text-xs" />
-                  <span>{group._count.members} {group._count.members === 1 ? 'member' : 'members'}</span>
+                  <span>{group._count.members} {group._count.members === 1 ? t('member') : t('members')}</span>
                 </span>
                 {group.weekCount !== undefined && (
                   <span className="text-xs text-gray-500">
-                    {group.weekCount} {group.weekCount === 1 ? 'week' : 'weeks'} tracked
+                    {group.weekCount} {group.weekCount === 1 ? t('weekTracked') : t('weeksTracked')}
                   </span>
                 )}
               </div>
@@ -274,22 +278,22 @@ export default function DiscoverGroupsClient({
               </h3>
               {group.allowFreeJoin && (
                 <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-bold flex-shrink-0">
-                  Free Join
+                  {t('freeJoin')}
                 </span>
               )}
             </div>
             <div className="text-sm text-gray-600 space-y-1">
               <p className="flex items-center gap-2 flex-wrap">
-                <span>Owner:</span>
+                <span>{t('owner')}:</span>
                 <span className="font-semibold text-gray-900">{group.creator.name || group.creator.lastfmUsername}</span>
               </p>
               <p className="flex items-center gap-2">
                 <FontAwesomeIcon icon={faUsers} className="text-[var(--theme-primary)] font-medium" />
-                <span>{group._count.members} {group._count.members === 1 ? 'member' : 'members'}</span>
+                <span>{group._count.members} {group._count.members === 1 ? t('member') : t('members')}</span>
               </p>
               {group.weekCount !== undefined && (
                 <p className="text-xs text-gray-500">
-                  {group.weekCount} {group.weekCount === 1 ? 'week' : 'weeks'} tracked
+                  {group.weekCount} {group.weekCount === 1 ? t('weekTracked') : t('weeksTracked')}
                 </p>
               )}
             </div>
@@ -312,7 +316,7 @@ export default function DiscoverGroupsClient({
             />
             <input
               type="text"
-              placeholder="Search groups..."
+              placeholder={t('searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
@@ -328,7 +332,7 @@ export default function DiscoverGroupsClient({
               onClick={() => setFiltersExpanded(!filtersExpanded)}
               className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold text-gray-700"
             >
-              {filtersExpanded ? 'Hide Filters' : 'Show Filters'}
+              {filtersExpanded ? t('hideFilters') : t('showFilters')}
             </button>
           </div>
 
@@ -338,7 +342,7 @@ export default function DiscoverGroupsClient({
               {/* Free Join Toggle */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Free Join Only
+                  {t('freeJoinOnly')}
                 </label>
                 <Toggle
                   id="allowFreeJoin"
@@ -350,12 +354,12 @@ export default function DiscoverGroupsClient({
               {/* Min Members */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Min Members
+                  {t('minMembers')}
                 </label>
                 <input
                   type="number"
                   min="0"
-                  placeholder="Any"
+                  placeholder={t('any')}
                   value={minMembers || ''}
                   onChange={(e) => setMinMembers(e.target.value ? parseInt(e.target.value, 10) : null)}
                   className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
@@ -365,12 +369,12 @@ export default function DiscoverGroupsClient({
               {/* Max Members */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Max Members
+                  {t('maxMembers')}
                 </label>
                 <input
                   type="number"
                   min="0"
-                  placeholder="Any"
+                  placeholder={t('any')}
                   value={maxMembers || ''}
                   onChange={(e) => setMaxMembers(e.target.value ? parseInt(e.target.value, 10) : null)}
                   className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
@@ -380,7 +384,7 @@ export default function DiscoverGroupsClient({
               {/* Activity Level */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Activity
+                  {t('activity')}
                 </label>
                 <CustomSelect
                   options={activityOptions}
@@ -395,7 +399,7 @@ export default function DiscoverGroupsClient({
           <div className="flex flex-col sm:flex-row gap-4 lg:flex-col">
             <div className="w-full sm:w-auto lg:w-full">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sort By
+                {t('sortBy')}
               </label>
               <CustomSelect
                 options={sortOptions}
@@ -412,7 +416,7 @@ export default function DiscoverGroupsClient({
                       ? 'bg-yellow-500 text-black'
                       : 'bg-white text-gray-700 hover:bg-gray-100'
                   }`}
-                  title="Grid View"
+                  title={t('gridView')}
                 >
                   <FontAwesomeIcon icon={faTh} />
                 </button>
@@ -423,7 +427,7 @@ export default function DiscoverGroupsClient({
                       ? 'bg-yellow-500 text-black'
                       : 'bg-white text-gray-700 hover:bg-gray-100'
                   }`}
-                  title="List View"
+                  title={t('listView')}
                 >
                   <FontAwesomeIcon icon={faList} />
                 </button>
@@ -439,7 +443,7 @@ export default function DiscoverGroupsClient({
           <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-xl">
             <div className="flex flex-col items-center gap-3">
               <FontAwesomeIcon icon={faSpinner} className="animate-spin text-4xl text-[var(--theme-primary)]" />
-              <span className="text-gray-600 font-medium">Loading...</span>
+              <span className="text-gray-600 font-medium">{t('loading')}</span>
             </div>
           </div>
         )}
@@ -477,20 +481,20 @@ export default function DiscoverGroupsClient({
             </div>
             <p className="text-gray-700 text-lg mb-2 font-medium">
               {debouncedSearch || allowFreeJoin !== null || minMembers !== null || maxMembers !== null || activityLevel !== 'all'
-                ? 'No groups match your filters'
-                : 'No groups available'}
+                ? t('noGroupsMatchFilters')
+                : t('noGroupsAvailable')}
             </p>
             <p className="text-gray-500 text-sm mb-6">
               {debouncedSearch || allowFreeJoin !== null || minMembers !== null || maxMembers !== null || activityLevel !== 'all'
-                ? 'Try adjusting your search or filters'
-                : 'Be the first to create a group!'}
+                ? t('tryAdjustingFilters')
+                : t('beFirstToCreate')}
             </p>
             {(!debouncedSearch && allowFreeJoin === null && minMembers === null && maxMembers === null && activityLevel === 'all') && (
               <Link
                 href="/groups/create"
                 className="inline-block px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black rounded-lg transition-all font-semibold"
               >
-                Create Group
+                {t('createGroup')}
               </Link>
             )}
           </div>

@@ -4,10 +4,13 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter } from '@/i18n/routing'
 import { useSearchParams } from 'next/navigation'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 function VerifyEmailPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useSafeTranslations('auth.verifyEmail')
+  const tCommon = useSafeTranslations('common')
   const [status, setStatus] = useState<'loading' | 'pending' | 'success' | 'error'>('loading')
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState<string | null>(null)
@@ -15,8 +18,8 @@ function VerifyEmailPageContent() {
   const [resendSuccess, setResendSuccess] = useState(false)
 
   useEffect(() => {
-    document.title = 'ChartsFM - Verify Email'
-  }, [])
+    document.title = `ChartsFM - ${t('title')}`
+  }, [t])
 
   useEffect(() => {
     const token = searchParams?.get('token')
@@ -31,15 +34,15 @@ function VerifyEmailPageContent() {
       if (errorParam === 'email_not_verified') {
         // User tried to log in but email is not verified - show pending state with message
         setStatus('pending')
-        setError('Please verify your email address before logging in.')
+        setError(t('errors.emailNotVerified'))
       } else {
         setStatus('error')
         const errorMessages: Record<string, string> = {
-          missing_token: 'No verification token provided.',
-          invalid_token: 'Invalid or expired verification token. Please request a new one.',
-          server_error: 'An error occurred. Please try again.',
+          missing_token: t('errors.missingToken'),
+          invalid_token: t('errors.invalidToken'),
+          server_error: t('errors.serverError'),
         }
-        setError(errorMessages[errorParam] || 'An error occurred during verification.')
+        setError(errorMessages[errorParam] || t('errors.verificationError'))
       }
     } else if (token) {
       // Token is provided, verify it by calling the API
@@ -71,11 +74,11 @@ function VerifyEmailPageContent() {
       if (!response.ok) {
         setStatus('error')
         const errorMessages: Record<string, string> = {
-          'No verification token provided': 'No verification token provided.',
-          'Invalid or expired verification token': 'Invalid or expired verification token. Please request a new one.',
-          'An error occurred during verification': 'An error occurred. Please try again.',
+          'No verification token provided': t('errors.missingToken'),
+          'Invalid or expired verification token': t('errors.invalidToken'),
+          'An error occurred during verification': t('errors.serverError'),
         }
-        setError(errorMessages[data.error] || data.error || 'An error occurred during verification.')
+        setError(errorMessages[data.error] || data.error || t('errors.verificationError'))
         return
       }
 
@@ -88,13 +91,13 @@ function VerifyEmailPageContent() {
     } catch (err) {
       console.error('Verification error:', err)
       setStatus('error')
-      setError('An error occurred while verifying your email. Please try again.')
+      setError(t('errors.verifyFailed'))
     }
   }
 
   const handleResend = async () => {
     if (!email) {
-      setError('Email address is required')
+      setError(t('emailRequired'))
       return
     }
 
@@ -114,12 +117,12 @@ function VerifyEmailPageContent() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to resend verification email')
+        throw new Error(data.error || t('errors.resendFailed'))
       }
 
       setResendSuccess(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to resend verification email')
+      setError(err instanceof Error ? err.message : t('errors.resendFailed'))
     } finally {
       setIsResending(false)
     }
@@ -151,10 +154,10 @@ function VerifyEmailPageContent() {
                 <>
                   <div className="text-5xl mb-4">📧</div>
                   <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-800">
-                    Verifying Email...
+                    {t('verifying')}
                   </h1>
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Please wait while we verify your email address.</p>
+                  <p className="text-gray-600">{t('verifyingDescription')}</p>
                 </>
               )}
 
@@ -162,10 +165,10 @@ function VerifyEmailPageContent() {
                 <>
                   <div className="text-5xl mb-4">✅</div>
                   <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-800">
-                    Email Verified!
+                    {t('successTitle')}
                   </h1>
                   <p className="text-gray-600 mb-6">
-                    Your email has been successfully verified. You can now log in to your account.
+                    {t('successDescription')}
                   </p>
                   <LiquidGlassButton
                     onClick={() => router.push('/')}
@@ -173,7 +176,7 @@ function VerifyEmailPageContent() {
                     size="lg"
                     fullWidth
                   >
-                    Go to Login
+                    {t('goToLogin')}
                   </LiquidGlassButton>
                 </>
               )}
@@ -182,7 +185,7 @@ function VerifyEmailPageContent() {
                 <>
                   <div className="text-5xl mb-4">❌</div>
                   <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-800">
-                    Verification Failed
+                    {t('errorTitle')}
                   </h1>
                   {error && (
                     <div 
@@ -201,7 +204,7 @@ function VerifyEmailPageContent() {
                   {email && (
                     <div className="space-y-4">
                       <p className="text-gray-600">
-                        Need a new verification email? Enter your email address below.
+                        {t('needNewEmail')}
                       </p>
                       <input
                         type="email"
@@ -221,11 +224,11 @@ function VerifyEmailPageContent() {
                         size="lg"
                         fullWidth
                       >
-                        {isResending ? 'Sending...' : 'Resend Verification Email'}
+                        {isResending ? t('sending') : t('resendEmail')}
                       </LiquidGlassButton>
                       {resendSuccess && (
                         <p className="text-green-600 font-medium">
-                          Verification email sent! Please check your inbox.
+                          {t('emailSent')}
                         </p>
                       )}
                     </div>
@@ -237,13 +240,13 @@ function VerifyEmailPageContent() {
                 <>
                   <div className="text-5xl mb-4">📬</div>
                   <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-800">
-                    Check Your Email
+                    {t('checkEmailTitle')}
                   </h1>
                   <p className="text-gray-600 mb-6">
-                    We've sent a verification email to your address. Please check your inbox and click the verification link to activate your account.
+                    {t('checkEmailDescription')}
                   </p>
                   <p className="text-sm text-gray-500 mb-6">
-                    The verification link will expire in 24 hours.
+                    {t('linkExpires')}
                   </p>
                   {error && (
                     <div 
@@ -271,14 +274,14 @@ function VerifyEmailPageContent() {
                       }}
                     >
                       <p className="text-green-700 font-medium">
-                        Verification email sent! Please check your inbox.
+                        {t('emailSent')}
                       </p>
                     </div>
                   )}
                   {email && (
                     <div className="space-y-4">
                       <p className="text-sm text-gray-600">
-                        Didn't receive the email? We can send another one.
+                        {t('didntReceive')}
                       </p>
                       <input
                         type="email"
@@ -298,7 +301,7 @@ function VerifyEmailPageContent() {
                         size="lg"
                         fullWidth
                       >
-                        {isResending ? 'Sending...' : 'Resend Verification Email'}
+                        {isResending ? t('sending') : t('resendEmail')}
                       </LiquidGlassButton>
                     </div>
                   )}
@@ -307,7 +310,7 @@ function VerifyEmailPageContent() {
                       href="/"
                       className="text-yellow-600 hover:text-yellow-700 font-semibold underline underline-offset-2"
                     >
-                      Back to Login
+                      {t('backToLogin')}
                     </a>
                   </div>
                 </>

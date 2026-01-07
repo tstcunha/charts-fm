@@ -5,6 +5,7 @@ import { useRouter } from '@/i18n/routing'
 import { useSearchParams } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 // Theme gradients (excluding rainbow)
 const themes = [
@@ -22,6 +23,8 @@ const themes = [
 function SignUpPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useSafeTranslations('auth.signup')
+  const tCommon = useSafeTranslations('common')
   const { data: session, status } = useSession()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -116,17 +119,17 @@ function SignUpPageContent() {
       const errorParam = searchParams?.get('error')
       if (errorParam) {
         const errorMessages: Record<string, string> = {
-          no_token: 'No authentication token received from Last.fm',
-          config: 'Server configuration error. Please contact support.',
-          authentication_failed: 'Failed to authenticate with Last.fm. Please try again.',
+          no_token: t('errors.noToken'),
+          config: t('errors.config'),
+          authentication_failed: t('errors.authenticationFailed'),
         }
-        setError(errorMessages[errorParam] || 'An error occurred during authentication')
+        setError(errorMessages[errorParam] || t('errors.generic'))
       }
     } catch (err) {
       // Ignore searchParams errors
       console.error('Error reading search params:', err)
     }
-  }, [searchParams])
+  }, [searchParams, t])
 
   const handleLastFMAuth = async () => {
     setIsLoading(true)
@@ -178,7 +181,7 @@ function SignUpPageContent() {
       >
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-400 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{tCommon('loading')}</p>
         </div>
       </main>
     )
@@ -204,13 +207,13 @@ function SignUpPageContent() {
       <div className="max-w-2xl w-full">
         <div className="text-center mb-8">
           <h1 className="text-4xl sm:text-5xl font-bold mb-4 text-gray-900">
-            Create Your Account
+            {t('title')}
           </h1>
           <p className="text-lg sm:text-xl text-gray-700 mb-2">
-            Connect your Last.fm account to get started
+            {t('subtitle')}
           </p>
           <p className="text-base text-gray-600">
-            You'll be able to add additional details after connecting
+            {t('subtitle2')}
           </p>
         </div>
 
@@ -244,10 +247,10 @@ function SignUpPageContent() {
             <div className="text-center mb-8">
               <div className="text-5xl mb-4">🎵</div>
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">
-                Step 1: Connect Last.fm
+                {t('step1Title')}
               </h2>
               <p className="text-gray-600">
-                We need to connect to your Last.fm account to create your ChartsFM profile.
+                {t('step1Description')}
               </p>
             </div>
 
@@ -276,20 +279,20 @@ function SignUpPageContent() {
                 )
               }
             >
-              {isLoading ? 'Redirecting...' : 'Connect with Last.fm'}
+              {isLoading ? t('redirecting') : t('connectWithLastfm')}
             </LiquidGlassButton>
 
             <p className="text-sm text-gray-600 text-center mt-6">
-              You'll be redirected to Last.fm to authorize this application.
+              {t('redirectMessage')}
             </p>
           </div>
         </div>
 
         <div className="text-center mt-8">
           <p className="text-gray-700">
-            Already have an account?{' '}
+            {t('alreadyHaveAccount')}{' '}
             <a href="/" className="text-yellow-600 hover:text-yellow-700 font-semibold underline underline-offset-2">
-              Log in
+              {t('logIn')}
             </a>
           </p>
         </div>

@@ -8,6 +8,7 @@ import EntryStatsTable from '@/components/charts/EntryStatsTable'
 import ArtistEntriesTable from '@/components/charts/ArtistEntriesTable'
 import { ChartHistoryEntry, EntryStats, MajorDriver, ArtistChartEntry } from '@/lib/chart-deep-dive'
 import { ChartType } from '@/lib/chart-slugs'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface DeepDiveClientProps {
   groupId: string
@@ -34,6 +35,7 @@ export default function DeepDiveClient({
   chartMode,
   isArtist = false,
 }: DeepDiveClientProps) {
+  const t = useSafeTranslations('deepDive.client')
   const [stats, setStats] = useState<EntryStats | null>(null)
   const [majorDriver, setMajorDriver] = useState<MajorDriver | null>(null)
   const [totals, setTotals] = useState<{ totalVS: number | null; totalPlays: number; weeksAtNumberOne: number } | null>(null)
@@ -97,7 +99,7 @@ export default function DeepDiveClient({
         </h1>
         {entryArtist && (
           <p className="text-xl sm:text-2xl text-gray-600 mt-2">
-            {chartType === 'tracks' ? 'Track' : chartType === 'albums' ? 'Album' : ''} by{' '}
+            {chartType === 'tracks' ? t('track') : chartType === 'albums' ? t('album') : ''} {t('by')}{' '}
             {artistSlug ? (
               <Link
                 href={`/groups/${groupId}/charts/artist/${artistSlug}`}

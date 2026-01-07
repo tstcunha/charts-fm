@@ -1,9 +1,45 @@
 import { Resend } from 'resend'
 import crypto from 'crypto'
+import { routing } from '@/i18n/routing'
+import { prisma } from '@/lib/prisma'
 
 // Initialize Resend with API key (can be undefined for development)
 const resendApiKey = process.env.RESEND_API_KEY
 const resend = resendApiKey ? new Resend(resendApiKey) : null
+
+/**
+ * Load translations for a given locale
+ */
+async function loadTranslations(locale: string) {
+  try {
+    const messages = await import(`@/messages/${locale}.json`)
+    return messages.default
+  } catch {
+    // Fallback to default locale if locale file doesn't exist
+    const messages = await import(`@/messages/${routing.defaultLocale}.json`)
+    return messages.default
+  }
+}
+
+/**
+ * Get locale from user's profile or default
+ */
+async function getUserLocale(email: string): Promise<string> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { locale: true },
+    })
+    
+    if (user?.locale && routing.locales.includes(user.locale)) {
+      return user.locale
+    }
+  } catch (error) {
+    console.error('Error getting user locale:', error)
+  }
+  
+  return routing.defaultLocale
+}
 
 /**
  * Generate a cryptographically secure verification token
@@ -18,8 +54,27 @@ export function generateVerificationToken(): string {
 export async function sendVerificationEmail(
   email: string,
   token: string,
-  name: string
+  name: string,
+  locale?: string
 ): Promise<void> {
+  // Get locale from user profile or use provided/default
+  const userLocale = locale || await getUserLocale(email)
+  const messages = await loadTranslations(userLocale)
+  const t = (key: string, params?: Record<string, string>) => {
+    const keys = key.split('.')
+    let value: any = messages
+    for (const k of keys) {
+      value = value?.[k]
+    }
+    if (typeof value !== 'string') return key
+    // Simple parameter replacement
+    if (params) {
+      return Object.entries(params).reduce((str, [param, val]) => {
+        return str.replace(new RegExp(`\\{${param}\\}`, 'g'), val)
+      }, value)
+    }
+    return value
+  }
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   // Use API route with redirect for direct email clicks, page route for manual entry
   const verificationUrl = `${appUrl}/api/auth/verify-email?token=${token}&redirect=true`
@@ -54,6 +109,17 @@ export async function sendVerificationEmail(
     console.warn('⚠️  Using Resend test domain. Set RESEND_FROM_EMAIL to use your verified domain.')
   }
 
+  const emailSubject = t('auth.emails.verification.subject')
+  const emailTitle = t('auth.emails.verification.title')
+  const greeting = name 
+    ? t('auth.emails.verification.greeting', { name })
+    : t('auth.emails.verification.greetingFallback')
+  const emailBody = t('auth.emails.verification.body')
+  const buttonText = t('auth.emails.verification.button')
+  const orCopyPaste = t('auth.emails.verification.orCopyPaste')
+  const expires = t('auth.emails.verification.expires')
+  const footer = t('auth.emails.verification.footer', { year: new Date().getFullYear().toString() })
+
   // In development, log the email content
   if (process.env.NODE_ENV === 'development') {
     console.log('='.repeat(80))
@@ -61,7 +127,8 @@ export async function sendVerificationEmail(
     console.log('='.repeat(80))
     console.log(`From: ${from}`)
     console.log(`To: ${email}`)
-    console.log(`Subject: Verify your ChartsFM account`)
+    console.log(`Subject: ${emailSubject}`)
+    console.log(`Locale: ${userLocale}`)
     console.log(`\nVerification URL: ${verificationUrl}`)
     console.log('='.repeat(80))
   }
@@ -70,64 +137,64 @@ export async function sendVerificationEmail(
     const result = await resend.emails.send({
       from,
       to: email,
-      subject: 'Verify your ChartsFM account',
+      subject: emailSubject,
       html: `
         <!DOCTYPE html>
         <html>
           <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Verify your ChartsFM account</title>
+            <title>${emailSubject}</title>
           </head>
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #fef9c3, #fefce8); padding: 30px; border-radius: 12px; margin-bottom: 20px;">
-              <h1 style="margin: 0; color: #854d0e; font-size: 28px;">🎵 Welcome to ChartsFM!</h1>
+              <h1 style="margin: 0; color: #854d0e; font-size: 28px;">🎵 ${emailTitle}</h1>
             </div>
             
-            <p style="font-size: 16px;">Hi ${name || 'there'},</p>
+            <p style="font-size: 16px;">${greeting}</p>
             
             <p style="font-size: 16px;">
-              Thank you for signing up! To complete your account setup, please verify your email address by clicking the button below:
+              ${emailBody}
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="${verificationUrl}" 
                  style="display: inline-block; background: #ca8a04; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(202, 138, 4, 0.3);">
-                Verify Email Address
+                ${buttonText}
               </a>
             </div>
             
             <p style="font-size: 14px; color: #666;">
-              Or copy and paste this link into your browser:
+              ${orCopyPaste}
             </p>
             <p style="font-size: 14px; color: #666; word-break: break-all;">
               <a href="${verificationUrl}" style="color: #ca8a04;">${verificationUrl}</a>
             </p>
             
             <p style="font-size: 14px; color: #666; margin-top: 30px;">
-              This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
+              ${expires}
             </p>
             
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
             
             <p style="font-size: 12px; color: #999; text-align: center;">
-              ${new Date().getFullYear()} ChartsFM. No rights reserved.
+              ${footer}
             </p>
           </body>
         </html>
       `,
       text: `
-Welcome to ChartsFM!
+${emailTitle}
 
-Hi ${name || 'there'},
+${greeting}
 
-Thank you for signing up! To complete your account setup, please verify your email address by visiting this link:
+${emailBody}
 
 ${verificationUrl}
 
-This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
+${expires}
 
-${new Date().getFullYear()} ChartsFM. No rights reserved.
+${footer}
       `.trim(),
     })
 
@@ -174,8 +241,27 @@ ${new Date().getFullYear()} ChartsFM. No rights reserved.
 export async function sendPasswordResetEmail(
   email: string,
   token: string,
-  name: string
+  name: string,
+  locale?: string
 ): Promise<void> {
+  // Get locale from user profile or use provided/default
+  const userLocale = locale || await getUserLocale(email)
+  const messages = await loadTranslations(userLocale)
+  const t = (key: string, params?: Record<string, string>) => {
+    const keys = key.split('.')
+    let value: any = messages
+    for (const k of keys) {
+      value = value?.[k]
+    }
+    if (typeof value !== 'string') return key
+    // Simple parameter replacement
+    if (params) {
+      return Object.entries(params).reduce((str, [param, val]) => {
+        return str.replace(new RegExp(`\\{${param}\\}`, 'g'), val)
+      }, value)
+    }
+    return value
+  }
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const resetUrl = `${appUrl}/auth/reset-password?token=${token}`
 
@@ -201,6 +287,17 @@ export async function sendPasswordResetEmail(
     console.warn('⚠️  Using Resend test domain. Set RESEND_FROM_EMAIL to use your verified domain.')
   }
 
+  const emailSubject = t('auth.emails.passwordReset.subject')
+  const emailTitle = t('auth.emails.passwordReset.title')
+  const greeting = name 
+    ? t('auth.emails.passwordReset.greeting', { name })
+    : t('auth.emails.passwordReset.greetingFallback')
+  const emailBody = t('auth.emails.passwordReset.body')
+  const buttonText = t('auth.emails.passwordReset.button')
+  const orCopyPaste = t('auth.emails.passwordReset.orCopyPaste')
+  const expires = t('auth.emails.passwordReset.expires')
+  const footer = t('auth.emails.passwordReset.footer', { year: new Date().getFullYear().toString() })
+
   // In development, log the email content
   if (process.env.NODE_ENV === 'development') {
     console.log('='.repeat(80))
@@ -208,7 +305,8 @@ export async function sendPasswordResetEmail(
     console.log('='.repeat(80))
     console.log(`From: ${from}`)
     console.log(`To: ${email}`)
-    console.log(`Subject: Reset your ChartsFM password`)
+    console.log(`Subject: ${emailSubject}`)
+    console.log(`Locale: ${userLocale}`)
     console.log(`\nReset URL: ${resetUrl}`)
     console.log('='.repeat(80))
   }
@@ -217,64 +315,64 @@ export async function sendPasswordResetEmail(
     const result = await resend.emails.send({
       from,
       to: email,
-      subject: 'Reset your ChartsFM password',
+      subject: emailSubject,
       html: `
         <!DOCTYPE html>
         <html>
           <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Reset your ChartsFM password</title>
+            <title>${emailSubject}</title>
           </head>
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #fef9c3, #fefce8); padding: 30px; border-radius: 12px; margin-bottom: 20px;">
-              <h1 style="margin: 0; color: #854d0e; font-size: 28px;">🔐 Reset Your Password</h1>
+              <h1 style="margin: 0; color: #854d0e; font-size: 28px;">🔐 ${emailTitle}</h1>
             </div>
             
-            <p style="font-size: 16px;">Hi ${name || 'there'},</p>
+            <p style="font-size: 16px;">${greeting}</p>
             
             <p style="font-size: 16px;">
-              We received a request to reset your password. Click the button below to create a new password:
+              ${emailBody}
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="${resetUrl}" 
                  style="display: inline-block; background: #ca8a04; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(202, 138, 4, 0.3);">
-                Reset Password
+                ${buttonText}
               </a>
             </div>
             
             <p style="font-size: 14px; color: #666;">
-              Or copy and paste this link into your browser:
+              ${orCopyPaste}
             </p>
             <p style="font-size: 14px; color: #666; word-break: break-all;">
               <a href="${resetUrl}" style="color: #ca8a04;">${resetUrl}</a>
             </p>
             
             <p style="font-size: 14px; color: #666; margin-top: 30px;">
-              This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.
+              ${expires}
             </p>
             
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
             
             <p style="font-size: 12px; color: #999; text-align: center;">
-              ${new Date().getFullYear()} ChartsFM. No rights reserved.
+              ${footer}
             </p>
           </body>
         </html>
       `,
       text: `
-Reset Your Password
+${emailTitle}
 
-Hi ${name || 'there'},
+${greeting}
 
-We received a request to reset your password. Visit this link to create a new password:
+${emailBody}
 
 ${resetUrl}
 
-This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.
+${expires}
 
-${new Date().getFullYear()} ChartsFM. No rights reserved.
+${footer}
       `.trim(),
     })
 

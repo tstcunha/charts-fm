@@ -3,9 +3,14 @@ import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import DiscoverGroupsClient from './DiscoverGroupsClient'
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 
-export const metadata: Metadata = {
-  title: 'Discover Groups',
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations('groups.discover')
+  return {
+    title: t('title'),
+  }
 }
 
 export default async function DiscoverGroupsPage({
@@ -14,6 +19,7 @@ export default async function DiscoverGroupsPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const t = await getTranslations('groups.discover')
   const session = await getSession()
   
   if (!session?.user?.email) {
@@ -91,7 +97,7 @@ export default async function DiscoverGroupsPage({
     initialGroups = groupsWithActivity
   } catch (err) {
     console.error('Error fetching groups:', err)
-    error = 'Failed to load groups'
+    error = t('failedToLoadGroups')
   }
 
   return (
@@ -99,7 +105,7 @@ export default async function DiscoverGroupsPage({
       <div className="max-w-7xl w-full mx-auto relative z-10">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <h1 className="text-4xl font-bold text-gray-900">
-            Discover Groups
+            {t('title')}
           </h1>
         </div>
 

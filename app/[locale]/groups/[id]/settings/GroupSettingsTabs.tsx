@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 type TabId = 'regenerate' | 'chart-creation' | 'group-details' | 'styling' | 'shoutbox' | 'delete'
@@ -23,7 +24,22 @@ export default function GroupSettingsTabs({
   deleteGroupContent,
 }: GroupSettingsTabsProps) {
   const t = useSafeTranslations('groups.settings.tabs')
-  const [activeTab, setActiveTab] = useState<TabId>('group-details')
+  const searchParams = useSearchParams()
+  const tabFromUrl = searchParams.get('tab') as TabId | null
+  
+  // Validate tab from URL, default to 'group-details' if invalid
+  const validTabs: TabId[] = ['regenerate', 'chart-creation', 'group-details', 'styling', 'shoutbox', 'delete']
+  const initialTab = tabFromUrl && validTabs.includes(tabFromUrl) ? tabFromUrl : 'group-details'
+  
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab)
+
+  // Update active tab when URL changes
+  useEffect(() => {
+    const validTabs: TabId[] = ['regenerate', 'chart-creation', 'group-details', 'styling', 'shoutbox', 'delete']
+    if (tabFromUrl && validTabs.includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl)
+    }
+  }, [tabFromUrl])
 
   const tabs = [
     { id: 'group-details' as TabId, label: t('groupDetails') },

@@ -4,10 +4,12 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter } from '@/i18n/routing'
 import { useSearchParams } from 'next/navigation'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 function CompleteSignUpPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useSafeTranslations('auth.signupComplete')
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,12 +34,12 @@ function CompleteSignUpPageContent() {
           setLastfmUsername(data.username)
           setIsLoading(false)
         } else {
-          setError('No Last.fm session found. Please start over.')
+          setError(t('noSession'))
           setIsLoading(false)
         }
       })
       .catch(() => {
-        setError('Failed to verify Last.fm connection. Please start over.')
+        setError(t('verifyFailed'))
         setIsLoading(false)
       })
   }, [])
@@ -49,19 +51,19 @@ function CompleteSignUpPageContent() {
 
     // Validation
     if (!formData.email || !formData.name || !formData.password) {
-      setError('Please fill in all fields')
+      setError(t('errors.fillAllFields'))
       setIsSubmitting(false)
       return
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
+      setError(t('errors.passwordsDontMatch'))
       setIsSubmitting(false)
       return
     }
 
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters')
+      setError(t('errors.passwordTooShort'))
       setIsSubmitting(false)
       return
     }
@@ -69,7 +71,7 @@ function CompleteSignUpPageContent() {
     // Check for at least one special character
     const specialCharRegex = /[!@#$%^&*()_+\-=\[\]{}|;:'",.<>?/~`]/
     if (!specialCharRegex.test(formData.password)) {
-      setError('Password must contain at least one special character')
+      setError(t('errors.passwordNoSpecialChar'))
       setIsSubmitting(false)
       return
     }
@@ -90,13 +92,13 @@ function CompleteSignUpPageContent() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create account')
+        throw new Error(data.error || t('errors.createFailed'))
       }
 
       // Account created successfully, redirect to verification page
       router.push('/auth/verify-email?email=' + encodeURIComponent(formData.email))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create account')
+      setError(err instanceof Error ? err.message : t('errors.createFailed'))
       setIsSubmitting(false)
     }
   }
@@ -111,7 +113,7 @@ function CompleteSignUpPageContent() {
         </div>
         <div className="relative z-10 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
-          <p className="text-gray-700">Verifying Last.fm connection...</p>
+          <p className="text-gray-700">{t('verifying')}</p>
         </div>
       </main>
     )
@@ -130,10 +132,10 @@ function CompleteSignUpPageContent() {
         <div className="max-w-2xl w-full">
           <div className="text-center mb-8">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-yellow-600 via-orange-500 to-pink-500 bg-clip-text text-transparent">
-              Complete Your Account
+              {t('title')}
             </h1>
             <p className="text-lg sm:text-xl text-gray-700">
-              Add your details to finish creating your ChartsFM account
+              {t('subtitle')}
             </p>
           </div>
 
@@ -148,8 +150,8 @@ function CompleteSignUpPageContent() {
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
               }}
             >
-              <p className="text-green-700 font-semibold">✓ Connected to Last.fm</p>
-              <p className="text-sm text-green-600 mt-1">Username: {lastfmUsername}</p>
+              <p className="text-green-700 font-semibold">✓ {t('connected')}</p>
+              <p className="text-sm text-green-600 mt-1">{t('username', { username: lastfmUsername })}</p>
             </div>
           )}
 
@@ -183,7 +185,7 @@ function CompleteSignUpPageContent() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="email" className="block text-sm font-semibold text-gray-800 mb-2">
-                    Email Address *
+                    {t('emailLabel')}
                   </label>
                   <input
                     type="email"
@@ -196,13 +198,13 @@ function CompleteSignUpPageContent() {
                       background: 'rgba(255, 255, 255, 0.8)',
                       backdropFilter: 'blur(8px)',
                     }}
-                    placeholder="your.email@example.com"
+                    placeholder={t('emailPlaceholder')}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="name" className="block text-sm font-semibold text-gray-800 mb-2">
-                    Display Name *
+                    {t('nameLabel')}
                   </label>
                   <input
                     type="text"
@@ -215,13 +217,13 @@ function CompleteSignUpPageContent() {
                       background: 'rgba(255, 255, 255, 0.8)',
                       backdropFilter: 'blur(8px)',
                     }}
-                    placeholder="John Doe"
+                    placeholder={t('namePlaceholder')}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="password" className="block text-sm font-semibold text-gray-800 mb-2">
-                    Password *
+                    {t('passwordLabel')}
                   </label>
                   <input
                     type="password"
@@ -234,17 +236,17 @@ function CompleteSignUpPageContent() {
                       background: 'rgba(255, 255, 255, 0.8)',
                       backdropFilter: 'blur(8px)',
                     }}
-                    placeholder="At least 8 characters with 1 special character"
+                    placeholder={t('passwordPlaceholder')}
                     minLength={8}
                   />
                   <p className="text-xs text-gray-600 mt-2">
-                    Password must be at least 8 characters and include at least one special character (!@#$%^&* etc.)
+                    {t('passwordHint')}
                   </p>
                 </div>
 
                 <div>
                   <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-800 mb-2">
-                    Confirm Password *
+                    {t('confirmPasswordLabel')}
                   </label>
                   <input
                     type="password"
@@ -257,7 +259,7 @@ function CompleteSignUpPageContent() {
                       background: 'rgba(255, 255, 255, 0.8)',
                       backdropFilter: 'blur(8px)',
                     }}
-                    placeholder="Re-enter your password"
+                    placeholder={t('confirmPasswordPlaceholder')}
                   />
                 </div>
 
@@ -269,7 +271,7 @@ function CompleteSignUpPageContent() {
                   fullWidth
                   className="text-lg"
                 >
-                  {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                  {isSubmitting ? t('creatingAccount') : t('createAccount')}
                 </LiquidGlassButton>
               </form>
             </div>
@@ -277,9 +279,9 @@ function CompleteSignUpPageContent() {
 
           <div className="text-center mt-8">
             <p className="text-gray-700">
-              Already have an account?{' '}
+              {t('alreadyHaveAccount')}{' '}
               <a href="/" className="text-yellow-600 hover:text-yellow-700 font-semibold underline underline-offset-2">
-                Log in
+                {t('logIn')}
               </a>
             </p>
           </div>
