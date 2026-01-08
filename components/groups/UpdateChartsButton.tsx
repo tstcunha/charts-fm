@@ -84,7 +84,7 @@ export default function UpdateChartsButton({ groupId, initialInProgress = false,
 
   if (error) {
     return (
-      <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-full font-semibold shadow-sm">
+      <div className="flex items-center justify-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-full font-semibold shadow-sm w-full md:w-auto md:inline-flex">
         <span className="text-sm">Error: {error}</span>
       </div>
     )
@@ -97,6 +97,7 @@ export default function UpdateChartsButton({ groupId, initialInProgress = false,
       variant="primary"
       size="sm"
       useTheme
+      className="w-full md:w-auto"
       icon={isUpdating ? <FontAwesomeIcon icon={faSpinner} className="animate-spin" /> : undefined}
     >
       {isUpdating ? t('updatingCharts') : t('updateCharts')}

@@ -30,8 +30,8 @@ export default function ShareGroupButton({ groupId }: ShareGroupButtonProps) {
         variant="primary"
         size="lg"
         useTheme
-        icon={<FontAwesomeIcon icon={faShare} className="text-lg" />}
-        className="absolute bottom-4 right-4 z-10 w-12 h-12"
+        icon={<FontAwesomeIcon icon={faShare} className="text-base md:text-lg" />}
+        className="absolute bottom-4 right-4 z-10 w-10 h-10 md:w-12 md:h-12"
         aria-label={t('shareGroup')}
       />
 

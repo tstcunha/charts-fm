@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useSafeTranslations } from '@/hooks/useSafeTranslations'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 
 type TabId = 'regenerate' | 'chart-creation' | 'group-details' | 'styling' | 'shoutbox' | 'delete'
 
@@ -155,16 +157,27 @@ export default function GroupSettingsTabs({
           {visibleTabs.map(renderTabButton)}
           
           {/* Collapsed tabs on mobile, always visible on desktop */}
-          <div className={`${isExpanded ? 'block' : 'hidden'} md:block`}>
-            {collapsedTabs.map(renderTabButton)}
+          <div 
+            className={`
+              overflow-hidden transition-all duration-150 ease-in-out
+              md:max-h-screen md:opacity-100 md:block
+              ${isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}
+            `}
+            style={{
+              transition: 'max-height 0.15s ease-in-out, opacity 0.15s ease-in-out',
+            }}
+          >
+            <div className="space-y-2">
+              {collapsedTabs.map(renderTabButton)}
+            </div>
           </div>
           
-          {/* Toggle button for mobile only */}
+          {/* Toggle caret for mobile only */}
           {collapsedTabs.length > 0 && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="
-                w-full text-left px-3 py-2 rounded-lg transition-all duration-200 text-sm
+                w-full flex items-center justify-center px-3 py-2 rounded-lg transition-all duration-200 text-sm
                 md:hidden
                 hover:shadow-md
               "
@@ -176,8 +189,15 @@ export default function GroupSettingsTabs({
                 WebkitBackdropFilter: 'blur(8px) saturate(180%)',
                 boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.05)',
               }}
+              aria-label={isExpanded ? t('showLess') : t('showMore', { count: collapsedTabs.length })}
             >
-              {isExpanded ? t('showLess') : t('showMore', { count: collapsedTabs.length })}
+              <FontAwesomeIcon 
+                icon={faChevronDown} 
+                className="transition-transform duration-150 ease-in-out"
+                style={{
+                  transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              />
             </button>
           )}
         </nav>

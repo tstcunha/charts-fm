@@ -114,11 +114,11 @@ export default function QuickAccessButton({ groupId }: QuickAccessButtonProps) {
         size="md"
         useTheme
         disabled={isUpdating}
-        className="!aspect-auto"
+        className="!aspect-auto text-sm md:text-base px-2.5 py-1.5 md:px-4 md:py-2"
         icon={
           <FontAwesomeIcon
             icon={isUpdating ? faSpinner : (isInQuickAccess ? faMinus : faPlus)}
-            className={`text-base ${isUpdating ? 'animate-spin' : ''}`}
+            className={`text-sm md:text-base ${isUpdating ? 'animate-spin' : ''}`}
           />
         }
         aria-label={isUpdating 

@@ -166,12 +166,12 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
               
               {/* Member Avatars */}
               {membersWithImages.length > 0 && (
-                <div className="flex items-center gap-2 mb-3 md:mb-4">
-                  <div className="flex -space-x-2 md:-space-x-3">
+                <div className="flex items-center gap-2 mb-3 md:mb-4 min-w-0 flex-wrap">
+                  <div className="flex -space-x-2 md:-space-x-3 flex-shrink-0">
                     {membersWithImages.slice(0, 6).map((member) => (
                       <div
                         key={member.user.id}
-                        className="relative w-8 h-8 md:w-10 md:h-10 rounded-full ring-2 ring-white bg-[var(--theme-primary-lighter)] overflow-hidden"
+                        className="relative w-8 h-8 md:w-10 md:h-10 rounded-full ring-2 ring-white bg-[var(--theme-primary-lighter)] overflow-hidden flex-shrink-0"
                         title={member.user.name || member.user.lastfmUsername}
                       >
                         <SafeImage
@@ -183,35 +183,59 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
                     ))}
                   </div>
                   {membersWithImages.length > 6 && (
-                    <span className="text-xs md:text-sm text-gray-600 ml-1 md:ml-2">{t('moreMembers', { count: membersWithImages.length - 6 })}</span>
+                    <span className="text-xs md:text-sm text-gray-600 ml-1 md:ml-2 flex-shrink-0 whitespace-nowrap">{t('moreMembers', { count: membersWithImages.length - 6 })}</span>
                   )}
                 </div>
               )}
               
-              {/* Next Charts Badge or Update Button */}
-              {canUpdateCharts || chartGenerationInProgress ? (
-                <UpdateChartsButton groupId={groupId} initialInProgress={chartGenerationInProgress} />
-              ) : (
-                <div 
-                  className="inline-flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full font-semibold text-xs md:text-sm"
-                  style={{
-                    background: 'var(--theme-primary)',
-                    color: 'var(--theme-button-text)',
-                    backdropFilter: 'blur(12px) saturate(180%)',
-                    WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                  }}
-                >
-                  <span className="whitespace-nowrap">{t(daysUntilNextChart === 1 ? 'nextChartsIn' : 'nextChartsInDays', { count: daysUntilNextChart })}</span>
-                  <span className="text-xs opacity-80 hidden sm:inline">({nextChartDateFormatted})</span>
-                </div>
-              )}
+              {/* Next Charts Badge or Update Button - Desktop only */}
+              <div className="hidden md:block w-auto">
+                {canUpdateCharts || chartGenerationInProgress ? (
+                  <UpdateChartsButton groupId={groupId} initialInProgress={chartGenerationInProgress} />
+                ) : (
+                  <div 
+                    className="inline-flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full font-semibold text-xs md:text-sm"
+                    style={{
+                      background: 'var(--theme-primary)',
+                      color: 'var(--theme-button-text)',
+                      backdropFilter: 'blur(12px) saturate(180%)',
+                      WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    }}
+                  >
+                    <span className="whitespace-nowrap">{t(daysUntilNextChart === 1 ? 'nextChartsIn' : 'nextChartsInDays', { count: daysUntilNextChart })}</span>
+                    <span className="text-xs opacity-80 hidden sm:inline">({nextChartDateFormatted})</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           
+          {/* Next Charts Badge or Update Button - Mobile only */}
+          <div className="md:hidden w-full -mt-2 mb-1">
+            {canUpdateCharts || chartGenerationInProgress ? (
+              <UpdateChartsButton groupId={groupId} initialInProgress={chartGenerationInProgress} />
+            ) : (
+              <div 
+                className="flex items-center justify-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full font-semibold text-xs md:text-sm w-full"
+                style={{
+                  background: 'var(--theme-primary)',
+                  color: 'var(--theme-button-text)',
+                  backdropFilter: 'blur(12px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                }}
+              >
+                <span className="whitespace-nowrap">{t(daysUntilNextChart === 1 ? 'nextChartsIn' : 'nextChartsInDays', { count: daysUntilNextChart })}</span>
+                <span className="text-xs opacity-80 hidden sm:inline">({nextChartDateFormatted})</span>
+              </div>
+            )}
+          </div>
+          
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-2 items-start mt-4 md:mt-0">
+          <div className="flex flex-wrap gap-2 items-start mt-2 md:mt-0">
             <QuickAccessButton groupId={groupId} />
             {isOwner && (
               <LiquidGlassLink
@@ -219,6 +243,7 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
                 variant="primary"
                 useTheme
                 size="md"
+                className="text-sm md:text-base px-2.5 py-1.5 md:px-4 md:py-2"
               >
                 {t('settings')}
               </LiquidGlassLink>

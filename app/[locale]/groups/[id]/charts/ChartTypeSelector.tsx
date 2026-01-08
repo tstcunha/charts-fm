@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { useNavigation } from '@/contexts/NavigationContext'
 import LiquidGlassTabs, { TabItem } from '@/components/LiquidGlassTabs'
 import { useSafeTranslations } from '@/hooks/useSafeTranslations'
+import { faMicrophone, faMusic, faCompactDisc } from '@fortawesome/free-solid-svg-icons'
 
 type ChartType = 'artists' | 'tracks' | 'albums'
 
@@ -34,9 +35,9 @@ export default function ChartTypeSelector({ currentType, onTypeChange }: ChartTy
   }
 
   const tabs: TabItem[] = [
-    { id: 'artists', label: t('artists') },
-    { id: 'tracks', label: t('tracks') },
-    { id: 'albums', label: t('albums') },
+    { id: 'artists', label: t('artists'), icon: faMicrophone },
+    { id: 'tracks', label: t('tracks'), icon: faMusic },
+    { id: 'albums', label: t('albums'), icon: faCompactDisc },
   ]
 
   return (
