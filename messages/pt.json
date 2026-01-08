@@ -232,7 +232,7 @@
     },
     "tabs": {
       "trends": "Trends",
-      "weeklyCharts": "Charts Semanais",
+      "weeklyCharts": "Charts",
       "allTimeStats": "Recordes",
       "members": "Membros",
       "search": "Buscar"
@@ -252,7 +252,7 @@
       "weeks": "semanas"
     },
     "weeklyCharts": {
-      "title": "Charts",
+      "title": "Charts Semanais",
       "exploreCharts": "Ver mais charts",
       "weekOf": "Semana de {date}",
       "fromTo": "de {start} até {end}",
@@ -410,7 +410,57 @@
       "owner": "Dono",
       "invited": "Convite enviado",
       "inviteMember": "Convidar membro",
-      "requests": "Solicitações"
+      "requests": "Solicitações",
+      "inviteModal": {
+        "title": "Convidar membro",
+        "close": "Fechar",
+        "lastfmUsername": "Nome de usuário do Last.fm",
+        "usernamePlaceholder": "nome de usuário",
+        "usernameDescription": "Digite o nome de usuário do Last.fm de quem você deseja convidar",
+        "valid": "✓ Válido",
+        "cancel": "Cancelar",
+        "inviting": "Convidando...",
+        "inviteMember": "Convidar membro",
+        "atLimit": "Esta comunidade atingiu o limite máximo de {max} membros. Você não pode convidar mais membros.",
+        "accountCreatedAndAdded": "Conta criada e adicionada com sucesso para {username}!",
+        "accountCreatedAndInviteSent": "Conta criada e convite enviado com sucesso para {username}!",
+        "inviteSentSuccess": "Convite enviado com sucesso para {username}!",
+        "error": {
+          "enterUsername": "Por favor, digite um nome de usuário do Last.fm",
+          "userNotFound": "Usuário com este nome de usuário do Last.fm não encontrado",
+          "failedToValidate": "Falha ao validar nome de usuário. Por favor, tente novamente.",
+          "failedToSend": "Falha ao enviar convite",
+          "atLimitError": "A comunidade atingiu o limite máximo de {max} membros"
+        }
+      },
+      "requestsModal": {
+        "title": "Solicitações de entrada",
+        "close": "Fechar",
+        "noPendingRequests": "Nenhuma solicitação pendente",
+        "processing": "Processando...",
+        "accept": "Aceitar",
+        "reject": "Rejeitar",
+        "error": {
+          "failedToFetch": "Falha ao carregar solicitações",
+          "failedToAccept": "Falha ao aceitar solicitação",
+          "failedToReject": "Falha ao rejeitar solicitação"
+        }
+      },
+      "removeModal": {
+        "title": "Remover membro",
+        "close": "Fechar",
+        "remove": "Remover",
+        "removed": "Removido!",
+        "removeFromGroup": "Remover {memberName} da comunidade",
+        "confirmMessage": "Tem certeza de que deseja remover {memberName} desta comunidade?",
+        "cannotBeUndone": "Esta ação não pode ser desfeita.",
+        "cancel": "Cancelar",
+        "removing": "Removendo...",
+        "removeMember": "Remover membro",
+        "error": {
+          "failedToRemove": "Falha ao remover membro"
+        }
+      }
     },
     "search": {
       "title": "Buscar nos charts",

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import RemoveMemberModal from './RemoveMemberModal'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface RemoveMemberButtonProps {
   groupId: string
@@ -14,6 +15,7 @@ export default function RemoveMemberButton({
   userId,
   memberName,
 }: RemoveMemberButtonProps) {
+  const t = useSafeTranslations('groups.members.removeModal')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isRemoved, setIsRemoved] = useState(false)
 
@@ -24,7 +26,7 @@ export default function RemoveMemberButton({
   if (isRemoved) {
     return (
       <span className="px-3 py-1 text-sm bg-gray-200 text-gray-600 rounded">
-        Removed!
+        {t('removed')}
       </span>
     )
   }
@@ -34,9 +36,9 @@ export default function RemoveMemberButton({
       <button
         onClick={() => setIsModalOpen(true)}
         className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-        title={`Remove ${memberName} from group`}
+        title={t('removeFromGroup', { memberName })}
       >
-        Remove
+        {t('remove')}
       </button>
 
       <RemoveMemberModal

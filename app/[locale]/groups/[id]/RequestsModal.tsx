@@ -6,6 +6,7 @@ import LiquidGlassButton from '@/components/LiquidGlassButton'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
 import SafeImage from '@/components/SafeImage'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface Request {
   id: string
@@ -31,6 +32,7 @@ export default function RequestsModal({
   onClose,
   onRequestProcessed,
 }: RequestsModalProps) {
+  const t = useSafeTranslations('groups.members.requestsModal')
   const [requests, setRequests] = useState<Request[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -58,12 +60,12 @@ export default function RequestsModal({
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch requests')
+        throw new Error(data.error || t('error.failedToFetch'))
       }
 
       setRequests(data.requests || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch requests')
+      setError(err instanceof Error ? err.message : t('error.failedToFetch'))
     } finally {
       setIsLoading(false)
     }
@@ -84,7 +86,7 @@ export default function RequestsModal({
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to accept request')
+        throw new Error(data.error || t('error.failedToAccept'))
       }
 
       // Remove the accepted request from the list
@@ -92,7 +94,7 @@ export default function RequestsModal({
       // Optionally notify parent (without forcing page reload)
       onRequestProcessed?.()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to accept request')
+      setError(err instanceof Error ? err.message : t('error.failedToAccept'))
     } finally {
       setProcessingId(null)
     }
@@ -113,7 +115,7 @@ export default function RequestsModal({
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to reject request')
+        throw new Error(data.error || t('error.failedToReject'))
       }
 
       // Remove the rejected request from the list
@@ -121,7 +123,7 @@ export default function RequestsModal({
       // Optionally notify parent (without forcing page reload)
       onRequestProcessed?.()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reject request')
+      setError(err instanceof Error ? err.message : t('error.failedToReject'))
     } finally {
       setProcessingId(null)
     }
@@ -138,24 +140,27 @@ export default function RequestsModal({
         style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
       />
       {/* Modal content centered */}
-      <div className="fixed inset-0 flex items-center justify-center z-[9999] pointer-events-none">
+      <div className="fixed inset-0 flex items-center justify-center z-[9999] pointer-events-none p-4">
         <div 
-          className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col pointer-events-auto"
+          className="bg-white rounded-lg shadow-xl p-4 md:p-6 max-w-2xl w-full max-h-[90vh] flex flex-col pointer-events-auto"
           onClick={(e) => e.stopPropagation()}
+          style={{
+            maxWidth: 'calc(100vw - 2rem)',
+          }}
         >
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Join Requests</h2>
+            <h2 className="text-lg md:text-2xl font-bold">{t('title')}</h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl leading-none w-8 h-8 flex items-center justify-center"
-              aria-label="Close"
+              className="text-gray-500 hover:text-gray-700 text-xl md:text-2xl leading-none w-8 h-8 flex items-center justify-center"
+              aria-label={t('close')}
             >
               ×
             </button>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-xs md:text-sm">
               {error}
             </div>
           )}
@@ -166,7 +171,7 @@ export default function RequestsModal({
             </div>
           ) : requests.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
-              <p className="text-gray-600">No pending requests</p>
+              <p className="text-gray-600">{t('noPendingRequests')}</p>
             </div>
           ) : (
             <div className="flex-1 overflow-y-auto">
@@ -193,19 +198,20 @@ export default function RequestsModal({
                         <p className="text-sm text-gray-600 truncate">@{request.user.lastfmUsername}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                    <div className="flex items-center gap-2 ml-2 md:ml-4 flex-shrink-0">
                       <LiquidGlassButton
                         onClick={() => handleAccept(request.id)}
                         disabled={processingId === request.id}
                         variant="neutral"
                         size="sm"
                         useTheme={false}
+                        className="text-xs md:text-sm"
                         style={{
                           background: 'rgba(34, 197, 94, 0.8)',
                           color: 'white',
                         }}
                       >
-                        {processingId === request.id ? 'Processing...' : 'Accept'}
+                        {processingId === request.id ? t('processing') : t('accept')}
                       </LiquidGlassButton>
                       <LiquidGlassButton
                         onClick={() => handleReject(request.id)}
@@ -213,8 +219,9 @@ export default function RequestsModal({
                         variant="danger"
                         size="sm"
                         useTheme={false}
+                        className="text-xs md:text-sm"
                       >
-                        {processingId === request.id ? 'Processing...' : 'Reject'}
+                        {processingId === request.id ? t('processing') : t('reject')}
                       </LiquidGlassButton>
                     </div>
                   </div>

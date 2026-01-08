@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 const MAX_GROUP_MEMBERS = 100
 
@@ -21,6 +22,7 @@ export default function InviteMemberModal({
   onInviteSent,
   memberCount,
 }: InviteMemberModalProps) {
+  const t = useSafeTranslations('groups.members.inviteModal')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -100,7 +102,7 @@ export default function InviteMemberModal({
     setSuccess(false)
 
     if (isAtLimit) {
-      setError(`Group has reached the maximum limit of ${MAX_GROUP_MEMBERS} members`)
+      setError(t('error.atLimitError', { max: MAX_GROUP_MEMBERS }))
       return
     }
 
@@ -108,7 +110,7 @@ export default function InviteMemberModal({
     const usernameToUse = validatedUsername || lastfmUsername.trim()
 
     if (!usernameToUse) {
-      setError('Please enter a Last.fm username')
+      setError(t('error.enterUsername'))
       return
     }
 
@@ -121,13 +123,13 @@ export default function InviteMemberModal({
 
         // Allow superusers to proceed even if user doesn't exist (canProceed flag)
         if (!checkResponse.ok && !checkData.canProceed) {
-          setError(checkData.error || 'User with this Last.fm username not found')
+          setError(checkData.error || t('error.userNotFound'))
           setIsLoading(false)
           return
         }
 
         if (!checkData.exists && !checkData.canProceed) {
-          setError(checkData.error || 'User with this Last.fm username not found')
+          setError(checkData.error || t('error.userNotFound'))
           setIsLoading(false)
           return
         }
@@ -136,7 +138,7 @@ export default function InviteMemberModal({
         const actualUsername = checkData.user?.lastfmUsername || usernameToUse
         await sendInvite(actualUsername)
       } catch (err) {
-        setError('Failed to validate username. Please try again.')
+        setError(t('error.failedToValidate'))
         setIsLoading(false)
       }
     } else {
@@ -159,15 +161,19 @@ export default function InviteMemberModal({
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send invite')
+        throw new Error(data.error || t('error.failedToSend'))
       }
 
       // Show success message with the invited username
       setSuccess(true)
       if (data.accountCreated) {
-        setSuccessMessage(`Account created and ${data.member ? 'added' : 'invite sent'} successfully for ${username}!`)
+        setSuccessMessage(
+          data.member 
+            ? t('accountCreatedAndAdded', { username })
+            : t('accountCreatedAndInviteSent', { username })
+        )
       } else {
-        setSuccessMessage(`Invite sent successfully to ${username}!`)
+        setSuccessMessage(t('inviteSentSuccess', { username }))
       }
       setLastfmUsername('')
       setValidatedUsername(null)
@@ -178,7 +184,7 @@ export default function InviteMemberModal({
         onInviteSent()
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send invite')
+      setError(err instanceof Error ? err.message : t('error.failedToSend'))
       setIsLoading(false)
     }
   }
@@ -204,17 +210,20 @@ export default function InviteMemberModal({
         style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
       />
       {/* Modal content centered */}
-      <div className="fixed inset-0 flex items-center justify-center z-[9999] pointer-events-none">
+      <div className="fixed inset-0 flex items-center justify-center z-[9999] pointer-events-none p-4">
         <div 
-          className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 pointer-events-auto"
+          className="bg-white rounded-lg shadow-xl p-4 md:p-6 max-w-md w-full pointer-events-auto max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
+          style={{
+            maxWidth: 'calc(100vw - 2rem)',
+          }}
         >
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Invite Member</h2>
+            <h2 className="text-lg md:text-2xl font-bold">{t('title')}</h2>
             <button
               onClick={handleClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl leading-none w-8 h-8 flex items-center justify-center"
-              aria-label="Close"
+              className="text-gray-500 hover:text-gray-700 text-xl md:text-2xl leading-none w-8 h-8 flex items-center justify-center"
+              aria-label={t('close')}
               disabled={isLoading}
             >
               ×
@@ -222,27 +231,27 @@ export default function InviteMemberModal({
           </div>
 
           {success && successMessage && (
-            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm transition-opacity duration-300">
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded text-xs md:text-sm transition-opacity duration-300">
               ✓ {successMessage}
             </div>
           )}
 
           {isAtLimit && (
-            <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded text-sm">
-              This group has reached the maximum limit of {MAX_GROUP_MEMBERS} members. You cannot invite more members.
+            <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded text-xs md:text-sm">
+              {t('atLimit', { max: MAX_GROUP_MEMBERS })}
             </div>
           )}
 
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-xs md:text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
             <div>
               <label htmlFor="lastfmUsername" className="block text-sm font-medium text-gray-700 mb-2">
-                Last.fm Username *
+                {t('lastfmUsername')} *
               </label>
               <div className="relative">
                 <input
@@ -251,8 +260,8 @@ export default function InviteMemberModal({
                   required
                   value={validatedUsername || lastfmUsername}
                   onChange={(e) => setLastfmUsername(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-transparent"
-                  placeholder="username"
+                  className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-transparent"
+                  placeholder={t('usernamePlaceholder')}
                   disabled={isLoading}
                 />
                 {isValidatingUsername && (
@@ -262,30 +271,32 @@ export default function InviteMemberModal({
                 )}
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Enter the Last.fm username of the user you want to invite
+                {t('usernameDescription')}
                 {validatedUsername && validatedUsername !== lastfmUsername && (
-                  <span className="text-green-600 ml-1">✓ Valid</span>
+                  <span className="text-green-600 ml-1">{t('valid')}</span>
                 )}
               </p>
             </div>
 
-            <div className="flex gap-3 justify-end">
+            <div className="flex flex-col sm:flex-row gap-3 justify-end">
               <LiquidGlassButton
                 type="button"
                 onClick={handleClose}
                 disabled={isLoading}
                 variant="neutral"
                 useTheme={false}
+                className="w-full sm:w-auto"
               >
-                Cancel
+                {t('cancel')}
               </LiquidGlassButton>
               <LiquidGlassButton
                 type="submit"
                 disabled={isLoading || isAtLimit}
                 variant="primary"
                 useTheme
+                className="w-full sm:w-auto"
               >
-                {isLoading ? 'Inviting...' : 'Invite Member'}
+                {isLoading ? t('inviting') : t('inviteMember')}
               </LiquidGlassButton>
             </div>
           </form>

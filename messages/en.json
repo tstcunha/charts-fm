@@ -410,7 +410,57 @@
       "owner": "Owner",
       "invited": "Invited",
       "inviteMember": "Invite Member",
-      "requests": "Requests"
+      "requests": "Requests",
+      "inviteModal": {
+        "title": "Invite Member",
+        "close": "Close",
+        "lastfmUsername": "Last.fm Username",
+        "usernamePlaceholder": "username",
+        "usernameDescription": "Enter the Last.fm username of the user you want to invite",
+        "valid": "✓ Valid",
+        "cancel": "Cancel",
+        "inviting": "Inviting...",
+        "inviteMember": "Invite Member",
+        "atLimit": "This group has reached the maximum limit of {max} members. You cannot invite more members.",
+        "accountCreatedAndAdded": "Account created and added successfully for {username}!",
+        "accountCreatedAndInviteSent": "Account created and invite sent successfully for {username}!",
+        "inviteSentSuccess": "Invite sent successfully to {username}!",
+        "error": {
+          "enterUsername": "Please enter a Last.fm username",
+          "userNotFound": "User with this Last.fm username not found",
+          "failedToValidate": "Failed to validate username. Please try again.",
+          "failedToSend": "Failed to send invite",
+          "atLimitError": "Group has reached the maximum limit of {max} members"
+        }
+      },
+      "requestsModal": {
+        "title": "Join Requests",
+        "close": "Close",
+        "noPendingRequests": "No pending requests",
+        "processing": "Processing...",
+        "accept": "Accept",
+        "reject": "Reject",
+        "error": {
+          "failedToFetch": "Failed to fetch requests",
+          "failedToAccept": "Failed to accept request",
+          "failedToReject": "Failed to reject request"
+        }
+      },
+      "removeModal": {
+        "title": "Remove Member",
+        "close": "Close",
+        "remove": "Remove",
+        "removed": "Removed!",
+        "removeFromGroup": "Remove {memberName} from group",
+        "confirmMessage": "Are you sure you want to remove {memberName} from this group?",
+        "cannotBeUndone": "This action cannot be undone.",
+        "cancel": "Cancel",
+        "removing": "Removing...",
+        "removeMember": "Remove Member",
+        "error": {
+          "failedToRemove": "Failed to remove member"
+        }
+      }
     },
     "search": {
       "title": "Search Charts",
