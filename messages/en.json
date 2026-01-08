@@ -703,6 +703,9 @@
     "public": {
       "notFoundDescription": "This group may not exist or may be private.",
       "viewAsMember": "View as Member",
+      "joinCommunityMessage": "Create your account or log in to join this community!",
+      "logIn": "Log In",
+      "createAccount": "Create Account",
       "totalPlaysThisWeek": "Total Plays This Week",
       "noChartsDescription": "This group hasn't generated any charts yet.",
       "groupFullMessage": "This group has reached the maximum limit of {count} members.",

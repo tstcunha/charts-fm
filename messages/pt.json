@@ -703,6 +703,9 @@
     "public": {
       "notFoundDescription": "Esta comunidade não existe, ou é privada.",
       "viewAsMember": "Visualizar como membro",
+      "joinCommunityMessage": "Crie sua conta ou faça login para se juntar a esta comunidade!",
+      "logIn": "Entrar",
+      "createAccount": "Criar Conta",
       "totalPlaysThisWeek": "Total de plays esta semana",
       "noChartsDescription": "Esta comunidade ainda não gerou nenhum chart.",
       "groupFullMessage": "Esta comunidade atingiu o limite máximo de {count} membros.",

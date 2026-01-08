@@ -1,7 +1,9 @@
 import { getPublicGroupById } from '@/lib/group-queries'
 import PublicGroupHeroServer from './PublicGroupHeroServer'
 import PublicGroupWeeklyCharts from './PublicGroupWeeklyCharts'
+import LoggedOutBanner from './LoggedOutBanner'
 import { getTranslations } from 'next-intl/server'
+import { getSession } from '@/lib/auth'
 import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: { id: string; locale: string } }): Promise<Metadata> {
@@ -45,11 +47,18 @@ export default async function PublicGroupPage({ params }: { params: { id: string
   // @ts-ignore - Prisma client will be regenerated after migration
   const chartMode = (group.chartMode || 'plays_only') as string
 
+  // Check if user is logged out
+  const session = await getSession()
+  const isLoggedOut = !session?.user?.email
+
   return (
     <main 
       className={`flex min-h-screen flex-col pt-8 pb-24 px-4 md:px-6 lg:px-12 xl:px-24 ${themeClass} bg-gradient-to-b from-[var(--theme-background-from)] to-[var(--theme-background-to)]`}
     >
       <div className="max-w-6xl w-full mx-auto">
+        {/* Banner for logged-out users */}
+        {isLoggedOut && <LoggedOutBanner />}
+        
         {/* Hero Section - loaded server-side for immediate display */}
         <PublicGroupHeroServer groupId={group.id} colorTheme={colorTheme} />
         
