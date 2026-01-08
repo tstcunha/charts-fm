@@ -701,7 +701,7 @@ export async function initializeGroupWithHistory(groupId: string): Promise<void>
   }> = []
   
   for (const weekStart of weeksInOrder) {
-    const entriesForInvalidation = await calculateGroupWeeklyStats(
+    const result = await calculateGroupWeeklyStats(
       groupId,
       weekStart,
       chartSize,
@@ -711,7 +711,7 @@ export async function initializeGroupWithHistory(groupId: string): Promise<void>
       true // skipTrends = true
     )
     // Collect entries for batch invalidation at the end
-    allEntriesForInvalidation.push(...entriesForInvalidation)
+    allEntriesForInvalidation.push(...result.entries)
     // Small delay between API calls
     await new Promise(resolve => setTimeout(resolve, 500))
   }

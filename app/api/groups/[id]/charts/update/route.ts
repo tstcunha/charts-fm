@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { requireGroupMembership } from '@/lib/group-auth'
 import { calculateGroupWeeklyStats, deleteOverlappingCharts, updateGroupIconFromChart, getLastChartWeek } from '@/lib/group-service'
 import { getWeekStartForDay, getWeekEndForDay, getLastNFinishedWeeksForDay } from '@/lib/weekly-utils'
@@ -77,7 +78,7 @@ export async function GET(
     let aborted = false
     if (!inProgress && group.lastChartGenerationFailedUsers) {
       failedUsers = Array.isArray(group.lastChartGenerationFailedUsers) 
-        ? group.lastChartGenerationFailedUsers 
+        ? (group.lastChartGenerationFailedUsers as string[])
         : []
       aborted = group.lastChartGenerationAborted || false
       
@@ -85,7 +86,7 @@ export async function GET(
       await prisma.group.update({
         where: { id: group.id },
         data: {
-          lastChartGenerationFailedUsers: null,
+          lastChartGenerationFailedUsers: Prisma.JsonNull,
           lastChartGenerationAborted: null,
         },
       }).catch((err) => {
