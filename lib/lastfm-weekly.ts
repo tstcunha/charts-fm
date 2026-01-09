@@ -4,7 +4,6 @@
 import { authenticatedLastFMCall } from './lastfm-auth'
 import { getWeekStart, getWeekEnd } from './weekly-utils'
 import { acquireLastFMRateLimit } from './lastfm-rate-limiter'
-import { getLastFMAPILogger } from './lastfm-api-logger'
 
 const LASTFM_API_BASE = 'https://ws.audioscrobbler.com/2.0/'
 
@@ -105,19 +104,6 @@ export async function getWeeklyTopTracks(
     // Acquire rate limit token before making the request
     await acquireLastFMRateLimit(1)
     
-    const logger = getLastFMAPILogger()
-    const logEntry = logger.logRequest(
-      username,
-      'user.getWeeklyTrackChart',
-      'unauthenticated',
-      {
-        method: 'user.getWeeklyTrackChart',
-        user: username,
-        from: from.toString(),
-        to: to.toString(),
-      }
-    )
-    
     data = await retryWithBackoff(async () => {
       const params = new URLSearchParams({
         method: 'user.getWeeklyTrackChart',
@@ -135,18 +121,6 @@ export async function getWeeklyTopTracks(
         responseData = JSON.parse(responseText)
       } catch (e) {
         responseData = { _rawResponse: responseText }
-      }
-      
-      // Log the response
-      if (!response.ok || responseData.error) {
-        await logger.logResponse(
-          logEntry,
-          response.status,
-          responseData,
-          responseData.error ? `${responseData.message || responseData.error}` : `HTTP ${response.status}: ${response.statusText}`
-        )
-      } else {
-        await logger.logResponse(logEntry, response.status, responseData)
       }
       
       // Handle rate limiting (HTTP 429)
@@ -238,19 +212,6 @@ export async function getWeeklyTopArtists(
     // Acquire rate limit token before making the request
     await acquireLastFMRateLimit(1)
     
-    const logger = getLastFMAPILogger()
-    const logEntry = logger.logRequest(
-      username,
-      'user.getWeeklyArtistChart',
-      'unauthenticated',
-      {
-        method: 'user.getWeeklyArtistChart',
-        user: username,
-        from: from.toString(),
-        to: to.toString(),
-      }
-    )
-    
     data = await retryWithBackoff(async () => {
       const params = new URLSearchParams({
         method: 'user.getWeeklyArtistChart',
@@ -268,18 +229,6 @@ export async function getWeeklyTopArtists(
         responseData = JSON.parse(responseText)
       } catch (e) {
         responseData = { _rawResponse: responseText }
-      }
-      
-      // Log the response
-      if (!response.ok || responseData.error) {
-        await logger.logResponse(
-          logEntry,
-          response.status,
-          responseData,
-          responseData.error ? `${responseData.message || responseData.error}` : `HTTP ${response.status}: ${response.statusText}`
-        )
-      } else {
-        await logger.logResponse(logEntry, response.status, responseData)
       }
       
       // Handle rate limiting (HTTP 429)
@@ -370,19 +319,6 @@ export async function getWeeklyTopAlbums(
     // Acquire rate limit token before making the request
     await acquireLastFMRateLimit(1)
     
-    const logger = getLastFMAPILogger()
-    const logEntry = logger.logRequest(
-      username,
-      'user.getWeeklyAlbumChart',
-      'unauthenticated',
-      {
-        method: 'user.getWeeklyAlbumChart',
-        user: username,
-        from: from.toString(),
-        to: to.toString(),
-      }
-    )
-    
     data = await retryWithBackoff(async () => {
       const params = new URLSearchParams({
         method: 'user.getWeeklyAlbumChart',
@@ -400,18 +336,6 @@ export async function getWeeklyTopAlbums(
         responseData = JSON.parse(responseText)
       } catch (e) {
         responseData = { _rawResponse: responseText }
-      }
-      
-      // Log the response
-      if (!response.ok || responseData.error) {
-        await logger.logResponse(
-          logEntry,
-          response.status,
-          responseData,
-          responseData.error ? `${responseData.message || responseData.error}` : `HTTP ${response.status}: ${response.statusText}`
-        )
-      } else {
-        await logger.logResponse(logEntry, response.status, responseData)
       }
       
       // Handle rate limiting (HTTP 429)

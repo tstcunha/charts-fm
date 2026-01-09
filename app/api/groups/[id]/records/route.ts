@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { requireGroupMembership } from '@/lib/group-auth'
 import { getGroupRecords, calculateGroupRecords, triggerRecordsCalculation } from '@/lib/group-records'
 import { prisma } from '@/lib/prisma'
-import { RecordsCalculationLogger } from '@/lib/records-calculation-logger'
 
 export async function GET(
   request: Request,
@@ -153,10 +152,8 @@ export async function POST(
 
 // Background function to calculate records
 async function calculateRecordsInBackground(groupId: string): Promise<void> {
-  const logger = new RecordsCalculationLogger(groupId)
-  
   try {
-    const records = await calculateGroupRecords(groupId, undefined, logger)
+    const records = await calculateGroupRecords(groupId)
     
     // Update records with completed status
     await prisma.groupRecords.update({
@@ -168,9 +165,6 @@ async function calculateRecordsInBackground(groupId: string): Promise<void> {
       },
     })
   } catch (error) {
-    logger.log('Error during calculation', 0, String(error))
-    await logger.logSummary()
-    
     // Update status to failed
     await prisma.groupRecords.update({
       where: { groupId },

@@ -9,9 +9,7 @@ import { recalculateAllTimeStats } from '@/lib/group-alltime-stats'
 import { invalidateEntryStatsCacheBatch } from '@/lib/chart-deep-dive'
 import { calculateGroupTrends } from '@/lib/group-trends'
 import { calculateGroupRecords, getGroupRecords } from '@/lib/group-records'
-import { RecordsCalculationLogger } from '@/lib/records-calculation-logger'
 import { ChartType } from '@/lib/chart-slugs'
-import { getLastFMAPILogger, resetLastFMAPILogger } from '@/lib/lastfm-api-logger'
 
 const LOCK_TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes
 
@@ -229,10 +227,6 @@ async function generateChartsInBackground(
   chartSize: number,
   chartMode: 'vs' | 'vs_weighted' | 'plays_only'
 ): Promise<void> {
-  // Initialize Last.fm API logger for this chart generation
-  const lastfmLogger = getLastFMAPILogger(groupId)
-  console.log(`[Chart Generation] Last.fm API logger initialized: ${lastfmLogger.getLogFile()}`)
-  
   try {
     // Get last chart week
     const lastChartWeek = await getLastChartWeek(groupId)
@@ -451,11 +445,6 @@ async function generateChartsInBackground(
     } catch (error: any) {
       console.error('Error generating charts in background:', error)
       
-      // Log summary before handling error
-      await lastfmLogger.logSummary().catch((err) => {
-        console.error('Error writing Last.fm API log summary:', err)
-      })
-      
       // If we have failed users info, store it before handling the error
       if (allFailedUsers && allFailedUsers.size > 0) {
         await prisma.group.update({
@@ -478,14 +467,6 @@ async function generateChartsInBackground(
       }
     }
     
-    // Log summary on successful completion
-    await lastfmLogger.logSummary().catch((err) => {
-      console.error('Error writing Last.fm API log summary:', err)
-    })
-    
-    // Reset logger for next generation
-    resetLastFMAPILogger()
-
     // Update group icon if dynamic icon is enabled (don't await - let it run in background)
     updateGroupIconFromChart(groupId).catch((error) => {
       console.error('Error updating group icon after chart generation:', error)
@@ -613,10 +594,8 @@ async function calculateRecordsInBackgroundAfterCharts(
   groupId: string,
   newEntries?: Array<{ entryKey: string; chartType: ChartType; position: number }>
 ): Promise<void> {
-  const logger = new RecordsCalculationLogger(groupId)
-  
   try {
-    const records = await calculateGroupRecords(groupId, newEntries, logger)
+    const records = await calculateGroupRecords(groupId, newEntries)
     
     // Update records with completed status
     await prisma.groupRecords.update({
@@ -629,8 +608,6 @@ async function calculateRecordsInBackgroundAfterCharts(
     })
   } catch (error) {
     console.error(`[Records] Error during calculation for group ${groupId}:`, error)
-    logger.log('Error during calculation', 0, String(error))
-    await logger.logSummary()
     
     // Update status to failed
     await prisma.groupRecords.update({

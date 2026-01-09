@@ -7,7 +7,6 @@ import { getLastNFinishedWeeks, getLastNFinishedWeeksForDay, getWeekEndForDay } 
 import { recalculateAllTimeStats } from '@/lib/group-alltime-stats'
 import { getGroupRecords, triggerRecordsCalculation } from '@/lib/group-records'
 import type { ChartType } from '@/lib/chart-slugs'
-import { getLastFMAPILogger, resetLastFMAPILogger } from '@/lib/lastfm-api-logger'
 
 const LOCK_TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes
 
@@ -211,10 +210,6 @@ export async function POST(
     },
   })
   
-  // Initialize Last.fm API logger for this chart generation
-  const lastfmLogger = getLastFMAPILogger(groupId)
-  console.log(`[Chart Generation] Last.fm API logger initialized: ${lastfmLogger.getLogFile()}`)
-  
   // Before generating, delete any overlapping charts for the weeks we're about to regenerate
   for (const weekStart of weeks) {
     const weekEnd = getWeekEndForDay(weekStart, trackingDayOfWeek)
@@ -309,11 +304,6 @@ export async function POST(
         },
       }).catch((err) => {
         console.error('Error releasing lock after abort:', err)
-      })
-      
-      // Log summary
-      await lastfmLogger.logSummary().catch((err) => {
-        console.error('Error writing Last.fm API log summary:', err)
       })
       
       return NextResponse.json(
@@ -462,10 +452,6 @@ export async function POST(
     
     // Check if error has failed users information (from abort logic)
     if (allFailedUsers && allFailedUsers.size > 0) {
-      await lastfmLogger.logSummary().catch((err) => {
-        console.error('Error writing Last.fm API log summary:', err)
-      })
-      
       return NextResponse.json(
         {
           error: shouldAbortGeneration 
@@ -480,20 +466,11 @@ export async function POST(
     
     // Handle Prisma validation errors
     if (error.message && error.message.includes('did not match the expected pattern')) {
-      await lastfmLogger.logSummary().catch((err) => {
-        console.error('Error writing Last.fm API log summary:', err)
-      })
-      
       return NextResponse.json(
         { error: 'Invalid data format detected. Please check that all group members have valid Last.fm usernames and try again.' },
         { status: 400 }
       )
     }
-    
-    // Log summary before returning error
-    await lastfmLogger.logSummary().catch((err) => {
-      console.error('Error writing Last.fm API log summary:', err)
-    })
     
     // Return error response instead of throwing (prevents 500)
     // Always include failedUsers array (even if empty) so frontend can check for it
@@ -506,14 +483,6 @@ export async function POST(
       { status: 500 }
     )
   }
-
-  // Log summary on successful completion
-  await lastfmLogger.logSummary().catch((err) => {
-    console.error('Error writing Last.fm API log summary:', err)
-  })
-  
-  // Reset logger for next generation
-  resetLastFMAPILogger()
 
   // Update group icon if dynamic icon is enabled
   // Don't await - let it run in background to avoid blocking the response
@@ -554,12 +523,9 @@ async function calculateRecordsInBackgroundAfterCharts(
   groupId: string,
   newEntries?: Array<{ entryKey: string; chartType: ChartType; position: number }>
 ): Promise<void> {
-  const { RecordsCalculationLogger } = await import('@/lib/records-calculation-logger')
-  const logger = new RecordsCalculationLogger(groupId)
-  
   try {
     const { calculateGroupRecords } = await import('@/lib/group-records')
-    const records = await calculateGroupRecords(groupId, newEntries, logger)
+    const records = await calculateGroupRecords(groupId, newEntries)
     
     // Update records with completed status
     await prisma.groupRecords.update({
@@ -572,8 +538,6 @@ async function calculateRecordsInBackgroundAfterCharts(
     })
   } catch (error) {
     console.error(`[Records] Error during calculation for group ${groupId}:`, error)
-    logger.log('Error during calculation', 0, String(error))
-    await logger.logSummary()
     
     // Update status to failed
     await prisma.groupRecords.update({

@@ -1,7 +1,6 @@
 // Functions to calculate and cache group records
 import { prisma } from './prisma'
 import { ChartType, generateSlug } from './chart-slugs'
-import { RecordsCalculationLogger } from './records-calculation-logger'
 
 export interface RecordHolder {
   entryKey: string
@@ -137,10 +136,8 @@ export async function getGroupRecords(groupId: string) {
  * Phase 1: Query ChartEntryStats cache for pre-calculated metrics
  */
 async function calculatePhase1Records(
-  groupId: string,
-  logger: RecordsCalculationLogger
+  groupId: string
 ): Promise<Partial<GroupRecordsData>> {
-  const phaseStart = await logger.logStart('Phase 1: Query ChartEntryStats cache')
   
   const chartTypes: ChartType[] = ['artists', 'tracks', 'albums']
   const records: Partial<GroupRecordsData> = {
@@ -272,7 +269,6 @@ async function calculatePhase1Records(
     totalEntries += count
   }
 
-  await phaseStart.end(`Found ${totalEntries} entries in cache`)
   return records
 }
 
@@ -280,10 +276,8 @@ async function calculatePhase1Records(
  * Phase 2: SQL aggregations for counts
  */
 async function calculatePhase2Records(
-  groupId: string,
-  logger: RecordsCalculationLogger
+  groupId: string
 ): Promise<Partial<GroupRecordsData>> {
-  const phaseStart = await logger.logStart('Phase 2: SQL aggregations')
   
   const chartTypes: ChartType[] = ['artists', 'tracks', 'albums']
   const records: Partial<GroupRecordsData> = {
@@ -369,7 +363,6 @@ async function calculatePhase2Records(
     records.totalDifferentEntriesCharted![chartType] = totalCharted.length
   }
 
-  await phaseStart.end(`Processed ${chartTypes.length} chart types`)
   return records
 }
 
@@ -380,10 +373,8 @@ async function calculatePhase2Records(
 async function calculatePhase3Records(
   groupId: string,
   existingRecords: GroupRecordsData | null,
-  newEntries: Array<{ entryKey: string; chartType: ChartType; position: number }> | undefined,
-  logger: RecordsCalculationLogger
+  newEntries: Array<{ entryKey: string; chartType: ChartType; position: number }> | undefined
 ): Promise<Partial<GroupRecordsData>> {
-  const phaseStart = await logger.logStart('Phase 3: Incremental calculations')
   
   const records: Partial<GroupRecordsData> = {
     mostConsecutiveWeeksAtOne: { artists: null, tracks: null, albums: null },
@@ -398,7 +389,6 @@ async function calculatePhase3Records(
       existingRecords.mostConsecutiveWeeksAtOne && 
       existingRecords.mostConsecutiveWeeksInTop10) {
     // Incremental calculation - only check entries in new charts
-    logger.setEntriesChecked(newEntries.length)
     
     // For consecutive weeks at #1, check entries that appeared at position 1
     const entriesAtOne = newEntries.filter(e => e.position === 1)
@@ -451,7 +441,6 @@ async function calculatePhase3Records(
               value: longestStreak,
               slug: generateSlug(entry.entryKey, entry.chartType),
             }
-            logger.incrementRecordsUpdated()
           }
         }
       }
@@ -505,7 +494,6 @@ async function calculatePhase3Records(
               value: longestStreak,
               slug: generateSlug(entry.entryKey, entry.chartType),
             }
-            logger.incrementRecordsUpdated()
           }
         }
       }
@@ -745,7 +733,6 @@ async function calculatePhase3Records(
     }
   }
 
-  await phaseStart.end(newEntries ? `Checked ${newEntries.length} entries` : 'Full calculation')
   return records
 }
 
@@ -753,10 +740,8 @@ async function calculatePhase3Records(
  * Phase 4: User contributions - Most popular entry
  */
 async function calculatePhase4Records(
-  groupId: string,
-  logger: RecordsCalculationLogger
+  groupId: string
 ): Promise<Partial<GroupRecordsData>> {
-  const phaseStart = await logger.logStart('Phase 4: User contributions')
   
   const records: Partial<GroupRecordsData> = {
     mostPopular: { artists: null, tracks: null, albums: null },
@@ -806,7 +791,6 @@ async function calculatePhase4Records(
     }
   }
 
-  await phaseStart.end('Found most popular entries')
   return records
 }
 
@@ -814,10 +798,8 @@ async function calculatePhase4Records(
  * Phase 5: Artist aggregations
  */
 async function calculatePhase5Records(
-  groupId: string,
-  logger: RecordsCalculationLogger
+  groupId: string
 ): Promise<Partial<GroupRecordsData>> {
-  const phaseStart = await logger.logStart('Phase 5: Artist aggregations')
   
   const records: Partial<GroupRecordsData> = {
     artistMostNumberOneSongs: null,
@@ -1023,7 +1005,6 @@ async function calculatePhase5Records(
     }
   }
 
-  await phaseStart.end(`Processed ${artistMap.size} artists`)
   return records
 }
 
@@ -1031,10 +1012,8 @@ async function calculatePhase5Records(
  * Phase 6: User records
  */
 async function calculatePhase6Records(
-  groupId: string,
-  logger: RecordsCalculationLogger
+  groupId: string
 ): Promise<Partial<GroupRecordsData>> {
-  const phaseStart = await logger.logStart('Phase 6: User records')
   
   const records: Partial<GroupRecordsData> = {
     userMostVS: null,
@@ -1062,13 +1041,11 @@ async function calculatePhase6Records(
   })
 
   if (members.length === 0) {
-    await phaseStart.end('No members found')
     return records
   }
 
   // Skip user records calculation if fewer than 3 members
   if (members.length < 3) {
-    await phaseStart.end(`Skipped: Only ${members.length} member(s), need at least 3 for user awards`)
     return records
   }
 
@@ -1364,7 +1341,6 @@ async function calculatePhase6Records(
     }
   }
 
-  await phaseStart.end(`Processed ${members.length} users`)
   return records
 }
 
@@ -1373,16 +1349,9 @@ async function calculatePhase6Records(
  */
 export async function calculateGroupRecords(
   groupId: string,
-  newEntries?: Array<{ entryKey: string; chartType: ChartType; position: number }>,
-  logger?: RecordsCalculationLogger
+  newEntries?: Array<{ entryKey: string; chartType: ChartType; position: number }>
 ): Promise<GroupRecordsData> {
-  const recordsLogger = logger || new RecordsCalculationLogger(groupId)
   const isIncremental = !!newEntries
-  recordsLogger.setCalculationType(isIncremental ? 'incremental' : 'full')
-
-  const startLog = await recordsLogger.logStart(
-    `Starting records calculation (${isIncremental ? 'incremental' : 'full'})`
-  )
 
   // Get existing records if incremental
   const existingRecords = isIncremental ? await getGroupRecords(groupId) : null
@@ -1405,22 +1374,22 @@ export async function calculateGroupRecords(
 
   try {
     // Phase 1: ChartEntryStats cache
-    const phase1 = await calculatePhase1Records(groupId, recordsLogger)
+    const phase1 = await calculatePhase1Records(groupId)
 
     // Phase 2: SQL aggregations
-    const phase2 = await calculatePhase2Records(groupId, recordsLogger)
+    const phase2 = await calculatePhase2Records(groupId)
 
     // Phase 3: Incremental calculations
-    const phase3 = await calculatePhase3Records(groupId, existingRecordsData, newEntries, recordsLogger)
+    const phase3 = await calculatePhase3Records(groupId, existingRecordsData, newEntries)
 
     // Phase 4: User contributions
-    const phase4 = await calculatePhase4Records(groupId, recordsLogger)
+    const phase4 = await calculatePhase4Records(groupId)
 
     // Phase 5: Artist aggregations
-    const phase5 = await calculatePhase5Records(groupId, recordsLogger)
+    const phase5 = await calculatePhase5Records(groupId)
 
     // Phase 6: User records
-    const phase6 = await calculatePhase6Records(groupId, recordsLogger)
+    const phase6 = await calculatePhase6Records(groupId)
 
     // Merge all records
     // For incremental updates, merge with existing records (only update changed ones)
@@ -1443,13 +1412,8 @@ export async function calculateGroupRecords(
           ...phase6,
         } as GroupRecordsData
 
-    await startLog.end('Calculation completed')
-    await recordsLogger.logSummary()
-
     return allRecords
   } catch (error) {
-    await recordsLogger.log('Error during calculation', 0, String(error))
-    await recordsLogger.logSummary()
     throw error
   }
 }
