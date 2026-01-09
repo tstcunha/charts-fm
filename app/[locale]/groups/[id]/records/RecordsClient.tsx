@@ -133,11 +133,16 @@ export default function RecordsClient({ groupId, initialRecords, memberCount }: 
   }
   
   const defaultTab: 'artists' | 'tracks' | 'albums' | 'users' = 'users'
-  const initialTab = getTabFromHash() || defaultTab
-  const [activeTab, setActiveTab] = useState<'artists' | 'tracks' | 'albums' | 'users'>(initialTab)
+  // Initialize with defaultTab, then check hash on mount
+  const [activeTab, setActiveTab] = useState<'artists' | 'tracks' | 'albums' | 'users'>(defaultTab)
   
-  // Update active tab when hash changes (e.g., back button)
+  // Check hash fragment on mount and when hash changes
   useEffect(() => {
+    const tabFromHash = getTabFromHash()
+    if (tabFromHash) {
+      setActiveTab(tabFromHash)
+    }
+    
     const handleHashChange = () => {
       const tabFromHash = getTabFromHash()
       if (tabFromHash && tabFromHash !== activeTab) {
@@ -150,7 +155,7 @@ export default function RecordsClient({ groupId, initialRecords, memberCount }: 
     
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
-  }, [activeTab])
+  }, [activeTab, defaultTab])
   
   // Update hash when tab changes (no page refresh, preserves scroll position)
   const handleTabChange = (tabId: string) => {

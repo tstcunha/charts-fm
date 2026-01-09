@@ -176,14 +176,19 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
   }
   
   const defaultTab: CategoryTab = 'members'
-  const initialTab = getTabFromHash() || defaultTab
-  const [activeTab, setActiveTab] = useState<CategoryTab>(initialTab)
+  // Initialize with defaultTab, then check hash on mount
+  const [activeTab, setActiveTab] = useState<CategoryTab>(defaultTab)
   const [longestStreaks, setLongestStreaks] = useState<any[]>([])
   const [comebacks, setComebacks] = useState<any[]>([])
   const [mostDiverseSpotlight, setMostDiverseSpotlight] = useState<any>(null)
   
-  // Update active tab when hash changes (e.g., back button)
+  // Check hash fragment on mount and when hash changes
   useEffect(() => {
+    const tabFromHash = getTabFromHash()
+    if (tabFromHash) {
+      setActiveTab(tabFromHash)
+    }
+    
     const handleHashChange = () => {
       const tabFromHash = getTabFromHash()
       if (tabFromHash && tabFromHash !== activeTab) {
@@ -196,7 +201,7 @@ export default function TrendsClient({ trends, groupId, userId }: TrendsClientPr
     
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
-  }, [activeTab])
+  }, [activeTab, defaultTab])
   
   // Update hash when tab changes (no page refresh, preserves scroll position)
   const handleTabChange = (tabId: string) => {

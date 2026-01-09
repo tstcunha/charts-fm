@@ -543,7 +543,7 @@ export default function Navbar() {
                       className="object-cover w-8 h-8 rounded-full"
                     />
                   </div>
-                  <span>{userData?.name || session?.user?.name || t('user')}</span>
+                  <span className="max-w-[180px] truncate">{userData?.name || session?.user?.name || t('user')}</span>
                   <svg
                     className={`w-4 h-4 transition-transform ${
                       isDropdownOpen ? 'transform rotate-180' : ''
@@ -580,12 +580,12 @@ export default function Navbar() {
                     }}
                   >
                     <div className="py-1">
-                      <div className="px-4 py-2 border-b border-gray-700/50">
-                        <p className="text-sm font-bold text-white">
+                      <div className="px-4 py-2 border-b border-gray-700/50 min-w-0">
+                        <p className="text-sm font-bold text-white truncate">
                           {userData?.name || session?.user?.name || t('user')}
                         </p>
                         {userData?.lastfmUsername && (
-                          <p className="text-xs font-bold text-gray-400">
+                          <p className="text-xs font-bold text-gray-400 truncate">
                             @{userData.lastfmUsername}
                           </p>
                         )}
@@ -738,10 +738,10 @@ export default function Navbar() {
                             className="object-cover w-10 h-10 rounded-full"
                           />
                         </div>
-                        <div>
-                          <p className="text-white font-semibold">{userData.name || session?.user?.name || t('user')}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-white font-semibold truncate">{userData.name || session?.user?.name || t('user')}</p>
                           {userData.lastfmUsername && (
-                            <p className="text-gray-400 text-sm">@{userData.lastfmUsername}</p>
+                            <p className="text-gray-400 text-sm truncate">@{userData.lastfmUsername}</p>
                           )}
                         </div>
                       </div>
