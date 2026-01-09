@@ -421,20 +421,50 @@ export async function POST(
         // Don't proceed if we can't create the record
       }
 
-      // Trigger async records calculation (fire-and-forget)
-      calculateRecordsInBackgroundAfterCharts(
-        groupId,
-        useIncremental ? uniqueEntries : undefined
-      ).catch((error) => {
-        console.error('[Records] Error calculating records in background:', error)
+      // Trigger records calculation via separate API endpoint
+      // This ensures the calculation runs in its own execution context
+      // and won't be terminated when this request completes (important for serverless)
+      try {
+        // Get base URL from environment or request
+        let baseUrl = process.env.NEXT_PUBLIC_APP_URL
+        if (!baseUrl) {
+          if (process.env.VERCEL_URL) {
+            baseUrl = `https://${process.env.VERCEL_URL}`
+          } else {
+            // Try to get from request headers (for local development)
+            const origin = request.headers.get('origin')
+            const host = request.headers.get('host')
+            baseUrl = origin || (host ? `https://${host}` : 'http://localhost:3000')
+          }
+        }
+        
+        const calculateUrl = `${baseUrl}/api/groups/${groupId}/records/calculate`
+        
+        // Call the calculation endpoint (fire-and-forget)
+        fetch(calculateUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newEntries: useIncremental ? uniqueEntries : undefined }),
+        }).catch((error) => {
+          console.error('[Records] Error triggering calculation endpoint:', error)
+          // Update status to failed if we can't even trigger the calculation
+          prisma.groupRecords.update({
+            where: { groupId },
+            data: { status: 'failed' },
+          }).catch((err) => {
+            console.error('[Records] Error updating records status to failed:', err)
+          })
+        })
+      } catch (err) {
+        console.error('[Records] Error setting up calculation endpoint call:', err)
         // Update status to failed
         prisma.groupRecords.update({
           where: { groupId },
           data: { status: 'failed' },
-        }).catch((err) => {
-          console.error('[Records] Error updating records status to failed:', err)
+        }).catch((updateErr) => {
+          console.error('[Records] Error updating records status to failed:', updateErr)
         })
-      })
+      }
     }
   } catch (error: any) {
     console.error('Error generating charts:', error)
@@ -519,36 +549,4 @@ export async function POST(
   return NextResponse.json(response)
 }
 
-// Background function to calculate records after charts are generated
-async function calculateRecordsInBackgroundAfterCharts(
-  groupId: string,
-  newEntries?: Array<{ entryKey: string; chartType: ChartType; position: number }>
-): Promise<void> {
-  try {
-    const { calculateGroupRecords } = await import('@/lib/group-records')
-    const records = await calculateGroupRecords(groupId, newEntries)
-    
-    // Update records with completed status
-    await prisma.groupRecords.update({
-      where: { groupId },
-      data: {
-        status: 'completed',
-        records: records as any,
-        updatedAt: new Date(),
-      },
-    })
-  } catch (error) {
-    console.error(`[Records] Error during calculation for group ${groupId}:`, error)
-    
-    // Update status to failed
-    await prisma.groupRecords.update({
-      where: { groupId },
-      data: { status: 'failed' },
-    }).catch((err) => {
-      console.error('[Records] Error updating records status to failed:', err)
-    })
-    
-    throw error
-  }
-}
 
