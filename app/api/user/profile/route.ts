@@ -81,8 +81,8 @@ export async function PATCH(request: Request) {
         { status: 400 }
       )
     }
-    // Basic URL validation
-    if (trimmedImage && !trimmedImage.match(/^https?:\/\/.+/i) && !trimmedImage.startsWith('/')) {
+    // Basic URL validation - allow blob URLs from Vercel Blob
+    if (trimmedImage && !trimmedImage.match(/^https?:\/\/.+/i) && !trimmedImage.startsWith('/') && !trimmedImage.startsWith('blob:')) {
       return NextResponse.json(
         { error: 'Image must be a valid URL or path' },
         { status: 400 }

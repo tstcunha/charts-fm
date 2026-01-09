@@ -5,10 +5,12 @@ import { useRouter } from '@/i18n/routing'
 import Image from 'next/image'
 import { getDefaultGroupImage } from '@/lib/default-images'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faSpinner, faUpload, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons'
 import LiquidGlassButton from '@/components/LiquidGlassButton'
 import DeleteAccountModal from '@/components/DeleteAccountModal'
+import RemovePictureModal from '@/components/RemovePictureModal'
 import CustomSelect from '@/components/CustomSelect'
+import Toast from '@/components/Toast'
 import { useTranslations } from 'next-intl'
 import { routing } from '@/i18n/routing'
 
@@ -28,6 +30,12 @@ export default function ProfilePage() {
   const [originalLocale, setOriginalLocale] = useState<string>('en')
   const [lastfmUsername, setLastfmUsername] = useState<string | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [isRemoving, setIsRemoving] = useState(false)
+  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false)
 
   useEffect(() => {
     document.title = 'ChartsFM - Profile'
@@ -55,6 +63,18 @@ export default function ProfilePage() {
       })
   }, [t])
 
+  // Map API error messages to translation keys
+  const translateError = (errorMessage: string): string => {
+    const errorMap: Record<string, string> = {
+      'Image must be a valid URL or path': t('errors.invalidImageUrl'),
+      'Image URL cannot exceed 500 characters': t('errors.imageTooLong'),
+      'Image must be a string': t('errors.imageMustBeString'),
+      'Name cannot exceed 100 characters': t('errors.nameTooLong'),
+      'Name must be a string': t('errors.nameMustBeString'),
+    }
+    return errorMap[errorMessage] || errorMessage
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -73,11 +93,11 @@ export default function ProfilePage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || t('failedToUpdate'))
+        const translatedError = translateError(data.error || '')
+        throw new Error(translatedError || t('failedToUpdate'))
       }
 
       setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
       
       // If locale changed, set cookie and reload the page to apply the new locale
       if (formData.locale !== originalLocale) {
@@ -89,6 +109,7 @@ export default function ProfilePage() {
         window.location.href = `/${formData.locale}/profile`
       }
     } catch (err) {
+      // Error is already translated in the throw above, or use default
       setError(err instanceof Error ? err.message : t('failedToUpdate'))
     } finally {
       setIsSaving(false)
@@ -106,10 +127,152 @@ export default function ProfilePage() {
     )
   }
 
-  const displayImage = formData.image || getDefaultGroupImage()
+  const displayImage = previewUrl || formData.image || getDefaultGroupImage()
+  
+  // Check if current image is from uploaded storage
+  const isUploadedImage = formData.image && (
+    formData.image.startsWith('/uploads/profile-pictures/') ||
+    formData.image.includes('blob.vercel-storage.com')
+  )
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+    if (!validTypes.includes(file.type)) {
+      setError(t('upload.invalidFileType'))
+      return
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError(t('upload.fileTooLarge'))
+      return
+    }
+
+    setSelectedFile(file)
+    setError(null)
+
+    // Create preview URL
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return
+
+    setIsUploading(true)
+    setError(null)
+    setUploadProgress(0)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+
+      const response = await fetch('/api/user/profile/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || t('upload.failed'))
+      }
+
+      // Don't update formData.image - the upload endpoint already updated the database
+      // Reload profile data to get the updated image
+      const profileResponse = await fetch('/api/user/profile')
+      const profileData = await profileResponse.json()
+      
+      if (profileData.user) {
+        setFormData(prev => ({
+          ...prev,
+          image: profileData.user.image || '',
+        }))
+      }
+      
+      setSuccess(true)
+      
+      // Clear file selection
+      setSelectedFile(null)
+      setPreviewUrl(null)
+      
+      // Reset file input
+      const fileInput = document.getElementById('file-upload') as HTMLInputElement
+      if (fileInput) fileInput.value = ''
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('upload.failed'))
+    } finally {
+      setIsUploading(false)
+      setUploadProgress(0)
+    }
+  }
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null)
+    setPreviewUrl(null)
+    const fileInput = document.getElementById('file-upload') as HTMLInputElement
+    if (fileInput) fileInput.value = ''
+  }
+
+  const handleRemovePicture = async () => {
+    if (!formData.image) return
+
+    setIsRemoving(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/user/profile/picture', {
+        method: 'DELETE',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || t('removePicture.failed'))
+      }
+
+      // Reload profile data to get updated state
+      const profileResponse = await fetch('/api/user/profile')
+      const profileData = await profileResponse.json()
+      
+      if (profileData.user) {
+        setFormData(prev => ({
+          ...prev,
+          image: profileData.user.image || '',
+        }))
+      }
+      
+      setSuccess(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('removePicture.failed'))
+    } finally {
+      setIsRemoving(false)
+    }
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50 relative overflow-hidden">
+      {/* Toast notifications */}
+      <Toast
+        message={t('profileUpdated')}
+        type="success"
+        isVisible={success}
+        onClose={() => setSuccess(false)}
+      />
+      <Toast
+        message={error || ''}
+        type="error"
+        isVisible={!!error}
+        onClose={() => setError(null)}
+      />
+
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-400/20 rounded-full blur-3xl animate-pulse"></div>
@@ -128,35 +291,6 @@ export default function ProfilePage() {
             </p>
           </div>
 
-          {success && (
-            <div 
-              className="mb-4 md:mb-6 p-3 md:p-4 rounded-2xl"
-              style={{
-                background: 'rgba(34, 197, 94, 0.2)',
-                backdropFilter: 'blur(12px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-                border: '1px solid rgba(34, 197, 94, 0.3)',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-              }}
-            >
-              <p className="text-sm md:text-base text-green-700 font-semibold">✓ {t('profileUpdated')}</p>
-            </div>
-          )}
-
-          {error && (
-            <div 
-              className="mb-4 md:mb-6 p-3 md:p-4 rounded-2xl"
-              style={{
-                background: 'rgba(239, 68, 68, 0.2)',
-                backdropFilter: 'blur(12px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-              }}
-            >
-              <p className="text-sm md:text-base text-red-700 font-medium">{error}</p>
-            </div>
-          )}
 
           <div
             className="rounded-3xl p-4 md:p-6 lg:p-8 xl:p-10 relative"
@@ -182,7 +316,20 @@ export default function ProfilePage() {
                       }}
                     />
                   </div>
-                  <p className="text-xs md:text-sm text-gray-600 font-medium">{t('profilePicturePreview')}</p>
+                  <div className="flex flex-col items-center gap-2">
+                    <p className="text-xs md:text-sm text-gray-600 font-medium">{t('profilePicturePreview')}</p>
+                    {formData.image && (
+                      <button
+                        type="button"
+                        onClick={() => setIsRemoveModalOpen(true)}
+                        disabled={isRemoving || isSaving || isUploading}
+                        className="flex items-center gap-2 px-3 py-1.5 text-xs md:text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                        <span>{t('removePicture.button')}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -200,7 +347,7 @@ export default function ProfilePage() {
                       backdropFilter: 'blur(8px)',
                     }}
                     placeholder="Your name"
-                    disabled={isSaving}
+                    disabled={isSaving || isUploading}
                   />
                 </div>
 
@@ -208,22 +355,109 @@ export default function ProfilePage() {
                   <label htmlFor="image" className="block text-xs md:text-sm font-semibold text-gray-800 mb-2">
                     {t('profilePicture')}
                   </label>
-                  <input
-                    type="url"
-                    id="image"
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base rounded-xl border border-gray-300 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.8)',
-                      backdropFilter: 'blur(8px)',
-                    }}
-                    placeholder="https://example.com/profile.jpg"
-                    disabled={isSaving}
-                  />
-                  <p className="text-xs text-gray-600 mt-2">
-                    Enter a URL to an image for your profile picture
-                  </p>
+                  
+                  {/* File Upload Section */}
+                  <div className="mb-4">
+                    <label
+                      htmlFor="file-upload"
+                      className="flex items-center justify-center w-full px-4 py-3 text-sm md:text-base rounded-xl border-2 border-dashed border-gray-300 cursor-pointer hover:border-yellow-500 transition-colors"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        backdropFilter: 'blur(8px)',
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faUpload} className="mr-2 text-gray-500" />
+                      <span className="text-gray-700">{t('upload.selectFile')}</span>
+                      <input
+                        id="file-upload"
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                        className="hidden"
+                        onChange={handleFileSelect}
+                        disabled={isSaving || isUploading}
+                      />
+                    </label>
+                    
+                    {selectedFile && (
+                      <div className="mt-3 p-3 rounded-xl border border-gray-200" style={{
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        backdropFilter: 'blur(8px)',
+                      }}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
+                              {previewUrl && (
+                                <img
+                                  src={previewUrl}
+                                  alt="Preview"
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {selectedFile.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {!isUploading && (
+                              <>
+                                <LiquidGlassButton
+                                  type="button"
+                                  onClick={handleFileUpload}
+                                  variant="primary"
+                                  size="sm"
+                                  disabled={isSaving || isUploading}
+                                >
+                                  {t('upload.upload')}
+                                </LiquidGlassButton>
+                                <button
+                                  type="button"
+                                  onClick={handleRemoveFile}
+                                  className="p-2 text-gray-500 hover:text-red-600 transition-colors"
+                                  disabled={isSaving || isUploading}
+                                >
+                                  <FontAwesomeIcon icon={faTimes} />
+                                </button>
+                              </>
+                            )}
+                            {isUploading && (
+                              <div className="flex items-center gap-2">
+                                <FontAwesomeIcon icon={faSpinner} className="animate-spin text-yellow-500" />
+                                <span className="text-sm text-gray-600">{t('upload.uploading')}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* URL Input (Alternative) */}
+                  <div className="relative">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex-1 h-px bg-gray-300"></div>
+                      <span className="text-xs text-gray-500 px-2">{t('upload.or')}</span>
+                      <div className="flex-1 h-px bg-gray-300"></div>
+                    </div>
+                    <input
+                      type="text"
+                      id="image"
+                      value={isUploadedImage ? '' : formData.image}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base rounded-xl border border-gray-300 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        backdropFilter: 'blur(8px)',
+                      }}
+                      placeholder={isUploadedImage ? t('upload.urlDisabledPlaceholder') : "https://example.com/profile.jpg"}
+                      disabled={isSaving || isUploading || isUploadedImage}
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -284,7 +518,7 @@ export default function ProfilePage() {
                     })}
                     value={formData.locale}
                     onChange={(value) => setFormData({ ...formData, locale: String(value) })}
-                    disabled={isSaving}
+                    disabled={isSaving || isUploading}
                   />
                   <p className="text-xs text-gray-600 mt-2">
                     {t('selectLanguage')}
@@ -294,7 +528,7 @@ export default function ProfilePage() {
                 <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-4">
                   <LiquidGlassButton
                     type="submit"
-                    disabled={isSaving}
+                    disabled={isSaving || isUploading}
                     variant="primary"
                     size="lg"
                     fullWidth
@@ -358,6 +592,12 @@ export default function ProfilePage() {
       <DeleteAccountModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
+      />
+
+      <RemovePictureModal
+        isOpen={isRemoveModalOpen}
+        onClose={() => setIsRemoveModalOpen(false)}
+        onConfirm={handleRemovePicture}
       />
     </main>
   )

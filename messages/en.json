@@ -15,15 +15,42 @@
     "title": "Edit Profile",
     "subtitle": "Update your profile information",
     "name": "Name",
-    "profilePicture": "Profile Picture (Image URL)",
+    "profilePicture": "Profile Picture",
     "profilePicturePreview": "Profile Picture Preview",
     "lastfmUsername": "Last.fm Username",
+    "upload": {
+      "selectFile": "Choose a file to upload",
+      "upload": "Upload",
+      "uploading": "Uploading...",
+      "or": "OR",
+      "helpText": "Upload an image file or enter a URL to an image for your profile picture",
+      "urlDisabledPlaceholder": "Remove uploaded image to enter URL",
+      "urlDisabledMessage": "You have an uploaded image. Please remove it first if you want to use a URL instead.",
+      "invalidFileType": "Invalid file type. Only JPEG, PNG, WebP, and GIF images are allowed.",
+      "fileTooLarge": "File size exceeds 5MB limit. Please choose a smaller image.",
+      "failed": "Failed to upload profile picture. Please try again."
+    },
+    "removePicture": {
+      "title": "Remove Profile Picture",
+      "button": "Remove Picture",
+      "removing": "Removing...",
+      "confirm": "Are you sure you want to remove your profile picture?",
+      "warning": "This action will permanently delete the image from storage and cannot be undone.",
+      "failed": "Failed to remove profile picture. Please try again."
+    },
     "lastfmUsernameTooltip": "This was set when the account was created, and cannot be changed",
     "saveChanges": "Save Changes",
     "saving": "Saving...",
     "profileUpdated": "Profile updated successfully!",
     "failedToLoad": "Failed to load profile",
     "failedToUpdate": "Failed to update profile",
+    "errors": {
+      "invalidImageUrl": "Image must be a valid URL",
+      "imageTooLong": "Image URL cannot exceed 500 characters",
+      "imageMustBeString": "Image must be a string",
+      "nameTooLong": "Name cannot exceed 100 characters",
+      "nameMustBeString": "Name must be a string"
+    },
     "language": "Language",
     "selectLanguage": "Select Language",
     "dangerZone": {
