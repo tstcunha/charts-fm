@@ -135,9 +135,9 @@ export default async function PublicGroupHeroServer({ groupId, colorTheme }: Pub
                 {group.name}
               </h1>
               <div className="flex flex-wrap items-center gap-2 md:gap-4 mb-3 md:mb-4">
-                <div className="flex items-center gap-1.5 md:gap-2">
+                <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
                   <span className="text-xs md:text-sm text-gray-600">{t('owner')}</span>
-                  <span className="font-semibold text-xs md:text-sm text-gray-900 truncate max-w-[120px] md:max-w-none">{group.creator?.name || group.creator?.lastfmUsername || t('deletedUser')}</span>
+                  <span className="font-semibold text-xs md:text-sm text-gray-900 truncate max-w-[120px] md:max-w-[200px]">{group.creator?.name || group.creator?.lastfmUsername || t('deletedUser')}</span>
                 </div>
                 <span className="text-gray-300 hidden sm:inline">•</span>
                 <div className="flex items-center gap-1.5 md:gap-2">

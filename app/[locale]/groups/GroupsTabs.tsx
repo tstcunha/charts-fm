@@ -128,11 +128,11 @@ export default function GroupsTabs({ ownedGroups, memberGroups, invites, userId,
               </h3>
             </div>
             <div className="text-xs md:text-sm text-gray-600 space-y-1">
-              <p className="flex items-center gap-2 flex-wrap">
+              <p className="flex items-center gap-2 flex-wrap min-w-0">
                 <span>{tHero('owner')}</span>
-                <span className="font-semibold text-gray-900">{group.creator.name || group.creator.lastfmUsername}</span>
+                <span className="font-semibold text-gray-900 truncate max-w-[120px] md:max-w-[200px]">{group.creator.name || group.creator.lastfmUsername}</span>
                 {isOwner && (
-                  <span className="text-xs bg-[var(--theme-primary)] text-[var(--theme-button-text)] px-1.5 md:px-2 py-0.5 rounded-full font-bold">
+                  <span className="text-xs bg-[var(--theme-primary)] text-[var(--theme-button-text)] px-1.5 md:px-2 py-0.5 rounded-full font-bold flex-shrink-0">
                     {t('you')}
                   </span>
                 )}
@@ -187,9 +187,9 @@ export default function GroupsTabs({ ownedGroups, memberGroups, invites, userId,
                 </span>
               </div>
               <div className="text-xs md:text-sm text-gray-600 space-y-1">
-                <p>
+                <p className="flex items-center gap-1 min-w-0">
                   <span>{tHero('owner')}</span>
-                  <span className="font-semibold text-gray-900 ml-1">{invite.group.creator.name || invite.group.creator.lastfmUsername}</span>
+                  <span className="font-semibold text-gray-900 truncate max-w-[120px] md:max-w-[200px]">{invite.group.creator.name || invite.group.creator.lastfmUsername}</span>
                 </p>
                 <p className="flex items-center gap-2">
                   <FontAwesomeIcon icon={faUsers} className="text-gray-500 font-medium text-xs md:text-sm" />

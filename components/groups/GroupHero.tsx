@@ -115,9 +115,9 @@ export default function GroupHero({ groupId }: GroupHeroProps) {
                 {group.name}
               </h1>
               <div className="flex flex-wrap items-center gap-2 md:gap-3 lg:gap-4 mb-3 md:mb-4 text-xs md:text-sm">
-                <div className="flex items-center gap-1 md:gap-2">
+                <div className="flex items-center gap-1 md:gap-2 min-w-0">
                   <span className="text-gray-600">Owner:</span>
-                  <span className="font-semibold text-gray-900 truncate">
+                  <span className="font-semibold text-gray-900 truncate max-w-[120px] md:max-w-[200px]">
                     {group.creator ? (group.creator.name || group.creator.lastfmUsername) : 'Deleted User'}
                   </span>
                 </div>
