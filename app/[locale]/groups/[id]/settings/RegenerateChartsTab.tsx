@@ -219,7 +219,7 @@ export default function RegenerateChartsTab({
       )}
 
       <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
-        {t('description', { weeks: isSuperuser ? weeks : 5 })}
+        {t('description', { weeks: isSuperuser ? weeks : 10 })}
       </p>
 
       {isSuperuser && (

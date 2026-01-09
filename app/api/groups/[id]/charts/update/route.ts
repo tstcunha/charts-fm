@@ -221,8 +221,8 @@ async function generateChartsInBackground(
     let weeksToGenerate: Date[] = []
 
     if (!lastChartWeek) {
-      // No charts exist, generate last 5 finished weeks
-      weeksToGenerate = getLastNFinishedWeeksForDay(5, trackingDayOfWeek)
+      // No charts exist, generate last 10 finished weeks
+      weeksToGenerate = getLastNFinishedWeeksForDay(10, trackingDayOfWeek)
     } else {
       // Calculate missing weeks
       const now = new Date()
@@ -237,13 +237,13 @@ async function generateChartsInBackground(
         nextExpectedWeek.setUTCHours(0, 0, 0, 0)
         
         // Generate weeks from nextExpectedWeek to currentWeekStart (inclusive)
-        // But limit to maximum 5 weeks
+        // But limit to maximum 10 weeks
         const weeks: Date[] = []
         let weekToCheck = new Date(currentWeekStart)
         weekToCheck.setUTCHours(0, 0, 0, 0)
         
-        // Work backwards from current week, collecting up to 5 weeks
-        while (weeks.length < 5 && weekToCheck >= nextExpectedWeek) {
+        // Work backwards from current week, collecting up to 10 weeks
+        while (weeks.length < 10 && weekToCheck >= nextExpectedWeek) {
           weeks.push(new Date(weekToCheck))
           // Move back 7 days
           weekToCheck.setUTCDate(weekToCheck.getUTCDate() - 7)

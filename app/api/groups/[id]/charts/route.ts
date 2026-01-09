@@ -173,7 +173,7 @@ export async function POST(
   const superuser = await getSuperuser()
   const isSuperuser = superuser !== null
   
-  let numberOfWeeks = 5 // Default to 5 weeks
+  let numberOfWeeks = 10 // Default to 10 weeks
   if (isSuperuser) {
     try {
       const body = await request.json()

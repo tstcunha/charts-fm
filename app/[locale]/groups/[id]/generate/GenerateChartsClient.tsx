@@ -218,7 +218,7 @@ export default function GenerateChartsClient({
         <div className="bg-white rounded-lg shadow-lg p-8">
           <p className="text-gray-600 mb-6">
             This will fetch the latest listening data from Last.fm for all group members
-            and generate weekly charts for the last {isSuperuser ? weeks : 5} weeks. This may take a few moments.
+            and generate weekly charts for the last {isSuperuser ? weeks : 10} weeks. This may take a few moments.
           </p>
 
           {isSuperuser && (
