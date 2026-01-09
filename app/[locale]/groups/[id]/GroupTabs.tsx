@@ -36,14 +36,16 @@ export default function GroupTabs({
     return validTabs.includes(hash as Tab) ? (hash as Tab) : null
   }
   
-  // Validate tab from URL, default to defaultTab if invalid
-  const validTabs: Tab[] = ['charts', 'members', 'alltime', 'trends', 'search']
-  const initialTab = getTabFromHash() || defaultTab
+  // Initialize with defaultTab, then check hash on mount
+  const [activeTab, setActiveTab] = useState<Tab>(defaultTab)
   
-  const [activeTab, setActiveTab] = useState<Tab>(initialTab)
-  
-  // Update active tab when hash changes (e.g., back button)
+  // Check hash fragment on mount and when hash changes
   useEffect(() => {
+    const tabFromHash = getTabFromHash()
+    if (tabFromHash) {
+      setActiveTab(tabFromHash)
+    }
+    
     const handleHashChange = () => {
       const tabFromHash = getTabFromHash()
       if (tabFromHash && tabFromHash !== activeTab) {
