@@ -141,6 +141,14 @@ export default function FAQContent({ content }: FAQContentProps) {
               {...props}
             />
           ),
+          img: ({ node, alt, src, ...props }: any) => (
+            <img
+              src={src}
+              alt={alt}
+              className="max-w-md mx-auto h-auto rounded-lg my-4 sm:my-6 shadow-sm"
+              {...props}
+            />
+          ),
         }}
       >
         {content}

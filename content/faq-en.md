@@ -25,6 +25,8 @@ For the top 100 items of each user, VS uses a three-tier system:
 - Position 100: `1.00 × (1 - 79/80) = 0.01 VS`
 - Position 101+: `0.00` (items beyond the top 100 receive no VS)
 
+![VS Calculation Graph](/icons/VS_graph.png)
+
 In other words: suppose Joseph and Adam are members of the same group. Joseph listened to Lady Gaga 500 times in a week, making her his most listened artist that week. Adam listened to Ariana Grande only 50 times, but she was his most listened artist that week.
 
 Even though Joseph listened to Lady Gaga many more times than Adam listened to Ariana Grande, both artists will receive the same amount from each listener: **both will receive 2.00 VS**.

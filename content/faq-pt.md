@@ -25,6 +25,8 @@ Para as 100 principais itens de cada usuário, o VS usa um sistema de três nív
 - Posição 100: `1,00 × (1 - 79/80) = 0,01 VS`
 - Posição 101+: `0,00` (itens além das 100 principais não recebem VS)
 
+![Gráfico de Cálculo VS](/icons/VS_graph.png)
+
 Ou seja: suponha que João e Maria estejam num mesmo comunidades. João escutou Lady Gaga 500 vezes em uma semana, o que a tornou asua artista mais escutada naquela semana. Maria escutou Ariana Grande apenas 50 vezes, mas ela foi a sua mais escutada daquela semana.
 
 Mesmo que João tenha escutado Lady Gaga muito mais vezes do que Maria escutou Ariana Grande, ambas as cantoras vão receber a mesma quantidade de cada um dos ouvintes: **as duas receberão 2,00 VS**.
