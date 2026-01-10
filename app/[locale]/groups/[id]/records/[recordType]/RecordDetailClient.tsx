@@ -174,30 +174,40 @@ export default function RecordDetailClient({ groupId, recordType }: RecordDetail
           <p className="text-gray-600 text-sm md:text-base">{t('noEntries')}</p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div 
+          className="bg-white rounded-lg shadow-lg overflow-hidden"
+          style={{ 
+            backgroundColor: '#ffffff', 
+            backdropFilter: 'none', 
+            WebkitBackdropFilter: 'none',
+            isolation: 'isolate',
+            position: 'relative',
+            zIndex: 1
+          }}
+        >
           <div className="overflow-x-auto -mx-4 md:mx-0">
             <div className="inline-block min-w-full align-middle px-4 md:px-0">
-              <table className="w-full bg-white">
+              <table className="w-full">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-2 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-32 bg-gray-50">
+                    <th className="px-2 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-32">
                       {t('rank')}
                     </th>
-                    <th className="px-2 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider bg-gray-50">
+                    <th className="px-2 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       {t('entry')}
                     </th>
-                    <th className="px-2 md:px-6 py-3 md:py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider w-32 bg-gray-50">
+                    <th className="px-2 md:px-6 py-3 md:py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider w-32">
                       {t('value')}
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
+                <tbody className="divide-y divide-gray-200">
                   {entries.map((entry) => (
-                    <tr key={entry.entryKey} className="hover:bg-gray-50 transition-colors bg-white">
-                      <td className="px-2 md:px-6 py-3 md:py-5 text-sm bg-white">
+                    <tr key={entry.entryKey} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-2 md:px-6 py-3 md:py-5 text-sm">
                         <span className="font-bold text-gray-900">#{entry.rank}</span>
                       </td>
-                      <td className="px-2 md:px-6 py-3 md:py-5 text-sm bg-white">
+                      <td className="px-2 md:px-6 py-3 md:py-5 text-sm">
                         <div>
                           <Link
                             href={getEntryLink(entry)}
@@ -210,7 +220,7 @@ export default function RecordDetailClient({ groupId, recordType }: RecordDetail
                           )}
                         </div>
                       </td>
-                      <td className="px-2 md:px-6 py-3 md:py-5 text-sm text-right bg-white">
+                      <td className="px-2 md:px-6 py-3 md:py-5 text-sm text-right">
                         <span className="text-gray-900 font-medium">{formatValue(entry.value)}</span>
                       </td>
                     </tr>
@@ -224,4 +234,3 @@ export default function RecordDetailClient({ groupId, recordType }: RecordDetail
     </div>
   )
 }
-
