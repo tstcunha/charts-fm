@@ -9,12 +9,13 @@ type Tab = 'charts' | 'members' | 'alltime' | 'trends' | 'search'
 
 interface GroupTabsProps {
   defaultTab?: Tab
-  membersContent: React.ReactNode
+  membersContent: React.ReactNode | null
   chartsContent: React.ReactNode
   allTimeContent: React.ReactNode
   trendsContent?: React.ReactNode
   searchContent?: React.ReactNode
   pendingRequestsCount?: number
+  isMember?: boolean
 }
 
 export default function GroupTabs({ 
@@ -24,7 +25,8 @@ export default function GroupTabs({
   allTimeContent,
   trendsContent,
   searchContent,
-  pendingRequestsCount = 0
+  pendingRequestsCount = 0,
+  isMember = true
 }: GroupTabsProps) {
   const t = useSafeTranslations('groups.tabs')
   
@@ -32,7 +34,9 @@ export default function GroupTabs({
   const getTabFromHash = (): Tab | null => {
     if (typeof window === 'undefined') return null
     const hash = window.location.hash.slice(1) // Remove the #
-    const validTabs: Tab[] = ['charts', 'members', 'alltime', 'trends', 'search']
+    const validTabs: Tab[] = isMember 
+      ? ['charts', 'members', 'alltime', 'trends', 'search']
+      : ['charts', 'alltime', 'trends', 'search']
     return validTabs.includes(hash as Tab) ? (hash as Tab) : null
   }
   
@@ -68,13 +72,21 @@ export default function GroupTabs({
     window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${tab}`)
   }
 
-  const tabs: TabItem[] = useMemo(() => [
-    { id: 'trends', label: t('trends'), icon: faFire },
-    { id: 'charts', label: t('weeklyCharts'), icon: faChartBar },
-    { id: 'alltime', label: t('allTimeStats'), icon: faTrophy },
-    { id: 'members', label: t('members'), icon: faUsers, badge: pendingRequestsCount },
-    { id: 'search', label: t('search'), icon: faSearch },
-  ], [t, pendingRequestsCount])
+  const tabs: TabItem[] = useMemo(() => {
+    const baseTabs: TabItem[] = [
+      { id: 'trends', label: t('trends'), icon: faFire },
+      { id: 'charts', label: t('weeklyCharts'), icon: faChartBar },
+      { id: 'alltime', label: t('allTimeStats'), icon: faTrophy },
+      { id: 'search', label: t('search'), icon: faSearch },
+    ]
+    
+    // Only include members tab if user is a member
+    if (isMember) {
+      baseTabs.splice(3, 0, { id: 'members', label: t('members'), icon: faUsers, badge: pendingRequestsCount })
+    }
+    
+    return baseTabs
+  }, [t, pendingRequestsCount, isMember])
 
   return (
     <div className="mt-6 md:mt-10">
@@ -98,9 +110,11 @@ export default function GroupTabs({
         <div style={{ display: activeTab === 'trends' ? 'block' : 'none' }}>
           {trendsContent}
         </div>
-        <div style={{ display: activeTab === 'members' ? 'block' : 'none' }}>
-          {membersContent}
-        </div>
+        {isMember && (
+          <div style={{ display: activeTab === 'members' ? 'block' : 'none' }}>
+            {membersContent}
+          </div>
+        )}
         <div style={{ display: activeTab === 'search' ? 'block' : 'none' }}>
           {searchContent}
         </div>

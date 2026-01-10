@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireGroupMembership } from '@/lib/group-auth'
+import { checkGroupAccessForAPI } from '@/lib/group-auth'
 import { getTrendsForGroup, calculatePersonalizedStats, calculateConsecutiveStreaks, calculateMemberContributions } from '@/lib/group-trends'
 import { getGroupWeeklyStats, getGroupChartEntriesForWeek } from '@/lib/group-queries'
 import { prisma } from '@/lib/prisma'
@@ -9,11 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { group, user } = await requireGroupMembership(params.id)
-
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-    }
+    const { group, user } = await checkGroupAccessForAPI(params.id)
 
     // Get trends (calculate if missing)
     let trends = await getTrendsForGroup(group.id)

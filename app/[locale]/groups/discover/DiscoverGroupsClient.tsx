@@ -212,7 +212,7 @@ export default function DiscoverGroupsClient({
       return (
         <Link
           key={group.id}
-          href={`/groups/${group.id}/public`}
+          href={`/groups/${group.id}`}
           className={`block bg-gradient-to-br from-[var(--theme-background-from)] to-[var(--theme-background-to)] rounded-xl p-3 md:p-4 border border-[var(--theme-border)] hover:shadow-md transition-all ${themeClass}`}
         >
           <div className="flex items-center gap-3 md:gap-4">
@@ -258,7 +258,7 @@ export default function DiscoverGroupsClient({
     return (
       <Link
         key={group.id}
-        href={`/groups/${group.id}/public`}
+        href={`/groups/${group.id}`}
         className={`block bg-gradient-to-br from-[var(--theme-background-from)] to-[var(--theme-background-to)] rounded-xl p-4 md:p-6 border border-[var(--theme-border)] hover:shadow-md transition-all ${themeClass}`}
       >
         <div className="flex items-start gap-3 md:gap-4 mb-3 md:mb-4">

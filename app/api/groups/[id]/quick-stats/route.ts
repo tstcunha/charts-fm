@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireGroupMembership } from '@/lib/group-auth'
+import { checkGroupAccessForAPI } from '@/lib/group-auth'
 import { getGroupWeeklyStats } from '@/lib/group-queries'
 import { calculateConsecutiveStreaks } from '@/lib/group-trends'
 import { prisma } from '@/lib/prisma'
@@ -9,11 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { group } = await requireGroupMembership(params.id)
-
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-    }
+    const { group } = await checkGroupAccessForAPI(params.id)
 
     const weeklyStats = await getGroupWeeklyStats(group.id)
     const chartMode = (group.chartMode || 'plays_only') as string

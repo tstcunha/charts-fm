@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireGroupMembership } from '@/lib/group-auth'
+import { checkGroupAccessForAPI } from '@/lib/group-auth'
 import { prisma } from '@/lib/prisma'
 import { getRecordTypeFieldMapping, isRecordTypeSupported, isArtistSpecificRecordType, getArtistAggregationRecords } from '@/lib/group-records'
 import { ChartType } from '@/lib/chart-slugs'
@@ -10,11 +10,7 @@ export async function GET(
   { params }: { params: { id: string; recordType: string } }
 ) {
   try {
-    const { group } = await requireGroupMembership(params.id)
-
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-    }
+    const { group } = await checkGroupAccessForAPI(params.id)
 
     // Validate record type
     if (!isRecordTypeSupported(params.recordType)) {

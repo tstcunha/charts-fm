@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireGroupMembership } from '@/lib/group-auth'
+import { checkGroupAccessForAPI } from '@/lib/group-auth'
 import { prisma } from '@/lib/prisma'
 import { ChartType } from '@/lib/chart-slugs'
 
@@ -17,11 +17,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { group } = await requireGroupMembership(params.id)
-
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-    }
+    const { group } = await checkGroupAccessForAPI(params.id)
 
     // Get query params for chart type
     const url = new URL(request.url)

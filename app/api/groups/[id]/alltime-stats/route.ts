@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireGroupMembership } from '@/lib/group-auth'
+import { checkGroupAccessForAPI } from '@/lib/group-auth'
 import { getGroupAllTimeStats } from '@/lib/group-queries'
 import { getGroupWeeklyStats } from '@/lib/group-queries'
 
@@ -8,11 +8,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { user, group } = await requireGroupMembership(params.id)
-
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-    }
+    const { user, group } = await checkGroupAccessForAPI(params.id)
 
     const isOwner = user.id === group.creatorId
     const weeklyStats = await getGroupWeeklyStats(group.id)

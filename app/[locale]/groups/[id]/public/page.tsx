@@ -4,6 +4,8 @@ import PublicGroupWeeklyCharts from './PublicGroupWeeklyCharts'
 import LoggedOutBanner from './LoggedOutBanner'
 import { getTranslations } from 'next-intl/server'
 import { getSession } from '@/lib/auth'
+import { getGroupAccess } from '@/lib/group-auth'
+import { redirect } from '@/i18n/routing'
 import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: { id: string; locale: string } }): Promise<Metadata> {
@@ -22,6 +24,15 @@ export async function generateMetadata({ params }: { params: { id: string; local
 }
 
 export default async function PublicGroupPage({ params }: { params: { id: string; locale: string } }) {
+  // Check if user is authenticated - if so, redirect to main group page
+  const { user, group: accessGroup, isMember } = await getGroupAccess(params.id)
+  
+  // If user is authenticated (even if not a member), redirect to main group page
+  if (user) {
+    redirect(`/${params.locale}/groups/${params.id}`)
+  }
+
+  // For non-authenticated users, show public page
   const group = await getPublicGroupById(params.id)
   const t = await getTranslations('groups')
   
@@ -47,9 +58,8 @@ export default async function PublicGroupPage({ params }: { params: { id: string
   // @ts-ignore - Prisma client will be regenerated after migration
   const chartMode = (group.chartMode || 'plays_only') as string
 
-  // Check if user is logged out
-  const session = await getSession()
-  const isLoggedOut = !session?.user?.email
+  // User is logged out (we already checked above)
+  const isLoggedOut = true
 
   return (
     <main 

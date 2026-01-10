@@ -1,4 +1,4 @@
-import { requireGroupMembership } from '@/lib/group-auth'
+import { getGroupAccess } from '@/lib/group-auth'
 import { prisma } from '@/lib/prisma'
 import { getEntryChartHistory } from '@/lib/chart-deep-dive'
 import { notFound } from 'next/navigation'
@@ -10,7 +10,7 @@ import { getTranslations } from 'next-intl/server'
 export async function generateMetadata({ params }: { params: { id: string; slug: string } }): Promise<Metadata> {
   const t = await getTranslations('deepDive.metadata')
   try {
-    const { group } = await requireGroupMembership(params.id)
+    const { group } = await getGroupAccess(params.id)
     const entry = await prisma.groupChartEntry.findFirst({
       where: {
         groupId: group?.id,
@@ -35,7 +35,7 @@ export default async function ArtistDeepDivePage({
 }: {
   params: { id: string; slug: string }
 }) {
-  const { user, group } = await requireGroupMembership(params.id)
+  const { user, group } = await getGroupAccess(params.id)
 
   if (!group) {
     notFound()

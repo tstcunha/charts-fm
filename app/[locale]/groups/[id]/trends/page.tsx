@@ -1,4 +1,4 @@
-import { requireGroupMembership } from '@/lib/group-auth'
+import { getGroupAccess } from '@/lib/group-auth'
 import { getTrendsForGroup } from '@/lib/group-trends'
 import { Link } from '@/i18n/routing'
 import TrendsClient from './TrendsClient'
@@ -8,7 +8,7 @@ import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   try {
-    const { group } = await requireGroupMembership(params.id)
+    const { group } = await getGroupAccess(params.id)
     const t = await getTranslations('groups.trends')
     return {
       title: `${group?.name || 'Group'} - ${t('title')}`,
@@ -31,7 +31,7 @@ function formatDateWritten(date: Date): string {
 }
 
 export default async function TrendsPage({ params }: { params: { id: string } }) {
-  const { user, group } = await requireGroupMembership(params.id)
+  const { user, group, isMember } = await getGroupAccess(params.id)
   const t = await getTranslations('groups')
   const tTrends = await getTranslations('groups.trends')
 
@@ -109,7 +109,7 @@ export default async function TrendsPage({ params }: { params: { id: string } })
         />
 
         {/* Trends Content - Client Component */}
-        <TrendsClient trends={trends} groupId={group.id} userId={user.id} />
+        <TrendsClient trends={trends} groupId={group.id} userId={user?.id || null} />
       </div>
     </main>
   )

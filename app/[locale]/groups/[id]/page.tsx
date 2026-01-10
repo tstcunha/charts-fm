@@ -1,5 +1,5 @@
 import { redirect } from '@/i18n/routing'
-import { requireGroupMembership } from '@/lib/group-auth'
+import { getGroupAccess } from '@/lib/group-auth'
 import { Link } from '@/i18n/routing'
 import GroupTabs from './GroupTabs'
 import GroupHeroServer from '@/components/groups/GroupHeroServer'
@@ -16,7 +16,7 @@ import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   try {
-    const { group } = await requireGroupMembership(params.id)
+    const { group } = await getGroupAccess(params.id)
     const t = await getTranslations('groups')
     return {
       title: group?.name || t('title'),
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 export default async function GroupPage({ params }: { params: { id: string } }) {
-  const { user, group } = await requireGroupMembership(params.id)
+  const { user, group, isMember } = await getGroupAccess(params.id)
   const t = await getTranslations('groups')
 
   if (!group) {
@@ -46,7 +46,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
     )
   }
 
-  const isOwner = user.id === group.creatorId
+  const isOwner = user?.id === group.creatorId
   const colorTheme = (group.colorTheme || 'yellow') as string
   const themeClass = `theme-${colorTheme.replace('_', '-')}`
 
@@ -67,7 +67,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
     >
       <div className="max-w-6xl w-full mx-auto">
         {/* Hero Section - loaded server-side for immediate display */}
-        <GroupHeroServer groupId={group.id} isOwner={isOwner} colorTheme={colorTheme} />
+        <GroupHeroServer groupId={group.id} isOwner={isOwner || false} colorTheme={colorTheme} isMember={isMember} userId={user?.id || null} />
         
         {/* Quick Stats - loads asynchronously */}
         <GroupQuickStats groupId={group.id} />
@@ -77,29 +77,32 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
           defaultTab="trends"
           pendingRequestsCount={pendingRequestsCount}
           chartsContent={
-            <GroupWeeklyChartsTab groupId={group.id} isOwner={isOwner} />
+            <GroupWeeklyChartsTab groupId={group.id} isOwner={isOwner || false} />
           }
           allTimeContent={
-            <GroupAllTimeTab groupId={group.id} isOwner={isOwner} />
+            <GroupAllTimeTab groupId={group.id} isOwner={isOwner || false} />
           }
           trendsContent={
             <GroupTrendsTab groupId={group.id} />
           }
           membersContent={
-            <GroupMembersTab groupId={group.id} />
+            isMember ? <GroupMembersTab groupId={group.id} /> : null
           }
           searchContent={
             <GroupSearchTab groupId={group.id} />
           }
+          isMember={isMember}
         />
 
-        {/* Shoutbox - always visible at bottom if enabled */}
-        <GroupShoutbox 
-          groupId={group.id} 
-          userId={user.id}
-          isOwner={isOwner}
-          shoutboxEnabled={group.shoutboxEnabled ?? true}
-        />
+        {/* Shoutbox - only visible if user is a member */}
+        {isMember && user && (
+          <GroupShoutbox 
+            groupId={group.id} 
+            userId={user.id}
+            isOwner={isOwner || false}
+            shoutboxEnabled={group.shoutboxEnabled ?? true}
+          />
+        )}
       </div>
     </main>
   )

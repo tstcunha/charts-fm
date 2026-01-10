@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireGroupMembership } from '@/lib/group-auth'
+import { checkGroupAccessForAPI } from '@/lib/group-auth'
 import { prisma } from '@/lib/prisma'
 import {
   getEntryStats,
@@ -15,11 +15,7 @@ export async function GET(
   { params }: { params: { id: string; type: string; slug: string } }
 ) {
   try {
-    const { group } = await requireGroupMembership(params.id)
-
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-    }
+    const { group } = await checkGroupAccessForAPI(params.id)
 
     const chartType = params.type as ChartType
     if (!['artists', 'tracks', 'albums'].includes(chartType)) {

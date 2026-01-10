@@ -1,4 +1,4 @@
-import { requireGroupMembership } from '@/lib/group-auth'
+import { getGroupAccess } from '@/lib/group-auth'
 import { getGroupAllTimeStats } from '@/lib/group-queries'
 import { Link } from '@/i18n/routing'
 import ChartTypeSelector from '../charts/ChartTypeSelector'
@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: { id: string; local
   const t = await getTranslations('groups.allTimeStats')
   const tGroups = await getTranslations('groups')
   try {
-    const { group } = await requireGroupMembership(params.id)
+    const { group } = await getGroupAccess(params.id)
     return {
       title: `${group?.name || tGroups('title')} - ${t('title')}`,
     }
@@ -34,7 +34,7 @@ export default async function AllTimePage({
   params: { id: string; locale: string }
   searchParams: { type?: string }
 }) {
-  const { user, group } = await requireGroupMembership(params.id)
+  const { user, group } = await getGroupAccess(params.id)
   const t = await getTranslations('groups.allTimeStats')
   const tGroups = await getTranslations('groups')
 

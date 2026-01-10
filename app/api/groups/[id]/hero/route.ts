@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireGroupMembership } from '@/lib/group-auth'
+import { checkGroupAccessForAPI } from '@/lib/group-auth'
 import { prisma } from '@/lib/prisma'
 import { getWeekStartForDay, getWeekEndForDay, formatWeekLabel } from '@/lib/weekly-utils'
 import { getLastChartWeek } from '@/lib/group-service'
@@ -9,31 +9,30 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { user, group } = await requireGroupMembership(params.id)
-
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-    }
-
-    // Fetch members with images
-    const membersWithImages = await prisma.groupMember.findMany({
-      where: { groupId: group.id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            lastfmUsername: true,
-            image: true,
+    const { user, group, isMember } = await checkGroupAccessForAPI(params.id)
+    
+    // Only return member list if user is a member (for privacy)
+    let membersWithImages: any[] = []
+    if (isMember) {
+      membersWithImages = await prisma.groupMember.findMany({
+        where: { groupId: group.id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              lastfmUsername: true,
+              image: true,
+            },
           },
         },
-      },
-      orderBy: {
-        joinedAt: 'asc',
-      },
-    })
+        orderBy: {
+          joinedAt: 'asc',
+        },
+      })
+    }
 
-    const isOwner = user.id === group.creatorId
+    const isOwner = user?.id === group.creatorId
     const chartMode = (group.chartMode || 'plays_only') as string
     const colorTheme = (group.colorTheme || 'yellow') as string
     const trackingDayOfWeek = group.trackingDayOfWeek ?? 0
@@ -49,30 +48,32 @@ export async function GET(
     const nextChartDateFormatted = formatWeekLabel(nextChartDate)
     const daysUntilNextChart = Math.ceil((nextChartDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
-    // Check if charts can be updated
-    const lastChartWeek = await getLastChartWeek(group.id)
+    // Check if charts can be updated (only for members)
     let canUpdateCharts = false
-    
-    if (!lastChartWeek) {
-      // No charts exist, can update
-      canUpdateCharts = true
-    } else {
-      // Check if current week has finished (currentWeekEnd is in the past)
-      if (currentWeekEnd < now) {
-        // Check if we need to generate the current finished week
-        const nextExpectedWeek = new Date(lastChartWeek)
-        nextExpectedWeek.setUTCDate(nextExpectedWeek.getUTCDate() + 7)
-        
-        // If next expected week is before or equal to current finished week, we can update
-        if (nextExpectedWeek <= currentWeekStart) {
-          canUpdateCharts = true
+    if (isMember) {
+      const lastChartWeek = await getLastChartWeek(group.id)
+      
+      if (!lastChartWeek) {
+        // No charts exist, can update
+        canUpdateCharts = true
+      } else {
+        // Check if current week has finished (currentWeekEnd is in the past)
+        if (currentWeekEnd < now) {
+          // Check if we need to generate the current finished week
+          const nextExpectedWeek = new Date(lastChartWeek)
+          nextExpectedWeek.setUTCDate(nextExpectedWeek.getUTCDate() + 7)
+          
+          // If next expected week is before or equal to current finished week, we can update
+          if (nextExpectedWeek <= currentWeekStart) {
+            canUpdateCharts = true
+          }
         }
       }
-    }
 
-    const chartGenerationInProgress = group.chartGenerationInProgress || false
-    // Can only update if not already in progress
-    canUpdateCharts = canUpdateCharts && !chartGenerationInProgress
+      const chartGenerationInProgress = group.chartGenerationInProgress || false
+      // Can only update if not already in progress
+      canUpdateCharts = canUpdateCharts && !chartGenerationInProgress
+    }
 
     // Get caption from stored data (set when icon is updated)
     const imageCaption = group.dynamicIconCaption || null
@@ -93,7 +94,8 @@ export async function GET(
         } : null,
         memberCount: group._count.members,
       },
-      isOwner,
+      isOwner: isOwner || false,
+      isMember,
       members: membersWithImages.map((m) => ({
         id: m.id,
         userId: m.userId,
@@ -108,7 +110,7 @@ export async function GET(
       daysUntilNextChart,
       nextChartDateFormatted,
       canUpdateCharts,
-      chartGenerationInProgress,
+      chartGenerationInProgress: group.chartGenerationInProgress || false,
       imageCaption,
     })
   } catch (error: any) {

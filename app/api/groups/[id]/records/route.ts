@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireGroupMembership } from '@/lib/group-auth'
+import { checkGroupAccessForAPI } from '@/lib/group-auth'
 import { getGroupRecords, calculateGroupRecords, triggerRecordsCalculation } from '@/lib/group-records'
 import { prisma } from '@/lib/prisma'
 
@@ -8,11 +8,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { user, group } = await requireGroupMembership(params.id)
-
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-    }
+    const { user, group } = await checkGroupAccessForAPI(params.id)
 
     const records = await getGroupRecords(group.id)
 
@@ -88,10 +84,11 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { user, group } = await requireGroupMembership(params.id)
+    const { user, group, isMember } = await checkGroupAccessForAPI(params.id)
 
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+    // Only members can trigger records calculation
+    if (!isMember) {
+      return NextResponse.json({ error: 'Only members can trigger records calculation' }, { status: 403 })
     }
 
     // Check if calculation should run

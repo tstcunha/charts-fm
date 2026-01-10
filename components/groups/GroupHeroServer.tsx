@@ -6,19 +6,23 @@ import { getLastChartWeek } from '@/lib/group-service'
 import UpdateChartsButton from './UpdateChartsButton'
 import ShareGroupButton from '@/app/[locale]/groups/[id]/ShareGroupButton'
 import QuickAccessButton from '@/app/[locale]/groups/[id]/QuickAccessButton'
+import RequestToJoinButton from '@/app/[locale]/groups/[id]/public/RequestToJoinButton'
 import { LiquidGlassLink } from '@/components/LiquidGlassButton'
 import { getTranslations } from 'next-intl/server'
+import { getSession } from '@/lib/auth'
 
 interface GroupHeroServerProps {
   groupId: string
   isOwner: boolean
   colorTheme: string
+  isMember?: boolean
+  userId?: string | null
 }
 
-export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: GroupHeroServerProps) {
+export default async function GroupHeroServer({ groupId, isOwner, colorTheme, isMember = true, userId }: GroupHeroServerProps) {
   const t = await getTranslations('groups.hero')
-  // Fetch members with images
-  const membersWithImages = await prisma.groupMember.findMany({
+  // Fetch members with images (only for members, for privacy)
+  const membersWithImages = isMember ? await prisma.groupMember.findMany({
     where: { groupId },
     include: {
       user: {
@@ -33,7 +37,7 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
     orderBy: {
       joinedAt: 'asc',
     },
-  })
+  }) : []
 
   // Get group data
   const group = await prisma.group.findUnique({
@@ -104,6 +108,31 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
   const chartGenerationInProgress = group.chartGenerationInProgress || false
   // Can only update if not already in progress
   canUpdateCharts = canUpdateCharts && !chartGenerationInProgress
+
+  // Check for pending request/invite for non-members
+  let hasPendingRequest = false
+  let hasPendingInvite = false
+  if (!isMember && userId) {
+    const pendingRequest = await prisma.groupJoinRequest.findUnique({
+      where: {
+        groupId_userId: {
+          groupId: group.id,
+          userId: userId,
+        },
+      },
+    })
+    hasPendingRequest = pendingRequest?.status === 'pending'
+
+    const pendingInvite = await prisma.groupInvite.findUnique({
+      where: {
+        groupId_userId: {
+          groupId: group.id,
+          userId: userId,
+        },
+      },
+    })
+    hasPendingInvite = pendingInvite?.status === 'pending'
+  }
 
   const themeClass = `theme-${colorTheme.replace('_', '-')}`
 
@@ -188,11 +217,12 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
                 </div>
               )}
               
-              {/* Next Charts Badge or Update Button - Desktop only */}
-              <div className="hidden md:block w-auto">
-                {canUpdateCharts || chartGenerationInProgress ? (
-                  <UpdateChartsButton groupId={groupId} initialInProgress={chartGenerationInProgress} />
-                ) : (
+              {/* Next Charts Badge or Update Button - Desktop only (only for members) */}
+              {isMember && (
+                <div className="hidden md:block w-auto">
+                  {canUpdateCharts || chartGenerationInProgress ? (
+                    <UpdateChartsButton groupId={groupId} initialInProgress={chartGenerationInProgress} />
+                  ) : (
                   <div 
                     className="inline-flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full font-semibold text-xs md:text-sm"
                     style={{
@@ -207,16 +237,18 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
                     <span className="whitespace-nowrap">{t(daysUntilNextChart === 1 ? 'nextChartsIn' : 'nextChartsInDays', { count: daysUntilNextChart })}</span>
                     <span className="text-xs opacity-80 hidden sm:inline">({nextChartDateFormatted})</span>
                   </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           
-          {/* Next Charts Badge or Update Button - Mobile only */}
-          <div className="md:hidden w-full -mt-2 mb-1">
-            {canUpdateCharts || chartGenerationInProgress ? (
-              <UpdateChartsButton groupId={groupId} initialInProgress={chartGenerationInProgress} />
-            ) : (
+          {/* Next Charts Badge or Update Button - Mobile only (only for members) */}
+          {isMember && (
+            <div className="md:hidden w-full -mt-2 mb-1">
+              {canUpdateCharts || chartGenerationInProgress ? (
+                <UpdateChartsButton groupId={groupId} initialInProgress={chartGenerationInProgress} />
+              ) : (
               <div 
                 className="flex items-center justify-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full font-semibold text-xs md:text-sm w-full"
                 style={{
@@ -231,12 +263,13 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
                 <span className="whitespace-nowrap">{t(daysUntilNextChart === 1 ? 'nextChartsIn' : 'nextChartsInDays', { count: daysUntilNextChart })}</span>
                 <span className="text-xs opacity-80 hidden sm:inline">({nextChartDateFormatted})</span>
               </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
           
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2 items-start mt-2 md:mt-0">
-            <QuickAccessButton groupId={groupId} />
+            {isMember && <QuickAccessButton groupId={groupId} />}
             {isOwner && (
               <LiquidGlassLink
                 href={`/groups/${groupId}/settings`}
@@ -248,10 +281,19 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme }: 
                 {t('settings')}
               </LiquidGlassLink>
             )}
+            {!isMember && userId && (
+              <RequestToJoinButton
+                groupId={groupId}
+                hasPendingRequest={hasPendingRequest}
+                hasPendingInvite={hasPendingInvite}
+                allowFreeJoin={group.allowFreeJoin ?? false}
+                memberCount={group._count.members}
+              />
+            )}
           </div>
           
-          {/* Share Button - positioned at bottom right */}
-          {!group.isPrivate && (
+          {/* Share Button - positioned at bottom right (only for members) */}
+          {isMember && !group.isPrivate && (
             <ShareGroupButton groupId={groupId} />
           )}
         </div>

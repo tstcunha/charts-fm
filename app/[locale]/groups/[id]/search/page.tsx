@@ -1,4 +1,4 @@
-import { requireGroupMembership } from '@/lib/group-auth'
+import { getGroupAccess } from '@/lib/group-auth'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import SearchResultsClient from './SearchResultsClient'
@@ -7,7 +7,7 @@ import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   try {
-    const { group } = await requireGroupMembership(params.id)
+    const { group } = await getGroupAccess(params.id)
     return {
       title: `${group?.name || 'Group'} - Search`,
     }
@@ -115,7 +115,7 @@ export default async function SearchPage({
   params: { id: string }
   searchParams: { q?: string }
 }) {
-  const { user, group } = await requireGroupMembership(params.id)
+  const { user, group } = await getGroupAccess(params.id)
 
   if (!group) {
     notFound()

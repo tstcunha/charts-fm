@@ -1,4 +1,4 @@
-import { requireGroupMembership } from '@/lib/group-auth'
+import { getGroupAccess } from '@/lib/group-auth'
 import { Link } from '@/i18n/routing'
 import GroupPageHero from '@/components/groups/GroupPageHero'
 import { isRecordTypeSupported, getRecordTypeDisplayName } from '@/lib/group-records'
@@ -10,7 +10,7 @@ import { notFound } from 'next/navigation'
 export async function generateMetadata({ params }: { params: { id: string; recordType: string; locale: string } }): Promise<Metadata> {
   const t = await getTranslations('records')
   try {
-    const { group } = await requireGroupMembership(params.id)
+    const { group } = await getGroupAccess(params.id)
     const tGroups = await getTranslations('groups')
     const displayName = getRecordTypeDisplayName(params.recordType)
     return {
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: { id: string; recor
 }
 
 export default async function RecordDetailPage({ params }: { params: { id: string; recordType: string; locale: string } }) {
-  const { user, group } = await requireGroupMembership(params.id)
+  const { user, group } = await getGroupAccess(params.id)
   const t = await getTranslations('records')
   const tGroups = await getTranslations('groups')
 

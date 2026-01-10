@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import { getSession } from '@/lib/auth'
+import { checkGroupAccessForAPI } from '@/lib/group-auth'
 import { prisma } from '@/lib/prisma'
 import { getSuperuser } from '@/lib/admin'
 import { calculateGroupWeeklyStats, deleteOverlappingCharts, updateGroupIconFromChart } from '@/lib/group-service'
@@ -16,61 +17,29 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const groupId = params.id
+  try {
+    // Use checkGroupAccessForAPI to ensure private groups are protected
+    const { group } = await checkGroupAccessForAPI(params.id)
 
-  // Check if group exists
-  const group = await prisma.group.findUnique({
-    where: { id: groupId },
-  })
-
-  if (!group) {
-    return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-  }
-
-  // If group is private, require authentication and membership
-  if (group.isPrivate) {
-    const session = await getSession()
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    })
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
-    // Check if user is a member
-    const membership = await prisma.groupMember.findUnique({
-      where: {
-        groupId_userId: {
-          groupId,
-          userId: user.id,
-        },
+    // Get all weekly stats for this group
+    const weeklyStats = await prisma.groupWeeklyStats.findMany({
+      where: { groupId: group.id },
+      orderBy: {
+        weekStart: 'desc',
       },
     })
 
-    if (!membership && group.creatorId !== user.id) {
-      return NextResponse.json(
-        { error: 'You are not a member of this group' },
-        { status: 403 }
-      )
+    return NextResponse.json({ weeklyStats })
+  } catch (error: any) {
+    if (error.status === 401 || error.status === 403 || error.status === 404) {
+      return NextResponse.json({ error: error.message }, { status: error.status })
     }
+    console.error('Error fetching charts:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch charts' },
+      { status: 500 }
+    )
   }
-  // If group is public, allow unauthenticated access
-
-  // Get all weekly stats for this group
-  const weeklyStats = await prisma.groupWeeklyStats.findMany({
-    where: { groupId },
-    orderBy: {
-      weekStart: 'desc',
-    },
-  })
-
-  return NextResponse.json({ weeklyStats })
 }
 
 // POST - Generate/refresh charts for a group

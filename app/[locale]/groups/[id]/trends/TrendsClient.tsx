@@ -32,7 +32,7 @@ type CategoryTab = 'members' | 'artists' | 'tracks' | 'albums'
 interface TrendsClientProps {
   trends: any
   groupId: string
-  userId: string
+  userId: string | null
 }
 
 interface CategoryData {

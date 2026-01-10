@@ -116,6 +116,58 @@ export async function getPublicGroupById(groupId: string) {
 }
 
 /**
+ * Get group by ID without membership restriction (for access control)
+ * Returns group data with basic info, but members list only if userId is provided and is a member
+ * IMPORTANT: Does NOT filter by isPrivate - that check is done in getGroupAccess
+ * This function is only called from getGroupAccess which handles private group filtering
+ */
+export async function getGroupByIdForAccess(groupId: string, userId?: string | null) {
+  const group = await prisma.group.findUnique({
+    where: { id: groupId },
+    include: {
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          lastfmUsername: true,
+        },
+      },
+      _count: {
+        select: {
+          members: true,
+        },
+      },
+    },
+  })
+
+  if (!group) {
+    return null
+  }
+
+  // If userId is provided and user is a member, include members list
+  if (userId) {
+    const isCreator = group.creatorId === userId
+    const membership = await prisma.groupMember.findUnique({
+      where: {
+        groupId_userId: {
+          groupId,
+          userId,
+        },
+      },
+    })
+
+    if (isCreator || membership) {
+      // User is a member, include full group data with members
+      return await getGroupById(groupId, userId)
+    }
+  }
+
+  // Return group without members list
+  // Note: isPrivate check is handled in getGroupAccess, not here
+  return group
+}
+
+/**
  * Get cached chart entries for a specific week and chart type
  */
 export async function getGroupChartEntries(

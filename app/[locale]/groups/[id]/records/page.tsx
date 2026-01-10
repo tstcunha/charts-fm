@@ -1,4 +1,4 @@
-import { requireGroupMembership } from '@/lib/group-auth'
+import { getGroupAccess } from '@/lib/group-auth'
 import { getGroupRecords } from '@/lib/group-records'
 import { Link } from '@/i18n/routing'
 import RecordsClient from './RecordsClient'
@@ -10,7 +10,7 @@ import { getTranslations } from 'next-intl/server'
 export async function generateMetadata({ params }: { params: { id: string; locale: string } }): Promise<Metadata> {
   const t = await getTranslations('records')
   try {
-    const { group } = await requireGroupMembership(params.id)
+    const { group } = await getGroupAccess(params.id)
     const tGroups = await getTranslations('groups')
     return {
       title: `${group?.name || tGroups('title')} - ${t('title')}`,
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: { id: string; local
 }
 
 export default async function RecordsPage({ params }: { params: { id: string; locale: string } }) {
-  const { user, group } = await requireGroupMembership(params.id)
+  const { user, group } = await getGroupAccess(params.id)
   const t = await getTranslations('records')
   const tGroups = await getTranslations('groups')
 

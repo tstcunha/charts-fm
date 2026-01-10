@@ -1,4 +1,4 @@
-import { requireGroupMembership } from '@/lib/group-auth'
+import { getGroupAccess } from '@/lib/group-auth'
 import { getGroupChartEntries, getGroupAvailableWeeks } from '@/lib/group-queries'
 import { formatWeekDate, formatWeekLabel } from '@/lib/weekly-utils'
 import { Link } from '@/i18n/routing'
@@ -10,7 +10,7 @@ import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   try {
-    const { group } = await requireGroupMembership(params.id)
+    const { group } = await getGroupAccess(params.id)
     const t = await getTranslations('charts')
     return {
       title: `${group?.name || 'Group'} - ${t('title')}`,
@@ -48,7 +48,7 @@ export default async function ChartsPage({
   params: { id: string }
   searchParams: { week?: string; type?: string }
 }) {
-  const { user, group } = await requireGroupMembership(params.id)
+  const { user, group } = await getGroupAccess(params.id)
   const t = await getTranslations('charts')
   const tGroups = await getTranslations('groups')
 
