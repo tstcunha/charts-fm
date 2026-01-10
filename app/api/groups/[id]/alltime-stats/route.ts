@@ -10,7 +10,7 @@ export async function GET(
   try {
     const { user, group } = await checkGroupAccessForAPI(params.id)
 
-    const isOwner = user.id === group.creatorId
+    const isOwner = user?.id === group.creatorId
     const weeklyStats = await getGroupWeeklyStats(group.id)
     const allTimeStats = await getGroupAllTimeStats(group.id)
 

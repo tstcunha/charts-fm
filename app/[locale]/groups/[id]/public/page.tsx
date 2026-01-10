@@ -29,7 +29,7 @@ export default async function PublicGroupPage({ params }: { params: { id: string
   
   // If user is authenticated (even if not a member), redirect to main group page
   if (user) {
-    redirect(`/${params.locale}/groups/${params.id}`)
+    redirect({ href: `/groups/${params.id}`, locale: params.locale })
   }
 
   // For non-authenticated users, show public page
