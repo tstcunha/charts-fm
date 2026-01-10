@@ -15,9 +15,10 @@ export async function POST(request: Request) {
       )
     }
 
-    // Find unverified user by email
+    // Find unverified user by email (case insensitive)
+    const emailLower = email.toLowerCase().trim()
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: emailLower },
       select: {
         id: true,
         email: true,

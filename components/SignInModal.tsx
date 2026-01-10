@@ -68,8 +68,9 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
     setIsLoading(true)
 
     try {
+      const emailLower = formData.email.toLowerCase().trim()
       const result = await signIn('credentials', {
-        email: formData.email,
+        email: emailLower,
         password: formData.password,
         redirect: false,
       })
@@ -82,7 +83,7 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ email: formData.email }),
+            body: JSON.stringify({ email: emailLower }),
           })
 
           const checkData = await checkResponse.json()
@@ -121,12 +122,13 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
     setResendSuccess(false)
 
     try {
+      const emailLower = formData.email.toLowerCase().trim()
       const response = await fetch('/api/auth/resend-verification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email: formData.email }),
+        body: JSON.stringify({ email: emailLower }),
       })
 
       const data = await response.json()

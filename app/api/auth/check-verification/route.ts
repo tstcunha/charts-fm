@@ -13,9 +13,10 @@ export async function POST(request: Request) {
       )
     }
 
-    // Find user by email
+    // Find user by email (case insensitive)
+    const emailLower = email.toLowerCase().trim()
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: emailLower },
       select: {
         emailVerified: true,
       },
