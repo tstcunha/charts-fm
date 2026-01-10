@@ -75,9 +75,8 @@ export default function ShareGroupModal({
 
   useEffect(() => {
     if (isOpen && typeof window !== 'undefined') {
-      // Use regular group URL (works for both public and private groups)
-      // Private groups are accessible to members via the regular URL
-      const fullUrl = `${window.location.origin}/${locale}/groups/${groupId}`
+      // Use public URL for sharing (accessible to everyone, even non-members)
+      const fullUrl = `${window.location.origin}/${locale}/groups/${groupId}/public`
       setPublicUrl(fullUrl)
       
       // Update position on scroll
