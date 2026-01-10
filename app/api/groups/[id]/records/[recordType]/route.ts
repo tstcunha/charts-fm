@@ -20,13 +20,14 @@ export async function GET(
     // Handle artist-specific record types
     if (isArtistSpecificRecordType(params.recordType)) {
       // Check cache first
+      // Prisma's generated types don't properly handle nullable fields in composite unique constraints
       const cached = await prisma.groupRecordDetailCache.findUnique({
         where: {
           groupId_recordType_entryType: {
             groupId: group.id,
             recordType: params.recordType,
-            entryType: null, // Artist-specific records use null for entryType
-          },
+            entryType: null,
+          } as any,
         },
       })
 
@@ -42,13 +43,14 @@ export async function GET(
       const entries = await getArtistAggregationRecords(group.id, params.recordType, 100)
       
       // Store in cache
+      // Prisma's generated types don't properly handle nullable fields in composite unique constraints
       await prisma.groupRecordDetailCache.upsert({
         where: {
           groupId_recordType_entryType: {
             groupId: group.id,
             recordType: params.recordType,
             entryType: null,
-          },
+          } as any,
         },
         create: {
           groupId: group.id,
