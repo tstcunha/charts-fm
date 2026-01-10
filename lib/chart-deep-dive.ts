@@ -759,18 +759,41 @@ export async function invalidateEntryStatsCacheBatch(
       }
     }
 
-    // Accumulate totals for each entry (entries may appear in multiple weeks)
-    const totalsByEntry = new Map<string, { totalVS: number; totalPlays: number }>()
-    for (const entry of typeEntries) {
-      const existing = totalsByEntry.get(entry.entryKey) || { totalVS: 0, totalPlays: 0 }
-      totalsByEntry.set(entry.entryKey, {
-        totalVS: existing.totalVS + (entry.vibeScore || 0),
-        totalPlays: existing.totalPlays + entry.playcount,
-      })
+    // Get unique entryKeys to process
+    const uniqueEntryKeys = Array.from(new Set(typeEntries.map(e => e.entryKey)))
+
+    // Batch calculate totals for all entryKeys in a single query to avoid N+1 queries
+    // This is much faster than querying each entryKey individually
+    const totalsByEntryKey = new Map<string, { totalVS: number | null; totalPlays: number }>()
+    
+    if (uniqueEntryKeys.length > 0) {
+      // Use raw SQL to get aggregated totals for all entryKeys at once
+      const totalsResults = await prisma.$queryRaw<Array<{
+        entryKey: string
+        totalVS: number | null
+        totalPlays: number
+      }>>`
+        SELECT 
+          "entryKey",
+          SUM("vibeScore")::float as "totalVS",
+          SUM("playcount")::integer as "totalPlays"
+        FROM "group_chart_entries"
+        WHERE "groupId" = ${groupId}::text
+          AND "chartType" = ${chartType}
+          AND "entryKey" = ANY(${uniqueEntryKeys}::text[])
+        GROUP BY "entryKey"
+      `
+
+      for (const result of totalsResults) {
+        totalsByEntryKey.set(result.entryKey, {
+          totalVS: result.totalVS,
+          totalPlays: result.totalPlays || 0,
+        })
+      }
     }
 
     // Prepare updates and creates
-    const updates: Array<{ id: string; totalVS: number; totalPlays: number; latestWeek: Date }> = []
+    const updates: Array<{ id: string; totalVS: number | null; totalPlays: number; latestWeek: Date }> = []
     const creates: Array<{
       groupId: string
       chartType: ChartType
@@ -790,15 +813,17 @@ export async function invalidateEntryStatsCacheBatch(
       processedEntryKeys.add(entry.entryKey)
 
       const stats = statsMap.get(entry.entryKey)
-      const totals = totalsByEntry.get(entry.entryKey)!
       const latestWeek = latestWeekByEntry.get(entry.entryKey)!
+      // Get totals from the batched query result (or default to 0 if not found)
+      const totals = totalsByEntryKey.get(entry.entryKey) || { totalVS: null, totalPlays: 0 }
 
       if (stats) {
-        // Update existing entry
+        // Update existing entry with recalculated totals (not adding to existing)
+        // This is critical when regenerating charts for weeks that already exist
         updates.push({
           id: stats.id,
-          totalVS: stats.totalVS ? stats.totalVS + totals.totalVS : totals.totalVS,
-          totalPlays: stats.totalPlays + totals.totalPlays,
+          totalVS: totals.totalVS,
+          totalPlays: totals.totalPlays,
           latestWeek,
         })
       } else {
@@ -809,7 +834,7 @@ export async function invalidateEntryStatsCacheBatch(
           chartType,
           entryKey: entry.entryKey,
           slug,
-          totalVS: totals.totalVS || null,
+          totalVS: totals.totalVS,
           totalPlays: totals.totalPlays,
           latestAppearance: latestWeek,
         })
@@ -833,7 +858,7 @@ export async function invalidateEntryStatsCacheBatch(
               data: {
                 majorDriverLastUpdated: null, // Mark major driver as stale
                 statsStale: true, // Mark stats as needing recalculation
-                totalVS: update.totalVS || null,
+                totalVS: update.totalVS,
                 totalPlays: update.totalPlays,
                 latestAppearance: update.latestWeek,
                 lastUpdated: new Date(),
