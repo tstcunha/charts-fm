@@ -1073,10 +1073,10 @@
     },
     "detail": {
       "rank": "Posição",
-      "entry": "Entrada",
+      "entry": "Item",
       "value": "Valor",
-      "noEntries": "Nenhuma entrada encontrada para este tipo de recorde.",
-      "error": "Falha ao carregar entradas. Por favor, tente novamente mais tarde."
+      "noEntries": "Nenhum item encontrada para este tipo de recorde.",
+      "error": "Falha ao carregar itens. Por favor, tente novamente mais tarde."
     }
   },
   "landing": {
@@ -1242,7 +1242,7 @@
     "title": "Chart Toppers",
     "subheader": "Todos os #1s semana a semana",
     "week": "Semana",
-    "entry": "Entrada",
+    "entry": "Item",
     "plays": "Plays",
     "value": "VS",
     "noEntries": "Nenhum #1 encontrado",
