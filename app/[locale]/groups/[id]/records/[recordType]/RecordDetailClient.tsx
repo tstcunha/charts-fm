@@ -7,7 +7,26 @@ import LiquidGlassTabs, { TabItem } from '@/components/LiquidGlassTabs'
 import { Link } from '@/i18n/routing'
 import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 import { ChartType } from '@/lib/chart-slugs'
-import { getRecordTypeDisplayName, isArtistSpecificRecordType } from '@/lib/group-records'
+import { isArtistSpecificRecordType } from '@/lib/group-records'
+
+// Map record type to translation key
+function getRecordTypeTranslationKey(recordType: string): string {
+  const mapping: Record<string, string> = {
+    'most-weeks-on-chart': 'mostWeeksOnChart',
+    'most-weeks-in-top-10': 'mostWeeksInTop10',
+    'most-consecutive-weeks': 'mostConsecutiveWeeks',
+    'most-plays': 'mostPlaysReceived',
+    'most-total-vs': 'totalAllTimeVS',
+    'most-weeks-at-one': 'mostWeeksAtOne',
+    'artist-most-number-one-songs': 'artistMostNumberOneSongs',
+    'artist-most-number-one-albums': 'artistMostNumberOneAlbums',
+    'artist-most-songs-in-top-10': 'artistMostSongsInTop10',
+    'artist-most-albums-in-top-10': 'artistMostAlbumsInTop10',
+    'artist-most-songs-charted': 'artistMostSongsCharted',
+    'artist-most-albums-charted': 'artistMostAlbumsCharted',
+  }
+  return mapping[recordType] || recordType
+}
 
 interface RankedEntry {
   rank: number
@@ -26,6 +45,7 @@ interface RecordDetailClientProps {
 export default function RecordDetailClient({ groupId, recordType }: RecordDetailClientProps) {
   const t = useSafeTranslations('records.detail')
   const tTabs = useSafeTranslations('records.tabs')
+  const tChartRecords = useSafeTranslations('records.chartRecords')
   
   const isArtistSpecific = isArtistSpecificRecordType(recordType)
   
@@ -139,7 +159,7 @@ export default function RecordDetailClient({ groupId, recordType }: RecordDetail
     return value
   }
 
-  const displayName = getRecordTypeDisplayName(recordType)
+  const displayName = tChartRecords(getRecordTypeTranslationKey(recordType)) || recordType
 
   return (
     <div className="mt-4 md:mt-6 lg:mt-8">
