@@ -1,4 +1,4 @@
-import { getPublicGroupById } from '@/lib/group-queries'
+import { getGroupByIdForAccess } from '@/lib/group-queries'
 import PublicGroupHeroServer from './PublicGroupHeroServer'
 import PublicGroupWeeklyCharts from './PublicGroupWeeklyCharts'
 import LoggedOutBanner from './LoggedOutBanner'
@@ -10,7 +10,7 @@ import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: { id: string; locale: string } }): Promise<Metadata> {
   try {
-    const group = await getPublicGroupById(params.id)
+    const group = await getGroupByIdForAccess(params.id, null)
     const t = await getTranslations('groups')
     return {
       title: group?.name || t('title'),
@@ -24,16 +24,17 @@ export async function generateMetadata({ params }: { params: { id: string; local
 }
 
 export default async function PublicGroupPage({ params }: { params: { id: string; locale: string } }) {
-  // Check if user is authenticated - if so, redirect to main group page
+  // Check if user is authenticated and can access the group
   const { user, group: accessGroup, isMember } = await getGroupAccess(params.id)
   
-  // If user is authenticated (even if not a member), redirect to main group page
-  if (user) {
+  // If user is authenticated AND can access the group (member or public group), redirect to main group page
+  if (user && accessGroup) {
     redirect({ href: `/groups/${params.id}`, locale: params.locale })
   }
 
-  // For non-authenticated users, show public page
-  const group = await getPublicGroupById(params.id)
+  // For non-authenticated users or authenticated users who can't access (private group, not a member), show public page
+  // Use getGroupByIdForAccess to get the group (works for both public and private groups)
+  const group = await getGroupByIdForAccess(params.id, user?.id || null)
   const t = await getTranslations('groups')
   
   if (!group) {

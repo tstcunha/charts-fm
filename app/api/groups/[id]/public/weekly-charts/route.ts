@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
-import { getPublicGroupById } from '@/lib/group-queries'
+import { getGroupByIdForAccess } from '@/lib/group-queries'
 import { getGroupWeeklyStats } from '@/lib/group-queries'
 import { prisma } from '@/lib/prisma'
+import { getSession } from '@/lib/auth'
 
 // Helper function to get week end date (6 days after week start)
 function getWeekEndDate(weekStart: Date): Date {
@@ -24,7 +25,19 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const group = await getPublicGroupById(params.id)
+    // Get user if authenticated to check membership
+    const session = await getSession()
+    let userId: string | null = null
+    if (session?.user?.email) {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: { id: true },
+      })
+      userId = user?.id || null
+    }
+    
+    // Use getGroupByIdForAccess to get the group (works for both public and private groups)
+    const group = await getGroupByIdForAccess(params.id, userId)
 
     if (!group) {
       return NextResponse.json({ error: 'Group not found' }, { status: 404 })

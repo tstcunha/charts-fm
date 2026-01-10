@@ -293,7 +293,7 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme, is
           </div>
           
           {/* Share Button - positioned at bottom right (only for members) */}
-          {isMember && !group.isPrivate && (
+          {isMember && (
             <ShareGroupButton groupId={groupId} />
           )}
         </div>

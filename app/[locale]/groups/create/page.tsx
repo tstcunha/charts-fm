@@ -60,6 +60,8 @@ export default function CreateGroupPage() {
     image: '',
     dynamicIconEnabled: false,
     dynamicIconSource: 'top_album',
+    isPrivate: false,
+    allowFreeJoin: false,
     // Step 2: Chart settings
     chartSize: 10,
     trackingDayOfWeek: 0,
@@ -194,8 +196,8 @@ export default function CreateGroupPage() {
           chartSize: formData.chartSize,
           trackingDayOfWeek: formData.trackingDayOfWeek,
           chartMode: formData.chartMode,
-          isPrivate: false,
-          allowFreeJoin: false,
+          isPrivate: formData.isPrivate,
+          allowFreeJoin: formData.isPrivate ? false : formData.allowFreeJoin,
         }),
       })
 
@@ -326,6 +328,46 @@ export default function CreateGroupPage() {
           </div>
         )}
       </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {tGroupDetails('privacySettings')}
+        </label>
+        <Toggle
+          id="isPrivate"
+          checked={formData.isPrivate}
+          onChange={(checked) => {
+            setFormData({ 
+              ...formData, 
+              isPrivate: checked,
+              allowFreeJoin: checked ? false : formData.allowFreeJoin // Disable free join if private
+            })
+          }}
+          disabled={isLoading}
+          label={tGroupDetails('privateGroup')}
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          {tGroupDetails('privateGroupDescription')}
+        </p>
+      </div>
+
+      {!formData.isPrivate && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {tGroupDetails('joinSettings')}
+          </label>
+          <Toggle
+            id="allowFreeJoin"
+            checked={formData.allowFreeJoin}
+            onChange={(checked) => setFormData({ ...formData, allowFreeJoin: checked })}
+            disabled={isLoading}
+            label={tGroupDetails('usersCanJoinFreely')}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            {tGroupDetails('usersCanJoinFreelyDescription')}
+          </p>
+        </div>
+      )}
     </div>
   )
 
@@ -625,36 +667,41 @@ export default function CreateGroupPage() {
 
           {/* Navigation Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mt-6 md:mt-8 pt-4 md:pt-6 border-t border-gray-200">
-            {currentStep > 1 && (
-              <button
-                type="button"
-                onClick={handleBack}
-                disabled={isLoading}
-                className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 min-h-[44px] order-2 sm:order-1"
-              >
-                {t('back')}
-              </button>
-            )}
-            <div className="flex-1 hidden sm:block" />
             {currentStep < 3 ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                disabled={isLoading}
-                className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] order-1 sm:order-2"
-              >
-                {t('next')}
-              </button>
-            ) : (
               <>
+                {currentStep > 1 && (
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    disabled={isLoading}
+                    className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 min-h-[44px] order-2 sm:order-1"
+                  >
+                    {t('back')}
+                  </button>
+                )}
+                <div className="flex-1 hidden sm:block" />
                 <button
                   type="button"
-                  onClick={() => router.back()}
+                  onClick={handleNext}
                   disabled={isLoading}
-                  className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 min-h-[44px] order-2 sm:order-1"
+                  className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] order-1 sm:order-2"
                 >
-                  {tCommon('cancel')}
+                  {t('next')}
                 </button>
+              </>
+            ) : (
+              <>
+                {currentStep > 1 && (
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    disabled={isLoading}
+                    className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 min-h-[44px] order-2 sm:order-1"
+                  >
+                    {t('back')}
+                  </button>
+                )}
+                <div className="flex-1 hidden sm:block" />
                 <button
                   type="button"
                   onClick={handleSubmit}

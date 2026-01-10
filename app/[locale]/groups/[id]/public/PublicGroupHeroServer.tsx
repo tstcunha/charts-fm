@@ -1,6 +1,6 @@
 import { Link } from '@/i18n/routing'
 import SafeImage from '@/components/SafeImage'
-import { getPublicGroupById } from '@/lib/group-queries'
+import { getGroupByIdForAccess } from '@/lib/group-queries'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import RequestToJoinButton from './RequestToJoinButton'
@@ -14,61 +14,73 @@ interface PublicGroupHeroServerProps {
 }
 
 export default async function PublicGroupHeroServer({ groupId, colorTheme }: PublicGroupHeroServerProps) {
-  const group = await getPublicGroupById(groupId)
+  // Get user if authenticated to check membership
+  const session = await getSession()
+  let userId: string | null = null
+  let isMember = false
+  let hasPendingRequest = false
+  let hasPendingInvite = false
+  let pendingInviteId: string | null = null
+  
+  if (session?.user?.email) {
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    })
+    userId = user?.id || null
+    
+    if (user) {
+      // Check membership
+      const membership = await prisma.groupMember.findUnique({
+        where: {
+          groupId_userId: {
+            groupId,
+            userId: user.id,
+          },
+        },
+      })
+      isMember = !!membership
+      
+      // Check if user is creator (will be checked after we get the group)
+      // Also check for pending request or invite
+      const [pendingRequest, pendingInvite] = await Promise.all([
+        prisma.groupJoinRequest.findUnique({
+          where: {
+            groupId_userId: {
+              groupId,
+              userId: user.id,
+            },
+          },
+        }),
+        prisma.groupInvite.findUnique({
+          where: {
+            groupId_userId: {
+              groupId,
+              userId: user.id,
+            },
+          },
+        }),
+      ])
+      hasPendingRequest = pendingRequest?.status === 'pending'
+      hasPendingInvite = pendingInvite?.status === 'pending'
+      pendingInviteId = pendingInvite?.id || null
+    }
+  }
+  
+  // Use getGroupByIdForAccess to get the group (works for both public and private groups)
+  const group = await getGroupByIdForAccess(groupId, userId)
   const t = await getTranslations('groups.hero')
   
   if (!group) {
     return null
   }
 
-  const themeClass = `theme-${colorTheme.replace('_', '-')}`
-
-  // Check if user is logged in and is a member (for optional "View as Member" link)
-  const session = await getSession()
-  let isMember = false
-  let hasPendingRequest = false
-  let hasPendingInvite = false
-  let pendingInviteId: string | null = null
-  if (session?.user?.email) {
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    })
-    if (user) {
-      const membership = await prisma.groupMember.findUnique({
-        where: {
-          groupId_userId: {
-            groupId: group.id,
-            userId: user.id,
-          },
-        },
-      })
-      isMember = !!membership || user.id === group.creatorId
-
-      // Check if user has a pending request or invite
-      if (!isMember) {
-        const pendingRequest = await prisma.groupJoinRequest.findUnique({
-          where: {
-            groupId_userId: {
-              groupId: group.id,
-              userId: user.id,
-            },
-          },
-        })
-        hasPendingRequest = pendingRequest?.status === 'pending'
-
-        const pendingInvite = await prisma.groupInvite.findUnique({
-          where: {
-            groupId_userId: {
-              groupId: group.id,
-              userId: user.id,
-            },
-          },
-        })
-        hasPendingInvite = pendingInvite?.status === 'pending'
-        pendingInviteId = pendingInvite?.id || null
-      }
-    }
+  // Check if user is creator (now that we have the group)
+  if (userId && group.creatorId === userId) {
+    isMember = true
   }
+
+  const themeClass = `theme-${colorTheme.replace('_', '-')}`
 
   // Calculate tracking day info
   const trackingDayOfWeek = group.trackingDayOfWeek ?? 0
