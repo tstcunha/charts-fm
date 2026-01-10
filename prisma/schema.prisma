@@ -350,6 +350,7 @@ model ChartEntryStats {
   slug                   String
   peakPosition           Int
   weeksAtPeak            Int
+  weeksAtOne             Int                @default(0)
   debutPosition          Int
   weeksInTop10           Int
   totalWeeksCharting     Int

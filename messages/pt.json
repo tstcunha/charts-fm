@@ -1066,6 +1066,13 @@
         "consistencyChampion": "Este é o membro que escutou itens dos charts por mais semanas. Ele gosta do que hita.",
         "tasteMaker": "Este é o membro que fez debutar mais itens que em seguida pegaram #1. E quando ele quiser, ele hita."
       }
+    },
+    "detail": {
+      "rank": "Posição",
+      "entry": "Entrada",
+      "value": "Valor",
+      "noEntries": "Nenhuma entrada encontrada para este tipo de recorde.",
+      "error": "Falha ao carregar entradas. Por favor, tente novamente mais tarde."
     }
   },
   "landing": {

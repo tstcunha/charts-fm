@@ -1066,6 +1066,13 @@
         "consistencyChampion": "The member who contributed to charts for the most weeks. They show up every time.",
         "tasteMaker": "This is the member who introduced the most entries that later became #1 hits. They have that magic touch."
       }
+    },
+    "detail": {
+      "rank": "Rank",
+      "entry": "Entry",
+      "value": "Value",
+      "noEntries": "No entries found for this record type.",
+      "error": "Failed to load entries. Please try again later."
     }
   },
   "landing": {

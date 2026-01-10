@@ -14,6 +14,7 @@ export interface ChartHistoryEntry {
 export interface EntryStats {
   peakPosition: number
   weeksAtPeak: number
+  weeksAtOne: number
   debutPosition: number
   debutDate: Date | null
   weeksInTop10: number
@@ -84,6 +85,7 @@ function calculateEntryStats(history: ChartHistoryEntry[]): EntryStats {
     return {
       peakPosition: 0,
       weeksAtPeak: 0,
+      weeksAtOne: 0,
       debutPosition: 0,
       debutDate: null,
       weeksInTop10: 0,
@@ -99,6 +101,7 @@ function calculateEntryStats(history: ChartHistoryEntry[]): EntryStats {
 
   const peakPosition = Math.min(...history.map((h) => h.position))
   const weeksAtPeak = history.filter((h) => h.position === peakPosition).length
+  const weeksAtOne = history.filter((h) => h.position === 1).length
   const debutPosition = history[0].position
   const debutDate = history[0].weekStart
   const weeksInTop10 = history.filter((h) => h.position <= 10).length
@@ -140,6 +143,7 @@ function calculateEntryStats(history: ChartHistoryEntry[]): EntryStats {
   return {
     peakPosition,
     weeksAtPeak,
+    weeksAtOne,
     debutPosition,
     debutDate,
     weeksInTop10,
@@ -219,6 +223,7 @@ export async function getEntryStats(
       update: {
         peakPosition: calculatedStats.peakPosition,
         weeksAtPeak: calculatedStats.weeksAtPeak,
+        weeksAtOne: calculatedStats.weeksAtOne,
         debutPosition: calculatedStats.debutPosition,
         weeksInTop10: calculatedStats.weeksInTop10,
         totalWeeksCharting: calculatedStats.totalWeeksCharting,
@@ -235,6 +240,7 @@ export async function getEntryStats(
         slug,
         peakPosition: calculatedStats.peakPosition,
         weeksAtPeak: calculatedStats.weeksAtPeak,
+        weeksAtOne: calculatedStats.weeksAtOne,
         debutPosition: calculatedStats.debutPosition,
         weeksInTop10: calculatedStats.weeksInTop10,
         totalWeeksCharting: calculatedStats.totalWeeksCharting,
@@ -301,6 +307,7 @@ export async function getEntryStats(
   return {
     peakPosition: stats.peakPosition,
     weeksAtPeak: stats.weeksAtPeak,
+    weeksAtOne: stats.weeksAtOne || 0,
     debutPosition: stats.debutPosition,
     debutDate: firstEntry?.weekStart || null,
     weeksInTop10: stats.weeksInTop10,
@@ -707,6 +714,49 @@ export async function invalidateEntryStatsCache(
  * Batch invalidate entry stats cache (mark as stale)
  * Uses batch operations instead of N+1 queries for much better performance
  */
+/**
+ * Calculate and update stats for multiple entries in bulk
+ * This ensures all stats are up-to-date before querying
+ */
+export async function calculateEntryStatsBatch(
+  groupId: string,
+  chartType: ChartType,
+  entryKeys: string[]
+): Promise<void> {
+  if (entryKeys.length === 0) {
+    return
+  }
+
+  // Get all existing stats for these entries
+  const existingStats = await prisma.chartEntryStats.findMany({
+    where: {
+      groupId,
+      chartType,
+      entryKey: { in: entryKeys },
+    },
+  })
+
+  const statsMap = new Map(existingStats.map(s => [s.entryKey, s]))
+  const entriesToCalculate = entryKeys.filter(key => {
+    const stats = statsMap.get(key)
+    return !stats || stats.statsStale
+  })
+
+  if (entriesToCalculate.length === 0) {
+    return // All stats are already up-to-date
+  }
+
+  // Calculate stats for all entries that need it
+  // Process in parallel but limit concurrency to avoid overwhelming the database
+  const BATCH_SIZE = 10
+  for (let i = 0; i < entriesToCalculate.length; i += BATCH_SIZE) {
+    const batch = entriesToCalculate.slice(i, i + BATCH_SIZE)
+    await Promise.all(
+      batch.map(entryKey => getEntryStats(groupId, chartType, entryKey))
+    )
+  }
+}
+
 export async function invalidateEntryStatsCacheBatch(
   groupId: string,
   entries: Array<{
@@ -762,21 +812,27 @@ export async function invalidateEntryStatsCacheBatch(
     // Get unique entryKeys to process
     const uniqueEntryKeys = Array.from(new Set(typeEntries.map(e => e.entryKey)))
 
-    // Batch calculate totals for all entryKeys in a single query to avoid N+1 queries
+    // Batch calculate totals and totalWeeksCharting for all entryKeys in a single query
     // This is much faster than querying each entryKey individually
-    const totalsByEntryKey = new Map<string, { totalVS: number | null; totalPlays: number }>()
+    const totalsByEntryKey = new Map<string, { 
+      totalVS: number | null
+      totalPlays: number
+      totalWeeksCharting: number
+    }>()
     
     if (uniqueEntryKeys.length > 0) {
-      // Use raw SQL to get aggregated totals for all entryKeys at once
+      // Use raw SQL to get aggregated totals and week counts for all entryKeys at once
       const totalsResults = await prisma.$queryRaw<Array<{
         entryKey: string
         totalVS: number | null
         totalPlays: number
+        totalWeeksCharting: bigint
       }>>`
         SELECT 
           "entryKey",
           SUM("vibeScore")::float as "totalVS",
-          SUM("playcount")::integer as "totalPlays"
+          SUM("playcount")::integer as "totalPlays",
+          COUNT(DISTINCT "weekStart")::bigint as "totalWeeksCharting"
         FROM "group_chart_entries"
         WHERE "groupId" = ${groupId}::text
           AND "chartType" = ${chartType}
@@ -788,12 +844,19 @@ export async function invalidateEntryStatsCacheBatch(
         totalsByEntryKey.set(result.entryKey, {
           totalVS: result.totalVS,
           totalPlays: result.totalPlays || 0,
+          totalWeeksCharting: Number(result.totalWeeksCharting),
         })
       }
     }
 
     // Prepare updates and creates
-    const updates: Array<{ id: string; totalVS: number | null; totalPlays: number; latestWeek: Date }> = []
+    const updates: Array<{ 
+      id: string
+      totalVS: number | null
+      totalPlays: number
+      totalWeeksCharting: number
+      latestWeek: Date
+    }> = []
     const creates: Array<{
       groupId: string
       chartType: ChartType
@@ -801,6 +864,7 @@ export async function invalidateEntryStatsCacheBatch(
       slug: string
       totalVS: number | null
       totalPlays: number
+      totalWeeksCharting: number
       latestAppearance: Date
     }> = []
 
@@ -815,15 +879,20 @@ export async function invalidateEntryStatsCacheBatch(
       const stats = statsMap.get(entry.entryKey)
       const latestWeek = latestWeekByEntry.get(entry.entryKey)!
       // Get totals from the batched query result (or default to 0 if not found)
-      const totals = totalsByEntryKey.get(entry.entryKey) || { totalVS: null, totalPlays: 0 }
+      const totals = totalsByEntryKey.get(entry.entryKey) || { 
+        totalVS: null, 
+        totalPlays: 0,
+        totalWeeksCharting: 0
+      }
 
       if (stats) {
-        // Update existing entry with recalculated totals (not adding to existing)
+        // Update existing entry with recalculated totals and totalWeeksCharting
         // This is critical when regenerating charts for weeks that already exist
         updates.push({
           id: stats.id,
           totalVS: totals.totalVS,
           totalPlays: totals.totalPlays,
+          totalWeeksCharting: totals.totalWeeksCharting,
           latestWeek,
         })
       } else {
@@ -836,6 +905,7 @@ export async function invalidateEntryStatsCacheBatch(
           slug,
           totalVS: totals.totalVS,
           totalPlays: totals.totalPlays,
+          totalWeeksCharting: totals.totalWeeksCharting,
           latestAppearance: latestWeek,
         })
       }
@@ -857,9 +927,10 @@ export async function invalidateEntryStatsCacheBatch(
               where: { id: update.id },
               data: {
                 majorDriverLastUpdated: null, // Mark major driver as stale
-                statsStale: true, // Mark stats as needing recalculation
+                statsStale: true, // Mark stats as needing recalculation (for other fields)
                 totalVS: update.totalVS,
                 totalPlays: update.totalPlays,
+                totalWeeksCharting: update.totalWeeksCharting, // Update totalWeeksCharting from actual count
                 latestAppearance: update.latestWeek,
                 lastUpdated: new Date(),
               },
@@ -882,13 +953,14 @@ export async function invalidateEntryStatsCacheBatch(
           ...create,
           peakPosition: 0, // Will be calculated on first access
           weeksAtPeak: 0,
+          weeksAtOne: 0,
           debutPosition: 0,
           weeksInTop10: 0,
-          totalWeeksCharting: 0,
+          totalWeeksCharting: create.totalWeeksCharting, // Use calculated value from actual chart entries
           longestStreak: 0,
           isStreakOngoing: false,
           majorDriverLastUpdated: null, // Will be calculated on first access
-          statsStale: true, // Stats will be calculated on first access
+          statsStale: true, // Other stats will be calculated on first access
         })),
         skipDuplicates: true,
       })

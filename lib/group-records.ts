@@ -288,36 +288,28 @@ async function calculatePhase2Records(
   }
 
   for (const chartType of chartTypes) {
-    // Most weeks at #1 using SQL aggregation
-    const mostWeeksAtOneResult = await prisma.$queryRaw<Array<{
-      entryKey: string
-      weeks_at_one: bigint
-      name: string
-      artist: string | null
-    }>>`
-      SELECT 
-        gce."entryKey",
-        COUNT(*)::bigint as weeks_at_one,
-        MAX(gce.name) as name,
-        MAX(gce.artist) as artist
-      FROM "group_chart_entries" gce
-      WHERE gce."groupId" = ${groupId}::text
-        AND gce."chartType" = ${chartType}
-        AND gce.position = 1
-      GROUP BY gce."entryKey"
-      ORDER BY weeks_at_one DESC
-      LIMIT 1
-    `
+    // Most weeks at #1 using ChartEntryStats
+    const mostWeeksAtOneResult = await prisma.chartEntryStats.findFirst({
+      where: { groupId, chartType },
+      orderBy: { weeksAtOne: 'desc' },
+    })
 
-    if (mostWeeksAtOneResult.length > 0) {
-      const result = mostWeeksAtOneResult[0]
-      records.mostWeeksAtOne![chartType] = {
-        entryKey: result.entryKey,
-        chartType,
-        name: result.name,
-        artist: result.artist,
-        value: Number(result.weeks_at_one),
-        slug: generateSlug(result.entryKey, chartType),
+    if (mostWeeksAtOneResult && mostWeeksAtOneResult.weeksAtOne > 0) {
+      const entry = await prisma.groupChartEntry.findFirst({
+        where: { groupId, chartType, entryKey: mostWeeksAtOneResult.entryKey },
+        orderBy: { weekStart: 'desc' },
+        select: { name: true, artist: true },
+      })
+
+      if (entry) {
+        records.mostWeeksAtOne![chartType] = {
+          entryKey: mostWeeksAtOneResult.entryKey,
+          chartType,
+          name: entry.name,
+          artist: entry.artist,
+          value: mostWeeksAtOneResult.weeksAtOne,
+          slug: mostWeeksAtOneResult.slug,
+        }
       }
     }
 
@@ -1345,6 +1337,149 @@ async function calculatePhase6Records(
 }
 
 /**
+ * Get ranked list of artists for artist-specific record types
+ * Returns artists ranked by their counts (e.g., number of #1 songs, albums in top 10, etc.)
+ */
+export async function getArtistAggregationRecords(
+  groupId: string,
+  recordType: string,
+  limit: number = 100
+): Promise<Array<{
+  rank: number
+  entryKey: string
+  name: string
+  artist: null
+  slug: string
+  value: number
+}>> {
+  if (!isArtistSpecificRecordType(recordType)) {
+    throw new Error(`Invalid artist-specific record type: ${recordType}`)
+  }
+
+  // Determine which aggregation to perform based on record type
+  let chartType: 'tracks' | 'albums'
+  let positionFilter: { position?: number } | { position?: { lte: number } } | null = null
+
+  if (recordType === 'artist-most-number-one-songs') {
+    chartType = 'tracks'
+    positionFilter = { position: 1 }
+  } else if (recordType === 'artist-most-number-one-albums') {
+    chartType = 'albums'
+    positionFilter = { position: 1 }
+  } else if (recordType === 'artist-most-songs-in-top-10') {
+    chartType = 'tracks'
+    positionFilter = { position: { lte: 10 } }
+  } else if (recordType === 'artist-most-albums-in-top-10') {
+    chartType = 'albums'
+    positionFilter = { position: { lte: 10 } }
+  } else if (recordType === 'artist-most-songs-charted') {
+    chartType = 'tracks'
+    positionFilter = null // Any position
+  } else if (recordType === 'artist-most-albums-charted') {
+    chartType = 'albums'
+    positionFilter = null // Any position
+  } else {
+    throw new Error(`Unhandled artist-specific record type: ${recordType}`)
+  }
+
+  // Build the query to aggregate distinct entries by artist
+  const whereClause: any = {
+    groupId,
+    chartType,
+    artist: { not: null },
+  }
+
+  if (positionFilter) {
+    Object.assign(whereClause, positionFilter)
+  }
+
+  // Get all entries matching the criteria
+  const entries = await prisma.groupChartEntry.findMany({
+    where: whereClause,
+    select: {
+      entryKey: true,
+      artist: true,
+    },
+  })
+
+  // Group by artist (lowercased for case-insensitive matching)
+  const artistMap = new Map<string, Set<string>>()
+
+  for (const entry of entries) {
+    if (!entry.artist) continue
+    
+    const artist = entry.artist.toLowerCase()
+    if (!artistMap.has(artist)) {
+      artistMap.set(artist, new Set())
+    }
+    artistMap.get(artist)!.add(entry.entryKey)
+  }
+
+  // Convert to array and sort by count (descending)
+  const artistCounts = Array.from(artistMap.entries())
+    .map(([artist, entryKeys]) => ({
+      artist,
+      count: entryKeys.size,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit)
+
+  // Get artist details (name and slug) from GroupChartEntry
+  const artistKeys = artistCounts.map(a => a.artist)
+  const artistEntries = await prisma.groupChartEntry.findMany({
+    where: {
+      groupId,
+      chartType: 'artists',
+      entryKey: { in: artistKeys },
+    },
+    select: {
+      entryKey: true,
+      name: true,
+      slug: true,
+    },
+    distinct: ['entryKey'],
+  })
+
+  // Create a map for quick lookup
+  const artistDetailsMap = new Map(
+    artistEntries.map(e => [e.entryKey.toLowerCase(), { name: e.name, slug: e.slug }])
+  )
+
+  // Build the result array
+  const results = artistCounts
+    .map(({ artist, count }, index) => {
+      const details = artistDetailsMap.get(artist)
+      if (!details) {
+        // If artist doesn't have an entry in artists chart, generate slug
+        return {
+          rank: index + 1,
+          entryKey: artist,
+          name: artist, // Use lowercase artist as fallback name
+          artist: null,
+          slug: generateSlug(artist, 'artists'),
+          value: count,
+        }
+      }
+
+      return {
+        rank: index + 1,
+        entryKey: artist,
+        name: details.name,
+        artist: null,
+        slug: details.slug || generateSlug(artist, 'artists'),
+        value: count,
+      }
+    })
+    .filter(entry => entry.value > 0) // Filter out entries with 0 value
+    .map((entry, index) => ({
+      ...entry,
+      rank: index + 1, // Re-rank after filtering
+    }))
+
+  return results
+}
+
+/**
  * Main function to calculate all group records
  */
 export async function calculateGroupRecords(
@@ -1452,5 +1587,63 @@ export async function triggerRecordsCalculation(groupId: string): Promise<boolea
   }
 
   return false
+}
+
+/**
+ * Check if a record type is artist-specific
+ */
+export function isArtistSpecificRecordType(recordType: string): boolean {
+  const artistSpecificTypes = [
+    'artist-most-number-one-songs',
+    'artist-most-number-one-albums',
+    'artist-most-songs-in-top-10',
+    'artist-most-albums-in-top-10',
+    'artist-most-songs-charted',
+    'artist-most-albums-charted',
+  ]
+  return artistSpecificTypes.includes(recordType)
+}
+
+/**
+ * Map URL-friendly record type to ChartEntryStats field name
+ */
+export function getRecordTypeFieldMapping(recordType: string): string | null {
+  const mapping: Record<string, string> = {
+    'most-weeks-on-chart': 'totalWeeksCharting',
+    'most-weeks-in-top-10': 'weeksInTop10',
+    'most-consecutive-weeks': 'longestStreak',
+    'most-plays': 'totalPlays',
+    'most-total-vs': 'totalVS',
+    'most-weeks-at-one': 'weeksAtOne',
+  }
+  return mapping[recordType] || null
+}
+
+/**
+ * Check if a record type is supported (has ChartEntryStats field or is artist-specific)
+ */
+export function isRecordTypeSupported(recordType: string): boolean {
+  return getRecordTypeFieldMapping(recordType) !== null || isArtistSpecificRecordType(recordType)
+}
+
+/**
+ * Get the display name for a record type
+ */
+export function getRecordTypeDisplayName(recordType: string): string {
+  const displayNames: Record<string, string> = {
+    'most-weeks-on-chart': 'Most Weeks on Chart',
+    'most-weeks-in-top-10': 'Most Weeks in Top 10',
+    'most-consecutive-weeks': 'Most Consecutive Weeks',
+    'most-plays': 'Most Plays',
+    'most-total-vs': 'Most Total VS',
+    'most-weeks-at-one': 'Most Weeks at #1',
+    'artist-most-number-one-songs': 'Artist with Most #1 Songs',
+    'artist-most-number-one-albums': 'Artist with Most #1 Albums',
+    'artist-most-songs-in-top-10': 'Artist with Most Songs in Top 10',
+    'artist-most-albums-in-top-10': 'Artist with Most Albums in Top 10',
+    'artist-most-songs-charted': 'Artist with Most Songs Charted',
+    'artist-most-albums-charted': 'Artist with Most Albums Charted',
+  }
+  return displayNames[recordType] || recordType
 }
 

@@ -2,8 +2,10 @@ import { generateSlug, ChartType } from '@/lib/chart-slugs'
 import ChartEntryCard from '@/components/ChartEntryCard'
 import Tooltip from '@/components/Tooltip'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons'
+import { faQuestionCircle, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { useSafeTranslations } from '@/hooks/useSafeTranslations'
+import { Link } from '@/i18n/routing'
+import { isRecordTypeSupported } from '@/lib/group-records'
 
 interface RecordBlockProps {
   title: string
@@ -74,9 +76,32 @@ const awardColorSchemes: Record<string, {
   },
 }
 
+// Map record title to URL-friendly record type
+function getRecordTypeFromTitle(title: string, tChartRecords: (key: string) => string): string | null {
+  // Map translated titles to record types
+  const titleToType: Record<string, string> = {
+    [tChartRecords('mostWeeksOnChart')]: 'most-weeks-on-chart',
+    [tChartRecords('mostWeeksAtOne')]: 'most-weeks-at-one',
+    [tChartRecords('mostWeeksInTop10')]: 'most-weeks-in-top-10',
+    [tChartRecords('mostConsecutiveWeeks')]: 'most-consecutive-weeks',
+    [tChartRecords('mostPlaysReceived')]: 'most-plays',
+    [tChartRecords('totalAllTimeVS')]: 'most-total-vs',
+    // Artist-specific record types
+    [tChartRecords('artistMostNumberOneSongs')]: 'artist-most-number-one-songs',
+    [tChartRecords('artistMostNumberOneAlbums')]: 'artist-most-number-one-albums',
+    [tChartRecords('artistMostSongsInTop10')]: 'artist-most-songs-in-top-10',
+    [tChartRecords('artistMostAlbumsInTop10')]: 'artist-most-albums-in-top-10',
+    [tChartRecords('artistMostSongsCharted')]: 'artist-most-songs-charted',
+    [tChartRecords('artistMostAlbumsCharted')]: 'artist-most-albums-charted',
+  }
+  
+  return titleToType[title] || null
+}
+
 export default function RecordBlock({ title, record, value, groupId, isUser }: RecordBlockProps) {
   const tAwardDescriptions = useSafeTranslations('records.userRecords.awardDescriptions')
   const tUserRecords = useSafeTranslations('records.userRecords')
+  const tChartRecords = useSafeTranslations('records.chartRecords')
   
   if (!record) {
     return null
@@ -96,6 +121,9 @@ export default function RecordBlock({ title, record, value, groupId, isUser }: R
   }
 
   const link = getLink()
+  const recordType = getRecordTypeFromTitle(title, tChartRecords)
+  const hasDetailPage = recordType && isRecordTypeSupported(recordType)
+  const detailPageLink = hasDetailPage ? `/groups/${groupId}/records/${recordType}` : null
   
   // Map translated award title back to English key for color scheme lookup
   const getAwardEnglishKey = (awardTitle: string): string | null => {
@@ -167,7 +195,20 @@ export default function RecordBlock({ title, record, value, groupId, isUser }: R
           )}
         </div>
         <div className="flex items-center gap-2 mb-2 md:mb-3 relative z-10">
-          <h4 className={`text-xs md:text-sm font-semibold ${colorScheme.titleColor}`}>{title}</h4>
+          {hasDetailPage && detailPageLink ? (
+            <Link
+              href={detailPageLink}
+              className={`flex items-center gap-1.5 text-xs md:text-sm font-semibold ${colorScheme.titleColor} hover:underline transition-colors cursor-pointer`}
+            >
+              {title}
+              <FontAwesomeIcon 
+                icon={faChevronRight} 
+                className="text-[10px] md:text-xs opacity-70"
+              />
+            </Link>
+          ) : (
+            <h4 className={`text-xs md:text-sm font-semibold ${colorScheme.titleColor}`}>{title}</h4>
+          )}
         </div>
         <ChartEntryCard
           name={record.name}
