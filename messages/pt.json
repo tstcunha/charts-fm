@@ -209,6 +209,7 @@
       "owner": "Dono",
       "by": "de {artist}",
       "plays": "{count} plays",
+      "chartsCanBeUpdated": "Novos charts disponíveis",
       "chartMode": {
         "vs": "VS",
         "vsWeighted": "VS+",

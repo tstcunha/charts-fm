@@ -2,6 +2,7 @@
 
 import { prisma } from './prisma'
 import { getWeekStart, getWeekStartForDay, getWeekEndForDay } from './weekly-utils'
+import { canUpdateCharts } from './group-service'
 
 export interface PersonalListeningStats {
   currentWeek: {
@@ -39,6 +40,7 @@ export interface GroupQuickView {
   daysUntilNextChart: number
   memberCount: number
   chartMode: string
+  canUpdateCharts: boolean
 }
 
 export interface ActivityItem {
@@ -216,11 +218,6 @@ export async function getGroupQuickViews(userId: string): Promise<GroupQuickView
     const isOwner = group.creatorId === userId
     const trackingDayOfWeek = group.trackingDayOfWeek ?? 0
 
-    // Calculate days until next chart
-    const currentWeekStart = getWeekStartForDay(now, trackingDayOfWeek)
-    const nextChartDate = getWeekEndForDay(currentWeekStart, trackingDayOfWeek)
-    const daysUntilNextChart = Math.ceil((nextChartDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-
     // Get latest week stats
     const latestWeekStats = group.weeklyStats[0]
     let latestWeek: GroupQuickView['latestWeek'] = null
@@ -279,6 +276,49 @@ export async function getGroupQuickViews(userId: string): Promise<GroupQuickView
       }
     }
 
+    // Calculate canUpdateCharts and daysUntilNextChart using the same logic
+    const lastChartWeek = latestWeekStats ? latestWeekStats.weekStart : null
+    let daysUntilNextChart: number
+    let canUpdate: boolean
+
+    if (!lastChartWeek) {
+      // No charts exist, can always update
+      canUpdate = true
+      daysUntilNextChart = 0
+    } else {
+      // Get the end of the last chart week
+      const lastChartWeekEnd = getWeekEndForDay(lastChartWeek, trackingDayOfWeek)
+      
+      // Get the next occurrence of the tracking day after the end of the last chart week,
+      // not counting the day immediately after it
+      const dayAfterLastChartWeekEnd = new Date(lastChartWeekEnd)
+      dayAfterLastChartWeekEnd.setUTCDate(dayAfterLastChartWeekEnd.getUTCDate() + 1)
+      dayAfterLastChartWeekEnd.setUTCHours(0, 0, 0, 0)
+      
+      // Find the next occurrence of the tracking day after dayAfterLastChartWeekEnd
+      const dateCanGenerateCharts = new Date(dayAfterLastChartWeekEnd)
+      const currentDayOfWeek = dateCanGenerateCharts.getUTCDay()
+      
+      // Calculate days to add to get to the next tracking day
+      let daysToAdd = trackingDayOfWeek - currentDayOfWeek
+      if (daysToAdd <= 0) {
+        daysToAdd += 7 // Move to next week
+      }
+      
+      dateCanGenerateCharts.setUTCDate(dateCanGenerateCharts.getUTCDate() + daysToAdd)
+      dateCanGenerateCharts.setUTCHours(0, 0, 0, 0)
+      
+      // Check if charts can be updated now
+      canUpdate = now >= dateCanGenerateCharts
+      
+      // Calculate days until next chart can be generated
+      if (canUpdate) {
+        daysUntilNextChart = 0
+      } else {
+        daysUntilNextChart = Math.ceil((dateCanGenerateCharts.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      }
+    }
+
     quickViews.push({
       id: group.id,
       name: group.name,
@@ -293,6 +333,7 @@ export async function getGroupQuickViews(userId: string): Promise<GroupQuickView
       daysUntilNextChart,
       memberCount: group._count.members,
       chartMode: (group.chartMode || 'plays_only') as string,
+      canUpdateCharts: canUpdate,
     })
   }
 

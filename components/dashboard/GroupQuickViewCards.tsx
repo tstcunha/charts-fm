@@ -27,6 +27,7 @@ interface GroupQuickView {
   daysUntilNextChart: number
   memberCount: number
   chartMode: string
+  canUpdateCharts: boolean
 }
 
 // Memoized group card component to prevent unnecessary re-renders
@@ -198,7 +199,12 @@ export default function GroupQuickViewCards() {
       style={glassStyle}
     >
       <div className="flex items-center justify-between mb-4 md:mb-6">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900">{t('title')}</h2>
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">{t('title')}</h2>
+          {groups.some(group => group.canUpdateCharts) && (
+            <p className="text-sm text-gray-600 mt-1">{t('chartsCanBeUpdated')}</p>
+          )}
+        </div>
         <Link
           href="/groups"
           className="text-xs md:text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"

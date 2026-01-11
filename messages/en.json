@@ -209,6 +209,7 @@
       "owner": "Owner",
       "by": "by {artist}",
       "plays": "{count} plays",
+      "chartsCanBeUpdated": "Charts can be updated",
       "chartMode": {
         "vs": "VS",
         "vsWeighted": "VS+",
