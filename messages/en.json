@@ -1263,6 +1263,10 @@
   "about": {
     "title": "About",
     "viewOnGitHub": "View on GitHub"
+  },
+  "site": {
+    "description": "Create and share music charts with friends. Generate weekly charts from Last.fm listening data, join groups with friends and discover music trends together.",
+    "name": "ChartsFM"
   }
 }
 

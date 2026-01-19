@@ -2,9 +2,33 @@ import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
 import LandingPageClient from '@/app/LandingPageClient'
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
+import { withDefaultOgImage, getDefaultOgImage, defaultOgImage } from '@/lib/metadata'
 
-export const metadata: Metadata = {
-  title: 'Home',
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://chartsfm.com';
+  const t = await getTranslations('site');
+  
+  return withDefaultOgImage({
+    title: t('name'),
+    description: t('description'),
+    openGraph: {
+      type: 'website',
+      locale: locale === 'pt' ? 'pt_BR' : 'en_US',
+      url: siteUrl,
+      siteName: t('name'),
+      title: t('name'),
+      description: t('description'),
+      images: [getDefaultOgImage()],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('name'),
+      description: t('description'),
+      images: [defaultOgImage],
+    },
+  });
 }
 
 export default async function Home({

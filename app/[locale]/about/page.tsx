@@ -7,8 +7,35 @@ import AboutContent from '@/components/AboutContent'
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'about' })
+  const tSite = await getTranslations({ locale, namespace: 'site' })
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://chartsfm.com'
+  const defaultOgImage = `${siteUrl}/social-preview.png`
+  
   return {
     title: t('title'),
+    description: tSite('description'),
+    openGraph: {
+      type: 'website',
+      locale: locale === 'pt' ? 'pt_BR' : 'en_US',
+      url: `${siteUrl}/${locale}/about`,
+      siteName: tSite('name'),
+      title: t('title'),
+      description: tSite('description'),
+      images: [
+        {
+          url: defaultOgImage,
+          width: 1200,
+          height: 630,
+          alt: tSite('name'),
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('title'),
+      description: tSite('description'),
+      images: [defaultOgImage],
+    },
   }
 }
 

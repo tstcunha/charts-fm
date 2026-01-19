@@ -8,18 +8,61 @@ import { getGroupAccess } from '@/lib/group-auth'
 import { redirect } from '@/i18n/routing'
 import type { Metadata } from 'next'
 
-export async function generateMetadata({ params }: { params: { id: string; locale: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
+  const { id, locale } = await params;
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://chartsfm.com';
+  const t = await getTranslations('groups');
+  const tSite = await getTranslations('site');
+  
+  const defaultOgImage = `${siteUrl}/social-preview.png`;
+  
   try {
-    const group = await getGroupByIdForAccess(params.id, null)
-    const t = await getTranslations('groups')
-    return {
-      title: group?.name || t('title'),
+    const group = await getGroupByIdForAccess(id, null);
+    if (!group) {
+      return {
+        title: t('title'),
+        description: tSite('description'),
+        openGraph: {
+          images: [{ url: defaultOgImage, width: 1200, height: 630, alt: tSite('name') }],
+        },
+        twitter: {
+          images: [defaultOgImage],
+        },
+      };
     }
+
+    const groupUrl = `${siteUrl}/${locale}/groups/${id}/public`;
+
+    return {
+      title: group.name,
+      description: `${group.name} - ${tSite('description')}`,
+      openGraph: {
+        type: 'website',
+        locale: locale === 'pt' ? 'pt_BR' : 'en_US',
+        url: groupUrl,
+        siteName: tSite('name'),
+        title: group.name,
+        description: `${group.name} - ${tSite('description')}`,
+        images: [{ url: defaultOgImage, width: 1200, height: 630, alt: tSite('name') }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: group.name,
+        description: `${group.name} - ${tSite('description')}`,
+        images: [defaultOgImage],
+      },
+    };
   } catch {
-    const t = await getTranslations('groups')
     return {
       title: t('title'),
-    }
+      description: tSite('description'),
+      openGraph: {
+        images: [{ url: defaultOgImage, width: 1200, height: 630, alt: tSite('name') }],
+      },
+      twitter: {
+        images: [defaultOgImage],
+      },
+    };
   }
 }
 

@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from '@/i18n/routing'
 import { Link, usePathname } from '@/i18n/routing'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import SafeImage from '@/components/SafeImage'
 import { useNavigation } from '@/contexts/NavigationContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -251,9 +252,16 @@ export default function Navbar() {
           <div className="flex items-center space-x-4 md:space-x-8">
             <Link 
               href="/" 
-              className={`text-2xl md:text-3xl font-bold text-yellow-500 transition-all font-oswald leading-none pb-1 ${isLoading ? 'animate-pulse-scale' : ''}`}
+              className={`transition-all ${isLoading ? 'animate-pulse-scale' : ''}`}
             >
-              ChartsFM
+              <Image
+                src="/logo-transparent.png"
+                alt="ChartsFM"
+                width={180}
+                height={60}
+                className="h-8 md:h-10 w-auto"
+                priority
+              />
             </Link>
             {/* Desktop Navigation - hidden on mobile */}
             {isAuthenticated && (

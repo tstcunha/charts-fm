@@ -3,9 +3,36 @@ import { NavigationProvider } from "@/contexts/NavigationContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
+import type { Metadata } from 'next';
+import { getDefaultOgImage, defaultOgImage } from "@/lib/metadata";
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations('site');
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://chartsfm.com';
+  
+  return {
+    description: t('description'),
+    openGraph: {
+      type: 'website',
+      locale: locale === 'pt' ? 'pt_BR' : 'en_US',
+      url: siteUrl,
+      siteName: t('name'),
+      title: t('name'),
+      description: t('description'),
+      images: [getDefaultOgImage()],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('name'),
+      description: t('description'),
+      images: [defaultOgImage],
+    },
+  };
+}
 
 export default async function LocaleLayout({
   children,

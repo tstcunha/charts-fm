@@ -7,26 +7,43 @@ import DeepDiveHero from '@/components/charts/DeepDiveHero'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 
-export async function generateMetadata({ params }: { params: { id: string; slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string; slug: string; locale: string }> }): Promise<Metadata> {
+  const { id, slug, locale } = await params;
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://chartsfm.com';
+  const defaultOgImage = `${siteUrl}/social-preview.png`;
   const t = await getTranslations('deepDive.metadata')
+  const tSite = await getTranslations('site');
+  
   try {
-    const { group } = await getGroupAccess(params.id)
+    const { group } = await getGroupAccess(id)
     const entry = await prisma.groupChartEntry.findFirst({
       where: {
         groupId: group?.id,
         chartType: 'artists',
-        slug: params.slug,
+        slug: slug,
       },
       orderBy: { weekStart: 'desc' },
     })
     if (entry) {
       return {
         title: `${group?.name || 'Group'} - ${entry.name}`,
+        openGraph: {
+          images: [{ url: defaultOgImage, width: 1200, height: 630, alt: tSite('name') }],
+        },
+        twitter: {
+          images: [defaultOgImage],
+        },
       }
     }
   } catch {}
   return {
     title: t('artist'),
+    openGraph: {
+      images: [{ url: defaultOgImage, width: 1200, height: 630, alt: tSite('name') }],
+    },
+    twitter: {
+      images: [defaultOgImage],
+    },
   }
 }
 

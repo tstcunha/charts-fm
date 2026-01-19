@@ -10,9 +10,19 @@ import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://chartsfm.com';
+  const defaultOgImage = `${siteUrl}/social-preview.png`;
   const t = await getTranslations('groups.list')
+  const tSite = await getTranslations('site');
+  
   return {
     title: t('title'),
+    openGraph: {
+      images: [{ url: defaultOgImage, width: 1200, height: 630, alt: tSite('name') }],
+    },
+    twitter: {
+      images: [defaultOgImage],
+    },
   }
 }
 

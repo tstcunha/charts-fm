@@ -1263,6 +1263,10 @@
   "about": {
     "title": "Sobre",
     "viewOnGitHub": "Ver no GitHub"
+  },
+  "site": {
+    "description": "Crie e compartilhe charts musicais. Gere charts semanais a partir do Last.fm, crie comunidades e acompanhe as tendências musicais entre você e seus amigos.",
+    "name": "ChartsFM"
   }
 }
 

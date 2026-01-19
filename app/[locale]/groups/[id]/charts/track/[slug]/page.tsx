@@ -6,29 +6,32 @@ import DeepDiveClient from '../../[type]/[slug]/DeepDiveClient'
 import DeepDiveHero from '@/components/charts/DeepDiveHero'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
+import { withDefaultOgImage } from '@/lib/metadata'
 
-export async function generateMetadata({ params }: { params: { id: string; slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string; slug: string; locale: string }> }): Promise<Metadata> {
+  const { id, slug } = await params;
   const t = await getTranslations('deepDive.metadata')
+  
   try {
-    const { group } = await getGroupAccess(params.id)
+    const { group } = await getGroupAccess(id)
     const entry = await prisma.groupChartEntry.findFirst({
       where: {
         groupId: group?.id,
         chartType: 'tracks',
-        slug: params.slug,
+        slug: slug,
       },
       orderBy: { weekStart: 'desc' },
     })
     if (entry) {
       const title = entry.artist ? `${entry.name} by ${entry.artist}` : entry.name
-      return {
+      return withDefaultOgImage({
         title: `${group?.name || 'Group'} - ${title}`,
-      }
+      })
     }
   } catch {}
-  return {
+  return withDefaultOgImage({
     title: t('track'),
-  }
+  })
 }
 
 export default async function TrackDeepDivePage({

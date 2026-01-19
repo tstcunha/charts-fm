@@ -5,15 +5,32 @@ import SearchResultsClient from './SearchResultsClient'
 import GroupPageHero from '@/components/groups/GroupPageHero'
 import type { Metadata } from 'next'
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
+  const { id, locale } = await params;
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://chartsfm.com';
+  const defaultOgImage = `${siteUrl}/social-preview.png`;
+  const tSite = await getTranslations('site');
+  
   try {
-    const { group } = await getGroupAccess(params.id)
+    const { group } = await getGroupAccess(id)
     return {
       title: `${group?.name || 'Group'} - Search`,
+      openGraph: {
+        images: [{ url: defaultOgImage, width: 1200, height: 630, alt: tSite('name') }],
+      },
+      twitter: {
+        images: [defaultOgImage],
+      },
     }
   } catch {
     return {
       title: 'Search',
+      openGraph: {
+        images: [{ url: defaultOgImage, width: 1200, height: 630, alt: tSite('name') }],
+      },
+      twitter: {
+        images: [defaultOgImage],
+      },
     }
   }
 }

@@ -8,17 +8,34 @@ import GroupPageHero from '@/components/groups/GroupPageHero'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
+  const { id, locale } = await params;
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://chartsfm.com';
+  const defaultOgImage = `${siteUrl}/social-preview.png`;
+  const tSite = await getTranslations('site');
+  
   try {
-    const { group } = await getGroupAccess(params.id)
+    const { group } = await getGroupAccess(id)
     const t = await getTranslations('charts')
     return {
       title: `${group?.name || 'Group'} - ${t('title')}`,
+      openGraph: {
+        images: [{ url: defaultOgImage, width: 1200, height: 630, alt: tSite('name') }],
+      },
+      twitter: {
+        images: [defaultOgImage],
+      },
     }
   } catch {
     const t = await getTranslations('charts')
     return {
       title: t('title'),
+      openGraph: {
+        images: [{ url: defaultOgImage, width: 1200, height: 630, alt: tSite('name') }],
+      },
+      twitter: {
+        images: [defaultOgImage],
+      },
     }
   }
 }

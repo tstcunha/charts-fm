@@ -13,19 +13,49 @@ import GroupShoutbox from '@/components/groups/GroupShoutbox'
 import { prisma } from '@/lib/prisma'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
+import { withDefaultOgImage, getDefaultOgImage, defaultOgImage } from '@/lib/metadata'
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
+  const { id, locale } = await params;
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://chartsfm.com';
+  const t = await getTranslations('groups');
+  const tSite = await getTranslations('site');
+  
   try {
-    const { group } = await getGroupAccess(params.id)
-    const t = await getTranslations('groups')
-    return {
-      title: group?.name || t('title'),
+    const { group } = await getGroupAccess(id);
+    if (!group) {
+      return withDefaultOgImage({
+        title: t('title'),
+        description: tSite('description'),
+      });
     }
+
+    const groupUrl = `${siteUrl}/${locale}/groups/${id}`;
+
+    return withDefaultOgImage({
+      title: group.name,
+      description: `${group.name} - ${tSite('description')}`,
+      openGraph: {
+        type: 'website',
+        locale: locale === 'pt' ? 'pt_BR' : 'en_US',
+        url: groupUrl,
+        siteName: tSite('name'),
+        title: group.name,
+        description: `${group.name} - ${tSite('description')}`,
+        images: [getDefaultOgImage()],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: group.name,
+        description: `${group.name} - ${tSite('description')}`,
+        images: [defaultOgImage],
+      },
+    });
   } catch {
-    const t = await getTranslations('groups')
-    return {
+    return withDefaultOgImage({
       title: t('title'),
-    }
+      description: tSite('description'),
+    });
   }
 }
 
