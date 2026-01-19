@@ -15,6 +15,10 @@
     "title": "Edit Profile",
     "subtitle": "Update your profile information",
     "name": "Name",
+    "email": "Email",
+    "emailVerified": "Verified",
+    "emailNotVerified": "Not Verified",
+    "emailChangeWarning": "Changing your email will reset your verification status. A verification email will be sent to your new address.",
     "profilePicture": "Profile Picture",
     "profilePicturePreview": "Profile Picture Preview",
     "lastfmUsername": "Last.fm Username",
@@ -49,7 +53,10 @@
       "imageTooLong": "Image URL cannot exceed 500 characters",
       "imageMustBeString": "Image must be a string",
       "nameTooLong": "Name cannot exceed 100 characters",
-      "nameMustBeString": "Name must be a string"
+      "nameMustBeString": "Name must be a string",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Invalid email format",
+      "emailExists": "An account with this email already exists"
     },
     "language": "Language",
     "selectLanguage": "Select Language",
@@ -1316,6 +1323,12 @@
       "deleteFailed": "Failed to delete image. Please try again.",
       "reportFailed": "Failed to report image. Please try again.",
       "dailyLimitReached": "Daily upload limit reached. You can upload a maximum of 10 images per day."
+    }
+  },
+  "emailVerification": {
+    "banner": {
+      "message": "Your email address is not verified. Please check your inbox for the verification link.",
+      "dismiss": "Dismiss"
     }
   }
 }

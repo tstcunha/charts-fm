@@ -67,14 +67,8 @@ export async function GET(request: Request) {
 
     if (existingUser) {
       // User exists - handle signin flow
-      // Check if email is verified
-      if (!existingUser.emailVerified) {
-        // Redirect to verification page with email
-        const verifyPath = `/auth/verify-email?email=${encodeURIComponent(existingUser.email)}&error=email_not_verified`
-        const verifyUrl = getLocalizedPath(verifyPath, locale)
-        return NextResponse.redirect(new URL(verifyUrl, request.url))
-      }
-
+      // Allow login regardless of email verification status
+      
       // Update session key
       await prisma.user.update({
         where: { id: existingUser.id },

@@ -15,6 +15,10 @@
     "title": "Editar Perfil",
     "subtitle": "Atualize suas informações de perfil",
     "name": "Nome",
+    "email": "Email",
+    "emailVerified": "Verificado",
+    "emailNotVerified": "Não Verificado",
+    "emailChangeWarning": "Alterar seu email redefinirá o status de verificação. Um email de verificação será enviado para seu novo endereço.",
     "profilePicture": "Foto de Perfil",
     "profilePicturePreview": "Prévia da Foto",
     "lastfmUsername": "Nome de Usuário do Last.fm",
@@ -49,7 +53,10 @@
       "imageTooLong": "A URL da imagem não pode exceder 500 caracteres",
       "imageMustBeString": "A imagem deve ser uma string",
       "nameTooLong": "O nome não pode exceder 100 caracteres",
-      "nameMustBeString": "O nome deve ser uma string"
+      "nameMustBeString": "O nome deve ser uma string",
+      "emailRequired": "O email é obrigatório",
+      "invalidEmail": "Formato de email inválido",
+      "emailExists": "Já existe uma conta com este email"
     },
     "language": "Idioma",
     "selectLanguage": "Selecionar Idioma",
@@ -1316,6 +1323,12 @@
       "deleteFailed": "Falha ao excluir imagem. Por favor, tente novamente.",
       "reportFailed": "Falha ao reportar imagem. Por favor, tente novamente.",
       "dailyLimitReached": "Limite diário de envio atingido. Você pode enviar no máximo 10 imagens por dia."
+    }
+  },
+  "emailVerification": {
+    "banner": {
+      "message": "Seu endereço de email não está verificado. Por favor, verifique sua caixa de entrada para o link de verificação.",
+      "dismiss": "Fechar"
     }
   }
 }

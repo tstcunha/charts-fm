@@ -24,11 +24,14 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
     image: '',
     locale: 'en',
   })
   const [originalLocale, setOriginalLocale] = useState<string>('en')
   const [lastfmUsername, setLastfmUsername] = useState<string | null>(null)
+  const [originalEmail, setOriginalEmail] = useState<string>('')
+  const [emailVerified, setEmailVerified] = useState<boolean>(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -49,11 +52,14 @@ export default function ProfilePage() {
           const userLocale = data.user.locale || 'en'
           setFormData({
             name: data.user.name || '',
+            email: data.user.email || '',
             image: data.user.image || '',
             locale: userLocale,
           })
           setOriginalLocale(userLocale)
+          setOriginalEmail(data.user.email || '')
           setLastfmUsername(data.user.lastfmUsername || null)
+          setEmailVerified(data.user.emailVerified || false)
         }
         setIsLoading(false)
       })
@@ -71,6 +77,9 @@ export default function ProfilePage() {
       'Image must be a string': t('errors.imageMustBeString'),
       'Name cannot exceed 100 characters': t('errors.nameTooLong'),
       'Name must be a string': t('errors.nameMustBeString'),
+      'Email is required': t('errors.emailRequired'),
+      'Invalid email format': t('errors.invalidEmail'),
+      'An account with this email already exists': t('errors.emailExists'),
     }
     return errorMap[errorMessage] || errorMessage
   }
@@ -98,6 +107,19 @@ export default function ProfilePage() {
       }
 
       setSuccess(true)
+      
+      // Update email verification status if email changed
+      if (formData.email !== originalEmail) {
+        setEmailVerified(false)
+        setOriginalEmail(formData.email)
+      }
+      
+      // Reload profile data to get updated verification status
+      const profileResponse = await fetch('/api/user/profile')
+      const profileData = await profileResponse.json()
+      if (profileData.user) {
+        setEmailVerified(profileData.user.emailVerified || false)
+      }
       
       // If locale changed, set cookie and reload the page to apply the new locale
       if (formData.locale !== originalLocale) {
@@ -349,6 +371,56 @@ export default function ProfilePage() {
                     placeholder="Your name"
                     disabled={isSaving || isUploading}
                   />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="email" className="block text-xs md:text-sm font-semibold text-gray-800">
+                      {t('email')}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      {emailVerified ? (
+                        <span className="flex items-center gap-1.5 text-xs text-green-600 font-medium">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          {t('emailVerified')}
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1.5 text-xs text-yellow-600 font-medium">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {t('emailNotVerified')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <input
+                    type="email"
+                    id="email"
+                    value={formData.email}
+                    onChange={(e) => {
+                      setFormData({ ...formData, email: e.target.value })
+                      // Reset verification status when email changes from original
+                      // If changed back to original, we'll refresh status on save
+                      if (e.target.value !== originalEmail) {
+                        setEmailVerified(false)
+                      }
+                    }}
+                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base rounded-xl border border-gray-300 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.8)',
+                      backdropFilter: 'blur(8px)',
+                    }}
+                    placeholder="your.email@example.com"
+                    disabled={isSaving || isUploading}
+                  />
+                  {formData.email !== originalEmail && (
+                    <p className="text-xs text-yellow-600 mt-2">
+                      {t('emailChangeWarning')}
+                    </p>
+                  )}
                 </div>
 
                 <div>

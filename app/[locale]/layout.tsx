@@ -2,6 +2,7 @@ import SessionProvider from "@/components/SessionProvider";
 import { NavigationProvider } from "@/contexts/NavigationContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import EmailVerificationBanner from "@/components/EmailVerificationBanner";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -71,6 +72,7 @@ export default async function LocaleLayout({
           <NavigationProvider>
             <div className="flex flex-col min-h-screen">
               <Navbar />
+              <EmailVerificationBanner />
               <div className="flex-grow">
                 {children}
               </div>

@@ -36,12 +36,13 @@ export default async function GroupsPage({
   const t = await getTranslations('groups.list')
   const session = await getSession()
   
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     redirect(`/${locale}/`)
   }
 
+  // Use user ID from session instead of email to avoid issues with stale session data
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { id: session.user.id },
   })
 
   if (!user) {

@@ -76,28 +76,9 @@ export default function SignInModal({ isOpen, onClose, showSuccessMessage = fals
       })
 
       if (result?.error) {
-        // Check if user exists and email is unverified
-        try {
-          const checkResponse = await fetch('/api/auth/check-verification', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email: emailLower }),
-          })
-
-          const checkData = await checkResponse.json()
-
-          if (checkData.exists && !checkData.verified) {
-            setError(t('verifyEmail'))
-            setShowResendVerification(true)
-          } else {
-            setError(t('invalidCredentials'))
-          }
-        } catch {
-          // If check fails, show generic error
-          setError(t('invalidCredentials'))
-        }
+        // Login failed - show generic error message
+        // Email verification is no longer required for login
+        setError(t('invalidCredentials'))
         setIsLoading(false)
       } else {
         // Close modal and redirect to dashboard on success

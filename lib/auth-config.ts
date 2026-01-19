@@ -36,13 +36,7 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // Check if email is verified
-        if (!user.emailVerified) {
-          // Return null to indicate authentication failure
-          // The frontend will check verification status separately
-          return null
-        }
-
+        // Allow login regardless of email verification status
         return {
           id: user.id,
           email: user.email,
@@ -72,12 +66,7 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // Check if email is verified
-        if (!user.emailVerified) {
-          // Return null to prevent login - user must verify email first
-          return null
-        }
-
+        // Allow login regardless of email verification status
         // Update the session key if it's different
         if (user.lastfmSessionKey !== credentials.lastfmSessionKey) {
           await prisma.user.update({
@@ -109,22 +98,33 @@ export const authOptions: NextAuthOptions = {
       if (session.user && token.id) {
         session.user.id = token.id as string
         
-        // Validate that the user still exists in the database and email is verified
-        // This prevents issues after database migrations/wipes and ensures email verification
+        // Validate that the user still exists in the database and update session with current data
+        // This prevents issues after database migrations/wipes and ensures email is current
         try {
           const user = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { id: true, emailVerified: true }
+            select: { 
+              id: true,
+              email: true,
+              name: true,
+              image: true
+            }
           })
           
-          // If user doesn't exist or email is not verified, clear the session
-          if (!user || !user.emailVerified) {
+          // If user doesn't exist, clear the session
+          if (!user) {
             // Return session with null user - this will make useSession return unauthenticated
             return {
               ...session,
               user: null as any,
             }
           }
+          
+          // Update session with current user data from database
+          // This ensures email, name, and image are always up-to-date after changes
+          session.user.email = user.email
+          session.user.name = user.name
+          session.user.image = user.image
         } catch (error) {
           // If there's an error checking the user, also invalidate the session
           console.error('Error validating user in session:', error)

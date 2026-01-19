@@ -5,12 +5,13 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   const session = await getSession()
 
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Use user ID from session instead of email to avoid issues with stale session data
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { id: session.user.id },
     select: {
       id: true,
       name: true,
