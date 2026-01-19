@@ -1277,6 +1277,45 @@
   "site": {
     "description": "Crie e compartilhe charts musicais. Gere charts semanais a partir do Last.fm, crie comunidades e acompanhe as tendências musicais entre você e seus amigos.",
     "name": "ChartsFM"
+  },
+  "artistImages": {
+    "title": "Fotos",
+    "metadata": {
+      "title": "Fotos"
+    },
+    "photoCounter": "Foto {current} de {total}",
+    "addImage": "ADICIONAR FOTO",
+    "uploadedBy": "Enviado por",
+    "on": "em",
+    "previous": "Anterior",
+    "next": "Próxima",
+    "reportImage": "Reportar esta foto como inadequada",
+    "deleteImage": "Excluir Foto",
+    "deleteConfirm": "Tem certeza de que deseja excluir esta foto? Esta ação não pode ser desfeita.",
+    "noImages": "Nenhuma foto foi enviada para este artista ainda.",
+    "uploadTitle": "Enviar Foto do Artista",
+    "dragDrop": "Arraste e solte uma imagem aqui",
+    "orClickToSelect": "ou clique para selecionar um arquivo",
+    "selectFile": "Selecionar Arquivo",
+    "fileRequirements": "JPEG, PNG, WebP ou GIF. Máximo 5MB.",
+    "changeFile": "Alterar Arquivo",
+    "upload": "Enviar",
+    "uploading": "Enviando...",
+    "reportTitle": "Reportar Foto",
+    "reportDescription": "Por favor, explique-nos o motivo de reportar esta foto. Isso nos ajudará a revisá-la.",
+    "reportPlaceholder": "Digite o motivo...",
+    "reportSuccess": "Foto reportada com sucesso. Obrigado por ajudar a manter a comunidade segura.",
+    "submit": "Enviar",
+    "submitting": "Enviando...",
+    "cancel": "Cancelar",
+    "errors": {
+      "invalidFileType": "Tipo de arquivo inválido. Apenas imagens JPEG, PNG, WebP e GIF são permitidas.",
+      "fileTooLarge": "O tamanho do arquivo excede o limite de 5MB. Por favor, escolha uma imagem menor.",
+      "uploadFailed": "Falha ao enviar imagem. Por favor, tente novamente.",
+      "voteFailed": "Falha ao votar na imagem. Por favor, tente novamente.",
+      "deleteFailed": "Falha ao excluir imagem. Por favor, tente novamente.",
+      "reportFailed": "Falha ao reportar imagem. Por favor, tente novamente."
+    }
   }
 }
 

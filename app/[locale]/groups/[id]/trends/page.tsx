@@ -5,6 +5,7 @@ import TrendsClient from './TrendsClient'
 import GroupPageHero from '@/components/groups/GroupPageHero'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
+import { getGroupImageUrl } from '@/lib/group-image-utils'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
   const { id, locale } = await params;
@@ -72,6 +73,14 @@ export default async function TrendsPage({ params }: { params: { id: string } })
   // Get trends data
   const trends = await getTrendsForGroup(group.id)
 
+  // Get dynamic group image (includes user-chosen artist images if dynamic covers are enabled)
+  const dynamicGroupImage = await getGroupImageUrl({
+    id: group.id,
+    image: group.image,
+    dynamicIconEnabled: group.dynamicIconEnabled,
+    dynamicIconSource: group.dynamicIconSource,
+  })
+
   if (!trends) {
     return (
       <main className={`flex min-h-screen flex-col pt-8 pb-24 px-4 md:px-6 lg:px-12 xl:px-24 ${themeClass} bg-gradient-to-b from-[var(--theme-background-from)] to-[var(--theme-background-to)]`}>
@@ -80,7 +89,7 @@ export default async function TrendsPage({ params }: { params: { id: string } })
             group={{
               id: group.id,
               name: group.name,
-              image: group.image,
+              image: dynamicGroupImage,
             }}
             breadcrumbs={[
               { label: t('hero.breadcrumb'), href: '/groups' },
@@ -108,7 +117,7 @@ export default async function TrendsPage({ params }: { params: { id: string } })
           group={{
             id: group.id,
             name: group.name,
-            image: group.image,
+            image: dynamicGroupImage,
           }}
           breadcrumbs={[
             { label: t('hero.breadcrumb'), href: '/groups' },

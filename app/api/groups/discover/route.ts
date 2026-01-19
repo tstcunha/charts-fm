@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getGroupImageUrl } from '@/lib/group-image-utils'
 
 // GET - List all public groups for discovery
 export async function GET(request: Request) {
@@ -99,6 +100,8 @@ export async function GET(request: Request) {
       allowFreeJoin: true,
       createdAt: true,
       tags: true,
+      dynamicIconEnabled: true,
+      dynamicIconSource: true,
       creator: {
         select: {
           id: true,
@@ -138,7 +141,7 @@ export async function GET(request: Request) {
   // Get latest chart update and week count for activity sorting
   const groupsWithActivity = await Promise.all(
     filteredGroups.map(async (group) => {
-      const [latestChart, weekCount] = await Promise.all([
+      const [latestChart, weekCount, dynamicImage] = await Promise.all([
         prisma.groupChartEntry.findFirst({
           where: { groupId: group.id },
           orderBy: { updatedAt: 'desc' },
@@ -146,6 +149,12 @@ export async function GET(request: Request) {
         }),
         prisma.groupWeeklyStats.count({
           where: { groupId: group.id },
+        }),
+        getGroupImageUrl({
+          id: group.id,
+          image: group.image,
+          dynamicIconEnabled: (group as any).dynamicIconEnabled,
+          dynamicIconSource: (group as any).dynamicIconSource,
         }),
       ])
 
@@ -157,7 +166,7 @@ export async function GET(request: Request) {
       return {
         id: group.id,
         name: group.name,
-        image: group.image,
+        image: dynamicImage,
         colorTheme: group.colorTheme,
         allowFreeJoin: group.allowFreeJoin,
         createdAt: group.createdAt.toISOString(),

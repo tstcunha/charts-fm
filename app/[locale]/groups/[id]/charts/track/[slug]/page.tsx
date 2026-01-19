@@ -7,6 +7,7 @@ import DeepDiveHero from '@/components/charts/DeepDiveHero'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { withDefaultOgImage } from '@/lib/metadata'
+import { getGroupImageUrl } from '@/lib/group-image-utils'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string; slug: string; locale: string }> }): Promise<Metadata> {
   const { id, slug } = await params;
@@ -95,6 +96,7 @@ export default async function TrackDeepDivePage({
 
   // Find artist entry to get slug for link
   let artistSlug: string | null = null
+  let artistImagesPageSlug: string | null = null
   if (entry!.artist) {
     const artistEntry = await prisma.groupChartEntry.findFirst({
       where: {
@@ -112,8 +114,17 @@ export default async function TrackDeepDivePage({
     })
     if (artistEntry) {
       artistSlug = artistEntry.slug || artistEntry.entryKey
+      artistImagesPageSlug = artistEntry.slug || artistEntry.entryKey
     }
   }
+
+  // Get dynamic group image (includes user-chosen artist images if dynamic covers are enabled)
+  const dynamicGroupImage = await getGroupImageUrl({
+    id: group!.id,
+    image: group!.image,
+    dynamicIconEnabled: group!.dynamicIconEnabled,
+    dynamicIconSource: group!.dynamicIconSource,
+  })
 
   return (
     <main className={`flex min-h-screen flex-col pt-8 pb-24 px-4 md:px-6 lg:px-12 xl:px-24 ${themeClass} bg-gradient-to-b from-[var(--theme-background-from)] to-[var(--theme-background-to)]`}>
@@ -122,7 +133,7 @@ export default async function TrackDeepDivePage({
           group={{
             id: group!.id,
             name: group!.name,
-            image: group!.image,
+            image: dynamicGroupImage,
           }}
           entry={{
             name: entry!.name,
@@ -143,6 +154,8 @@ export default async function TrackDeepDivePage({
           initialHistory={history}
           chartMode={group!.chartMode || 'vs'}
           isArtist={false}
+          artistNameForImage={entry!.artist}
+          imageLinkUrl={artistImagesPageSlug ? `/artist/${artistImagesPageSlug}/images` : null}
         />
       </div>
     </main>

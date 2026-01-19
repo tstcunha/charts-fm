@@ -3,6 +3,7 @@
 import { prisma } from './prisma'
 import { getWeekStart, getWeekStartForDay, getWeekEndForDay } from './weekly-utils'
 import { canUpdateCharts } from './group-service'
+import { getGroupImageUrl } from './group-image-utils'
 
 export interface PersonalListeningStats {
   currentWeek: {
@@ -319,10 +320,18 @@ export async function getGroupQuickViews(userId: string): Promise<GroupQuickView
       }
     }
 
+    // Get dynamic image URL if applicable
+    const dynamicImage = await getGroupImageUrl({
+      id: group.id,
+      image: group.image,
+      dynamicIconEnabled: group.dynamicIconEnabled,
+      dynamicIconSource: group.dynamicIconSource,
+    })
+
     quickViews.push({
       id: group.id,
       name: group.name,
-      image: group.image,
+      image: dynamicImage,
       colorTheme: (group.colorTheme || 'yellow') as string,
       isOwner,
       latestWeek,

@@ -10,6 +10,7 @@ import RequestToJoinButton from '@/app/[locale]/groups/[id]/public/RequestToJoin
 import { LiquidGlassLink } from '@/components/LiquidGlassButton'
 import { getTranslations } from 'next-intl/server'
 import { getSession } from '@/lib/auth'
+import { getArtistImage } from '@/lib/lastfm'
 
 interface GroupHeroServerProps {
   groupId: string
@@ -64,6 +65,54 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme, is
 
   // Get caption from stored data (set when icon is updated)
   const imageCaption = group.dynamicIconCaption || null
+
+  // If dynamic icon is enabled for artists, check for user-chosen images dynamically
+  let groupImage = group.image
+  if (group.dynamicIconEnabled && (group.dynamicIconSource === 'top_artist' || group.dynamicIconSource === 'top_track_artist')) {
+    try {
+      // Get latest weekly stats to find current top artist
+      const latestStats = await prisma.groupWeeklyStats.findFirst({
+        where: { groupId: group.id },
+        orderBy: { weekStart: 'desc' },
+      })
+
+      if (latestStats) {
+        let artistName: string | null = null
+        
+        if (group.dynamicIconSource === 'top_artist') {
+          const topArtists = latestStats.topArtists as unknown as Array<{ name: string }>
+          if (topArtists && topArtists.length > 0) {
+            artistName = topArtists[0].name
+          }
+        } else if (group.dynamicIconSource === 'top_track_artist') {
+          const topTracks = latestStats.topTracks as unknown as Array<{ artist: string }>
+          if (topTracks && topTracks.length > 0 && topTracks[0].artist) {
+            artistName = topTracks[0].artist
+          }
+        }
+
+        // If we have an artist name, check for user-chosen image
+        if (artistName) {
+          const apiKey = process.env.LASTFM_API_KEY || ''
+          // This will check uploaded images first, then fallback to MusicBrainz
+          const dynamicImage = await getArtistImage(artistName, apiKey)
+          console.log(`[GroupHeroServer] Group ${group.id}, Artist: ${artistName}, Stored: ${group.image}, Dynamic: ${dynamicImage}`)
+          if (dynamicImage) {
+            groupImage = dynamicImage
+          }
+        } else {
+          console.log(`[GroupHeroServer] Group ${group.id}, No artist name found`)
+        }
+      } else {
+        console.log(`[GroupHeroServer] Group ${group.id}, No latest stats found`)
+      }
+    } catch (error) {
+      // If there's an error, fall back to stored image
+      console.error(`[GroupHeroServer] Error fetching dynamic artist image for group ${group.id}:`, error)
+    }
+  } else {
+    console.log(`[GroupHeroServer] Group ${group.id}, Dynamic icon not enabled or not artist-based (enabled: ${group.dynamicIconEnabled}, source: ${group.dynamicIconSource})`)
+  }
 
   const trackingDayOfWeek = group.trackingDayOfWeek ?? 0
   const dayNames = [
@@ -140,7 +189,8 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme, is
             <div className="relative flex-shrink-0">
               <div className="w-24 h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 rounded-xl md:rounded-2xl overflow-hidden shadow-sm ring-2 md:ring-4 ring-theme bg-[var(--theme-primary-lighter)]">
                 <SafeImage
-                  src={group.image}
+                  key={groupImage} // Force re-render when image URL changes
+                  src={groupImage}
                   alt={group.name}
                   className="object-cover w-full h-full"
                 />

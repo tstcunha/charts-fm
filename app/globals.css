@@ -71,6 +71,16 @@ body {
   .will-change-scroll {
     will-change: scroll-position;
   }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
 }
 
 /* Ensure input fields have dark, readable text on mobile devices (especially iOS Safari) */

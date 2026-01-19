@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getGroupImageUrl } from '@/lib/group-image-utils'
 
 // GET - Get current quick access group
 export async function GET() {
@@ -19,6 +20,8 @@ export async function GET() {
           name: true,
           image: true,
           colorTheme: true,
+          dynamicIconEnabled: true,
+          dynamicIconSource: true,
         },
       },
     },
@@ -32,11 +35,19 @@ export async function GET() {
     return NextResponse.json({ group: null })
   }
 
+  // Get dynamic image URL if applicable
+  const dynamicImage = await getGroupImageUrl({
+    id: user.quickAccessGroup.id,
+    image: user.quickAccessGroup.image,
+    dynamicIconEnabled: user.quickAccessGroup.dynamicIconEnabled,
+    dynamicIconSource: user.quickAccessGroup.dynamicIconSource,
+  })
+
   return NextResponse.json({
     group: {
       id: user.quickAccessGroup.id,
       name: user.quickAccessGroup.name,
-      image: user.quickAccessGroup.image,
+      image: dynamicImage,
       colorTheme: user.quickAccessGroup.colorTheme || 'white',
     },
   })
@@ -90,12 +101,22 @@ export async function POST(request: Request) {
       name: true,
       image: true,
       colorTheme: true,
+      dynamicIconEnabled: true,
+      dynamicIconSource: true,
     },
   })
 
   if (!group) {
     return NextResponse.json({ error: 'Group not found' }, { status: 404 })
   }
+
+  // Get dynamic image URL if applicable
+  const dynamicImage = await getGroupImageUrl({
+    id: group.id,
+    image: group.image,
+    dynamicIconEnabled: group.dynamicIconEnabled,
+    dynamicIconSource: group.dynamicIconSource,
+  })
 
   // Update user's quick access group
   await prisma.user.update({
@@ -109,7 +130,7 @@ export async function POST(request: Request) {
     group: {
       id: group.id,
       name: group.name,
-      image: group.image,
+      image: dynamicImage,
       colorTheme: group.colorTheme || 'white',
     },
   })

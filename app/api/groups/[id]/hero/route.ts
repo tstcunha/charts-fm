@@ -3,6 +3,7 @@ import { checkGroupAccessForAPI } from '@/lib/group-auth'
 import { prisma } from '@/lib/prisma'
 import { getWeekStartForDay, getWeekEndForDay, formatWeekLabel } from '@/lib/weekly-utils'
 import { getLastChartWeek, canUpdateCharts } from '@/lib/group-service'
+import { getArtistImage } from '@/lib/lastfm'
 
 export async function GET(
   request: Request,
@@ -62,11 +63,59 @@ export async function GET(
     // Get caption from stored data (set when icon is updated)
     const imageCaption = group.dynamicIconCaption || null
 
-    return NextResponse.json({
+    // If dynamic icon is enabled for artists, check for user-chosen images dynamically
+    let groupImage = group.image
+    if (group.dynamicIconEnabled && (group.dynamicIconSource === 'top_artist' || group.dynamicIconSource === 'top_track_artist')) {
+      try {
+        // Get latest weekly stats to find current top artist
+        const latestStats = await prisma.groupWeeklyStats.findFirst({
+          where: { groupId: group.id },
+          orderBy: { weekStart: 'desc' },
+        })
+
+        if (latestStats) {
+          let artistName: string | null = null
+          
+          if (group.dynamicIconSource === 'top_artist') {
+            const topArtists = latestStats.topArtists as unknown as Array<{ name: string }>
+            if (topArtists && topArtists.length > 0) {
+              artistName = topArtists[0].name
+            }
+          } else if (group.dynamicIconSource === 'top_track_artist') {
+            const topTracks = latestStats.topTracks as unknown as Array<{ artist: string }>
+            if (topTracks && topTracks.length > 0 && topTracks[0].artist) {
+              artistName = topTracks[0].artist
+            }
+          }
+
+          // If we have an artist name, check for user-chosen image
+          if (artistName) {
+            const apiKey = process.env.LASTFM_API_KEY || ''
+            // This will check uploaded images first, then fallback to MusicBrainz
+            const dynamicImage = await getArtistImage(artistName, apiKey)
+            console.log(`[Dynamic Cover] Group ${group.id}, Artist: ${artistName}, Stored image: ${group.image}, Dynamic image: ${dynamicImage}`)
+            if (dynamicImage) {
+              groupImage = dynamicImage
+            }
+          } else {
+            console.log(`[Dynamic Cover] Group ${group.id}, No artist name found`)
+          }
+        } else {
+          console.log(`[Dynamic Cover] Group ${group.id}, No latest stats found`)
+        }
+      } catch (error) {
+        // If there's an error, fall back to stored image
+        console.error('Error fetching dynamic artist image:', error)
+      }
+    } else {
+      console.log(`[Dynamic Cover] Group ${group.id}, Dynamic icon not enabled or not artist-based (enabled: ${group.dynamicIconEnabled}, source: ${group.dynamicIconSource})`)
+    }
+
+    const response = NextResponse.json({
       group: {
         id: group.id,
         name: group.name,
-        image: group.image,
+        image: groupImage,
         colorTheme,
         chartMode,
         trackingDayOfWeek,
@@ -97,6 +146,19 @@ export async function GET(
       chartGenerationInProgress: group.chartGenerationInProgress || false,
       imageCaption,
     })
+    
+    // Add cache headers to prevent stale responses when dynamic covers are enabled
+    if (group.dynamicIconEnabled && (group.dynamicIconSource === 'top_artist' || group.dynamicIconSource === 'top_track_artist')) {
+      // For dynamic covers, use shorter cache to allow fresh images
+      response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+      response.headers.set('Pragma', 'no-cache')
+      response.headers.set('Expires', '0')
+    } else {
+      // For static covers, allow some caching
+      response.headers.set('Cache-Control', 'public, max-age=300, must-revalidate')
+    }
+    
+    return response
   } catch (error: any) {
     if (error.status === 401 || error.status === 403 || error.status === 404) {
       return NextResponse.json({ error: error.message }, { status: error.status })

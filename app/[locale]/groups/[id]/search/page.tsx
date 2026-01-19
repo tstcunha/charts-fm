@@ -5,6 +5,7 @@ import SearchResultsClient from './SearchResultsClient'
 import GroupPageHero from '@/components/groups/GroupPageHero'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
+import { getGroupImageUrl } from '@/lib/group-image-utils'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
   const { id, locale } = await params;
@@ -146,6 +147,14 @@ export default async function SearchPage({
   // Get initial results if search term is provided
   const initialResults = await searchChartEntries(group!.id, searchTerm)
 
+  // Get dynamic group image (includes user-chosen artist images if dynamic covers are enabled)
+  const dynamicGroupImage = await getGroupImageUrl({
+    id: group!.id,
+    image: group!.image,
+    dynamicIconEnabled: group!.dynamicIconEnabled,
+    dynamicIconSource: group!.dynamicIconSource,
+  })
+
   return (
     <main 
       className={`flex min-h-screen flex-col pt-8 pb-24 px-6 md:px-12 lg:px-24 ${themeClass} bg-gradient-to-b from-[var(--theme-background-from)] to-[var(--theme-background-to)]`}
@@ -155,7 +164,7 @@ export default async function SearchPage({
           group={{
             id: group!.id,
             name: group!.name,
-            image: group!.image,
+            image: dynamicGroupImage,
           }}
           breadcrumbs={[
             { label: 'Groups', href: '/groups' },

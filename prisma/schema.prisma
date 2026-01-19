@@ -46,6 +46,9 @@ model User {
   commentBans                   UserCommentBan?                @relation("UserCommentBans")
   weeklyStats                   UserWeeklyStats[]
   quickAccessGroup              Group?                         @relation("QuickAccessGroup", fields: [quickAccessGroupId], references: [id])
+  artistImagesUploaded          ArtistImage[]
+  artistImageVotes              ArtistImageVote[]
+  artistImageReports            ArtistImageReport[]
 
   @@map("users")
 }
@@ -82,45 +85,45 @@ model ListeningStat {
 }
 
 model Group {
-  id                        String                         @id @default(cuid())
-  name                      String
-  image                     String?
-  creatorId                 String?
-  isPrivate                 Boolean                        @default(false)
-  allowFreeJoin             Boolean                        @default(false)
-  chartSize                 Int                            @default(10)
-  chartMode                 String                         @default("vs")
-  trackingDayOfWeek         Int                            @default(0)
-  dynamicIconEnabled        Boolean                        @default(false)
-  dynamicIconSource         String?
-  colorTheme                String?                        @default("white")
-  createdAt                 DateTime                       @default(now())
-  updatedAt                 DateTime                       @updatedAt
-  chartGenerationInProgress Boolean                        @default(false)
-  chartGenerationStartedAt  DateTime?
-  chartGenerationProgress   Json?
+  id                             String                         @id @default(cuid())
+  name                           String
+  image                          String?
+  creatorId                      String?
+  isPrivate                      Boolean                        @default(false)
+  allowFreeJoin                  Boolean                        @default(false)
+  chartSize                      Int                            @default(10)
+  chartMode                      String                         @default("vs")
+  trackingDayOfWeek              Int                            @default(0)
+  dynamicIconEnabled             Boolean                        @default(false)
+  dynamicIconSource              String?
+  colorTheme                     String?                        @default("white")
+  createdAt                      DateTime                       @default(now())
+  updatedAt                      DateTime                       @updatedAt
+  chartGenerationInProgress      Boolean                        @default(false)
+  chartGenerationStartedAt       DateTime?
+  chartGenerationProgress        Json?
   lastChartGenerationFailedUsers Json?
-  lastChartGenerationAborted Boolean?
-  dynamicIconCaption        String?
-  shoutboxEnabled           Boolean                        @default(true)
-  shoutboxRestrictiveMode   Boolean                        @default(false)
-  tags                      Json?                          @default("[]")
-  chartEntryStats           ChartEntryStats[]
-  allTimeStats              GroupAllTimeStats?
-  chartEntries              GroupChartEntry[]
-  comments                  GroupComment[]
-  compatibilityScores       GroupCompatibilityScore[]
-  invites                   GroupInvite[]
-  joinRequests              GroupJoinRequest[]
-  members                   GroupMember[]
-  recommendationRejections  GroupRecommendationRejection[]
-  records                   GroupRecords?
-  recordDetailCaches        GroupRecordDetailCache[]
-  shoutboxPermissions       GroupShoutboxPermission[]
-  trends                    GroupTrends?
-  weeklyStats               GroupWeeklyStats[]
-  creator                   User?                          @relation("GroupCreator", fields: [creatorId], references: [id])
-  quickAccessUsers          User[]                         @relation("QuickAccessGroup")
+  lastChartGenerationAborted     Boolean?
+  dynamicIconCaption             String?
+  shoutboxEnabled                Boolean                        @default(true)
+  shoutboxRestrictiveMode        Boolean                        @default(false)
+  tags                           Json?                          @default("[]")
+  chartEntryStats                ChartEntryStats[]
+  allTimeStats                   GroupAllTimeStats?
+  chartEntries                   GroupChartEntry[]
+  comments                       GroupComment[]
+  compatibilityScores            GroupCompatibilityScore[]
+  invites                        GroupInvite[]
+  joinRequests                   GroupJoinRequest[]
+  members                        GroupMember[]
+  recommendationRejections       GroupRecommendationRejection[]
+  records                        GroupRecords?
+  recordDetailCaches             GroupRecordDetailCache[]
+  shoutboxPermissions            GroupShoutboxPermission[]
+  trends                         GroupTrends?
+  weeklyStats                    GroupWeeklyStats[]
+  creator                        User?                          @relation("GroupCreator", fields: [creatorId], references: [id])
+  quickAccessUsers               User[]                         @relation("QuickAccessGroup")
 
   @@map("groups")
 }
@@ -352,7 +355,7 @@ model ChartEntryStats {
   slug                   String
   peakPosition           Int
   weeksAtPeak            Int
-  weeksAtOne             Int                @default(0)
+  weeksAtOne             Int       @default(0)
   debutPosition          Int
   weeksInTop10           Int
   totalWeeksCharting     Int
@@ -442,17 +445,65 @@ model GroupRecords {
 }
 
 model GroupRecordDetailCache {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   groupId     String
   recordType  String
-  entryType   String?   // null for artist-specific records
-  entries     Json      // Array of top 100 ranked entries
-  lastUpdated DateTime  @default(now())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  group       Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  entryType   String? // null for artist-specific records
+  entries     Json // Array of top 100 ranked entries
+  lastUpdated DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, recordType, entryType])
   @@index([groupId, recordType])
   @@map("group_record_detail_cache")
+}
+
+model ArtistImage {
+  id             String              @id @default(cuid())
+  artistName     String // Normalized lowercase artist name
+  imageUrl       String
+  uploadedBy     String
+  uploadedAt     DateTime            @default(now())
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  uploadedByUser User                @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+  votes          ArtistImageVote[]
+  reports        ArtistImageReport[]
+
+  @@index([artistName])
+  @@index([artistName, uploadedAt])
+  @@map("artist_images")
+}
+
+model ArtistImageVote {
+  id        String      @id @default(cuid())
+  imageId   String
+  userId    String
+  voteType  String // 'up' | 'down'
+  createdAt DateTime    @default(now())
+  image     ArtistImage @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([imageId, userId])
+  @@index([imageId])
+  @@index([userId])
+  @@map("artist_image_votes")
+}
+
+model ArtistImageReport {
+  id             String      @id @default(cuid())
+  imageId        String
+  reportedBy     String
+  reason         String?
+  status         String      @default("pending") // 'pending' | 'reviewed' | 'dismissed'
+  createdAt      DateTime    @default(now())
+  image          ArtistImage @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  reportedByUser User        @relation(fields: [reportedBy], references: [id], onDelete: Cascade)
+
+  @@index([imageId])
+  @@index([reportedBy])
+  @@index([status])
+  @@map("artist_image_reports")
 }

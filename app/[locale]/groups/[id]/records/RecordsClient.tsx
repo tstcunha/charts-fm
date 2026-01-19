@@ -28,6 +28,24 @@ function getCachedImage(type: 'artist' | 'album', identifier: string): string | 
   if (typeof window === 'undefined') return undefined
   
   try {
+    // Check cache version - if it's outdated, clear all caches
+    const IMAGE_CACHE_VERSION_KEY = 'chartsfm_image_cache_version'
+    const cacheVersion = localStorage.getItem(IMAGE_CACHE_VERSION_KEY)
+    const currentCacheVersion = '2' // Increment when cache structure changes or to force refresh
+    if (cacheVersion !== currentCacheVersion) {
+      // Clear all image caches when version changes
+      const keysToRemove: string[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith(IMAGE_CACHE_PREFIX)) {
+          keysToRemove.push(key)
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key))
+      localStorage.setItem(IMAGE_CACHE_VERSION_KEY, currentCacheVersion)
+      return undefined
+    }
+    
     const cacheKey = getCacheKey(type, identifier)
     const cached = localStorage.getItem(cacheKey)
     if (!cached) return undefined

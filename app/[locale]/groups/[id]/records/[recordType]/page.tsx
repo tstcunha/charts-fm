@@ -6,6 +6,7 @@ import RecordDetailClient from './RecordDetailClient'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
+import { getGroupImageUrl } from '@/lib/group-image-utils'
 
 // Map record type to translation key
 function getRecordTypeTranslationKey(recordType: string): string {
@@ -90,6 +91,14 @@ export default async function RecordDetailPage({ params }: { params: { id: strin
 
   const displayName = tChartRecords(getRecordTypeTranslationKey(params.recordType)) || params.recordType
 
+  // Get dynamic group image (includes user-chosen artist images if dynamic covers are enabled)
+  const dynamicGroupImage = await getGroupImageUrl({
+    id: group.id,
+    image: group.image,
+    dynamicIconEnabled: group.dynamicIconEnabled,
+    dynamicIconSource: group.dynamicIconSource,
+  })
+
   return (
     <main className={`flex min-h-screen flex-col pt-8 pb-24 px-4 md:px-6 lg:px-12 xl:px-24 ${themeClass} bg-gradient-to-b from-[var(--theme-background-from)] to-[var(--theme-background-to)]`}>
       <div className="max-w-7xl w-full mx-auto">
@@ -97,7 +106,7 @@ export default async function RecordDetailPage({ params }: { params: { id: strin
           group={{
             id: group.id,
             name: group.name,
-            image: group.image,
+            image: dynamicGroupImage,
           }}
           breadcrumbs={[
             { label: tGroups('hero.breadcrumb'), href: '/groups' },

@@ -7,6 +7,7 @@ import GroupsTabs from './GroupsTabs'
 import { LiquidGlassLink } from '@/components/LiquidGlassButton'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
+import { getGroupImageUrl } from '@/lib/group-image-utils'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
@@ -50,10 +51,26 @@ export default async function GroupsPage({
   const groups = await getUserGroups(user.id)
   const invites = await getUserGroupInvites(user.id)
 
+  // Process groups to get dynamic images
+  const groupsWithDynamicImages = await Promise.all(
+    groups.map(async (group: any) => {
+      const dynamicImage = await getGroupImageUrl({
+        id: group.id,
+        image: group.image,
+        dynamicIconEnabled: group.dynamicIconEnabled,
+        dynamicIconSource: group.dynamicIconSource,
+      })
+      return {
+        ...group,
+        image: dynamicImage,
+      }
+    })
+  )
+
   // Separate groups into owned groups (where user is owner) and member groups
   // Filter out groups with null creators to match the Group interface
-  const adminGroups = groups.filter((group: any) => group.creatorId === user.id && group.creator !== null) as any
-  const memberGroups = groups.filter((group: any) => group.creatorId !== user.id && group.creator !== null) as any
+  const adminGroups = groupsWithDynamicImages.filter((group: any) => group.creatorId === user.id && group.creator !== null) as any
+  const memberGroups = groupsWithDynamicImages.filter((group: any) => group.creatorId !== user.id && group.creator !== null) as any
 
   // Get pending request counts for owned groups
   const pendingRequestsMap: Record<string, number> = {}

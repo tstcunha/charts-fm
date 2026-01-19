@@ -12,6 +12,7 @@ import ShoutboxSettingsTab from './ShoutboxSettingsTab'
 import DeleteGroupTab from './DeleteGroupTab'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
+import { getGroupImageUrl } from '@/lib/group-image-utils'
 
 // Force dynamic rendering to prevent caching
 export const dynamic = 'force-dynamic'
@@ -77,6 +78,14 @@ export default async function GroupSettingsPage({ params }: { params: { id: stri
   const isSuperuser = superuser !== null
   const chartGenerationInProgress = latestGroup?.chartGenerationInProgress || false
 
+  // Get dynamic group image (includes user-chosen artist images if dynamic covers are enabled)
+  const dynamicGroupImage = await getGroupImageUrl({
+    id: group.id,
+    image: group.image,
+    dynamicIconEnabled: group.dynamicIconEnabled,
+    dynamicIconSource: group.dynamicIconSource,
+  })
+
   return (
     <main className="flex min-h-screen flex-col pt-8 pb-24 px-4 md:px-6 lg:px-12 xl:px-24 relative">
       <div className="max-w-6xl w-full mx-auto relative z-10">
@@ -84,7 +93,7 @@ export default async function GroupSettingsPage({ params }: { params: { id: stri
           group={{
             id: group.id,
             name: group.name,
-            image: group.image,
+            image: dynamicGroupImage,
           }}
           breadcrumbs={[
             { label: tGroups('hero.breadcrumb'), href: '/groups' },

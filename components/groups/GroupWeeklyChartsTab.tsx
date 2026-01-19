@@ -18,6 +18,7 @@ interface GroupWeeklyChartsTabProps {
 // Image cache helpers
 const IMAGE_CACHE_PREFIX = 'chartsfm_image_cache_'
 const CACHE_EXPIRY_DAYS = 30 // Cache images for 30 days
+const IMAGE_CACHE_VERSION_KEY = 'chartsfm_image_cache_version'
 
 interface CachedImage {
   url: string | null
@@ -39,6 +40,16 @@ function getCachedImage(type: 'artist' | 'album', identifier: string): string | 
   if (typeof window === 'undefined') return undefined
   
   try {
+    // Check cache version - if it's outdated, clear all caches
+    const cacheVersion = localStorage.getItem(IMAGE_CACHE_VERSION_KEY)
+    const currentCacheVersion = '2' // Increment when cache structure changes or to force refresh
+    if (cacheVersion !== currentCacheVersion) {
+      // Clear all image caches when version changes
+      clearAllImageCaches()
+      localStorage.setItem(IMAGE_CACHE_VERSION_KEY, currentCacheVersion)
+      return undefined
+    }
+    
     const cacheKey = getCacheKey(type, identifier)
     const cached = localStorage.getItem(cacheKey)
     if (!cached) return undefined // Not cached yet
@@ -58,6 +69,23 @@ function getCachedImage(type: 'artist' | 'album', identifier: string): string | 
   } catch (error) {
     console.error('Error reading image cache:', error)
     return undefined // Error reading, treat as not cached
+  }
+}
+
+function clearAllImageCaches(): void {
+  if (typeof window === 'undefined') return
+  
+  try {
+    const keysToRemove: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith(IMAGE_CACHE_PREFIX)) {
+        keysToRemove.push(key)
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key))
+  } catch (error) {
+    console.error('Error clearing image caches:', error)
   }
 }
 

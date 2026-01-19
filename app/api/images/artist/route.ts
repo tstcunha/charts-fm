@@ -13,7 +13,11 @@ export async function GET(request: Request) {
     const apiKey = process.env.LASTFM_API_KEY || ''
     const imageUrl = await getArtistImage(artist, apiKey)
     
-    return NextResponse.json({ imageUrl })
+    const response = NextResponse.json({ imageUrl })
+    // Set cache headers - allow short-term caching but allow revalidation
+    // This ensures new uploaded images can be fetched while still benefiting from caching
+    response.headers.set('Cache-Control', 'public, max-age=300, must-revalidate') // 5 minutes
+    return response
   } catch (error) {
     console.error('Error fetching artist image:', error)
     return NextResponse.json({ error: 'Failed to fetch artist image' }, { status: 500 })

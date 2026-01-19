@@ -7,6 +7,7 @@ import RequestToJoinButton from './RequestToJoinButton'
 import InviteNotification from './InviteNotification'
 import CompatibilityScore from './CompatibilityScore'
 import { getTranslations } from 'next-intl/server'
+import { getArtistImage } from '@/lib/lastfm'
 
 interface PublicGroupHeroServerProps {
   groupId: string
@@ -102,6 +103,48 @@ export default async function PublicGroupHeroServer({ groupId, colorTheme }: Pub
   // Get caption from stored data (set when icon is updated)
   const imageCaption = group.dynamicIconCaption || null
 
+  // If dynamic icon is enabled for artists, check for user-chosen images dynamically
+  let groupImage = group.image
+  if (group.dynamicIconEnabled && (group.dynamicIconSource === 'top_artist' || group.dynamicIconSource === 'top_track_artist')) {
+    try {
+      // Get latest weekly stats to find current top artist
+      const latestStats = await prisma.groupWeeklyStats.findFirst({
+        where: { groupId: group.id },
+        orderBy: { weekStart: 'desc' },
+      })
+
+      if (latestStats) {
+        let artistName: string | null = null
+        
+        if (group.dynamicIconSource === 'top_artist') {
+          const topArtists = latestStats.topArtists as unknown as Array<{ name: string }>
+          if (topArtists && topArtists.length > 0) {
+            artistName = topArtists[0].name
+          }
+        } else if (group.dynamicIconSource === 'top_track_artist') {
+          const topTracks = latestStats.topTracks as unknown as Array<{ artist: string }>
+          if (topTracks && topTracks.length > 0 && topTracks[0].artist) {
+            artistName = topTracks[0].artist
+          }
+        }
+
+        // If we have an artist name, check for user-chosen image
+        if (artistName) {
+          const apiKey = process.env.LASTFM_API_KEY || ''
+          const { getArtistImage } = await import('@/lib/lastfm')
+          // This will check uploaded images first, then fallback to MusicBrainz
+          const dynamicImage = await getArtistImage(artistName, apiKey)
+          if (dynamicImage) {
+            groupImage = dynamicImage
+          }
+        }
+      }
+    } catch (error) {
+      // If there's an error, fall back to stored image
+      console.error('Error fetching dynamic artist image:', error)
+    }
+  }
+
   return (
     <div className={`mb-6 md:mb-8 relative ${themeClass}`}>
       <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm p-4 md:p-6 lg:p-8 border border-theme">
@@ -129,7 +172,8 @@ export default async function PublicGroupHeroServer({ groupId, colorTheme }: Pub
             <div className="relative flex-shrink-0">
               <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-xl md:rounded-2xl overflow-hidden shadow-sm ring-2 md:ring-4 ring-theme bg-[var(--theme-primary-lighter)]">
                 <SafeImage
-                  src={group.image}
+                  key={groupImage} // Force re-render when image URL changes
+                  src={groupImage}
                   alt={group.name}
                   className="object-cover w-full h-full"
                 />

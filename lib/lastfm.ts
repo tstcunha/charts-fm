@@ -293,13 +293,26 @@ async function getArtistImageFromMusicBrainz(artist: string): Promise<string | n
 }
 
 /**
- * Get artist image from MusicBrainz API
- * Returns image URL from Wikimedia Commons, or null if not available
+ * Get artist image - checks uploaded images first, then falls back to MusicBrainz API
+ * Returns image URL from uploaded images (highest score) or Wikimedia Commons, or null if not available
  */
 export async function getArtistImage(
   artist: string,
   apiKey: string
 ): Promise<string | null> {
+  // First, check for uploaded images
+  try {
+    const { getSelectedArtistImage } = await import('./artist-images')
+    const uploadedImage = await getSelectedArtistImage(artist)
+    if (uploadedImage) {
+      return uploadedImage
+    }
+  } catch (error) {
+    // If there's an error (e.g., database not migrated yet), continue to fallback
+    console.error('Error checking uploaded artist images:', error)
+  }
+
+  // Fallback to MusicBrainz
   return await getArtistImageFromMusicBrainz(artist)
 }
 

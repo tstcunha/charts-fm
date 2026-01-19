@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import DiscoverGroupsClient from './DiscoverGroupsClient'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
+import { getGroupImageUrl } from '@/lib/group-image-utils'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
@@ -78,7 +79,7 @@ export default async function DiscoverGroupsPage({
     // Get latest chart update and week count for each group
     const groupsWithActivity = await Promise.all(
       groups.map(async (group) => {
-        const [latestChart, weekCount] = await Promise.all([
+        const [latestChart, weekCount, dynamicImage] = await Promise.all([
           prisma.groupChartEntry.findFirst({
             where: { groupId: group.id },
             orderBy: { updatedAt: 'desc' },
@@ -87,12 +88,18 @@ export default async function DiscoverGroupsPage({
           prisma.groupWeeklyStats.count({
             where: { groupId: group.id },
           }),
+          getGroupImageUrl({
+            id: group.id,
+            image: group.image,
+            dynamicIconEnabled: (group as any).dynamicIconEnabled,
+            dynamicIconSource: (group as any).dynamicIconSource,
+          }),
         ])
 
         return {
           id: group.id,
           name: group.name,
-          image: group.image,
+          image: dynamicImage,
           colorTheme: group.colorTheme,
           allowFreeJoin: group.allowFreeJoin,
           createdAt: group.createdAt.toISOString(),

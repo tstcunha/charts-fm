@@ -18,7 +18,11 @@ export default function GroupHero({ groupId }: GroupHeroProps) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(`/api/groups/${groupId}/hero`)
+    // Add cache-busting parameter to ensure fresh data, especially for dynamic covers
+    const cacheBuster = Date.now()
+    fetch(`/api/groups/${groupId}/hero?t=${cacheBuster}`, {
+      cache: 'no-store',
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
@@ -64,7 +68,10 @@ export default function GroupHero({ groupId }: GroupHeroProps) {
   
   const handleUpdateComplete = () => {
     // Refresh data after update completes
-    fetch(`/api/groups/${groupId}/hero`)
+    const cacheBuster = Date.now()
+    fetch(`/api/groups/${groupId}/hero?t=${cacheBuster}`, {
+      cache: 'no-store',
+    })
       .then((res) => res.json())
       .then((data) => {
         if (!data.error) {
@@ -97,6 +104,7 @@ export default function GroupHero({ groupId }: GroupHeroProps) {
             <div className="relative flex-shrink-0">
               <div className="w-24 h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 rounded-xl md:rounded-2xl overflow-hidden shadow-sm ring-2 md:ring-4 ring-theme bg-[var(--theme-primary-lighter)]">
                 <SafeImage
+                  key={group.image} // Force re-render when image URL changes
                   src={group.image}
                   alt={group.name}
                   className="object-cover w-full h-full"
