@@ -56,7 +56,7 @@ export default function EmailVerificationBanner() {
   }
 
   return (
-    <div className="sticky top-16 z-40 bg-yellow-500 border-b border-yellow-600 text-white px-4 py-3">
+    <div className="sticky top-16 z-30 bg-yellow-500 border-b border-yellow-600 text-white px-4 py-3">
       <div className="max-w-7xl mx-auto flex items-center gap-3">
         <FontAwesomeIcon icon={faEnvelope} className="flex-shrink-0 text-lg" />
         <p className="text-sm md:text-base font-medium">

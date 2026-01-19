@@ -93,6 +93,14 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    // Check if user has verified email
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { error: 'Email verification required. Please verify your email address before uploading images.' },
+        { status: 403 }
+      )
+    }
+
     // Check daily upload limit (10 images per day)
     const today = new Date()
     today.setHours(0, 0, 0, 0)

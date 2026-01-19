@@ -37,6 +37,14 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    // Check if user has verified email
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { error: 'Email verification required. Please verify your email address before uploading images.' },
+        { status: 403 }
+      )
+    }
+
     const groupId = params.id
 
     // Check if user is the creator

@@ -32,7 +32,8 @@
       "urlDisabledMessage": "Você tem uma foto de perfil. Por favor, remova-a primeiro se quiser usar uma URL.",
       "invalidFileType": "Tipo de arquivo inválido. Apenas imagens JPEG, PNG, WebP e GIF são permitidas.",
       "fileTooLarge": "O tamanho do arquivo excede o limite de 5MB. Por favor, escolha uma imagem menor.",
-      "failed": "Falha ao enviar foto de perfil. Por favor, tente novamente."
+      "failed": "Falha ao enviar foto de perfil. Por favor, tente novamente.",
+      "emailVerificationRequired": "Verificação de email necessária. Por favor, verifique seu endereço de email antes de enviar imagens."
     },
     "removePicture": {
       "title": "Remover Foto de Perfil",
@@ -629,7 +630,8 @@
         "errors": {
           "invalidImageUrl": "A imagem deve ser uma URL válida",
           "imageTooLong": "A URL da imagem não pode exceder 500 caracteres",
-          "imageMustBeString": "A imagem deve ser uma string"
+          "imageMustBeString": "A imagem deve ser uma string",
+          "emailVerificationRequired": "Verificação de email necessária. Por favor, verifique seu endereço de email antes de enviar imagens."
         },
         "privacySettings": "Privacidade",
         "privateGroup": "Comunidade privada",
@@ -1322,7 +1324,8 @@
       "voteFailed": "Falha ao votar na imagem. Por favor, tente novamente.",
       "deleteFailed": "Falha ao excluir imagem. Por favor, tente novamente.",
       "reportFailed": "Falha ao reportar imagem. Por favor, tente novamente.",
-      "dailyLimitReached": "Limite diário de envio atingido. Você pode enviar no máximo 10 imagens por dia."
+      "dailyLimitReached": "Limite diário de envio atingido. Você pode enviar no máximo 10 imagens por dia.",
+      "emailVerificationRequired": "Verificação de email necessária. Por favor, verifique seu endereço de email antes de enviar imagens."
     }
   },
   "emailVerification": {

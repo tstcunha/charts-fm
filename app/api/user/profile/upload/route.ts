@@ -34,6 +34,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    // Check if user has verified email
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { error: 'Email verification required. Please verify your email address before uploading images.' },
+        { status: 403 }
+      )
+    }
+
     // Parse the form data
     const formData = await request.formData()
     const file = formData.get('file') as File | null

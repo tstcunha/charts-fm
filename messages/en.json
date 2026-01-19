@@ -32,7 +32,8 @@
       "urlDisabledMessage": "You have an uploaded image. Please remove it first if you want to use a URL instead.",
       "invalidFileType": "Invalid file type. Only JPEG, PNG, WebP, and GIF images are allowed.",
       "fileTooLarge": "File size exceeds 5MB limit. Please choose a smaller image.",
-      "failed": "Failed to upload profile picture. Please try again."
+      "failed": "Failed to upload profile picture. Please try again.",
+      "emailVerificationRequired": "Email verification required. Please verify your email address before uploading images."
     },
     "removePicture": {
       "title": "Remove Profile Picture",
@@ -629,7 +630,8 @@
         "errors": {
           "invalidImageUrl": "Image must be a valid URL",
           "imageTooLong": "Image URL cannot exceed 500 characters",
-          "imageMustBeString": "Image must be a string"
+          "imageMustBeString": "Image must be a string",
+          "emailVerificationRequired": "Email verification required. Please verify your email address before uploading images."
         },
         "privacySettings": "Privacy Settings",
         "privateGroup": "Private Group",
@@ -1322,7 +1324,8 @@
       "voteFailed": "Failed to vote on image. Please try again.",
       "deleteFailed": "Failed to delete image. Please try again.",
       "reportFailed": "Failed to report image. Please try again.",
-      "dailyLimitReached": "Daily upload limit reached. You can upload a maximum of 10 images per day."
+      "dailyLimitReached": "Daily upload limit reached. You can upload a maximum of 10 images per day.",
+      "emailVerificationRequired": "Email verification required. Please verify your email address before uploading images."
     }
   },
   "emailVerification": {

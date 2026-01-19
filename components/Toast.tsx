@@ -43,7 +43,7 @@ export default function Toast({
 
   return (
     <div 
-      className={`fixed top-20 left-1/2 z-[10000] p-3 md:p-4 rounded-2xl ${textColor}`}
+      className={`fixed top-28 left-1/2 z-[10000] p-3 md:p-4 rounded-2xl ${textColor}`}
       style={{
         background: bgColor,
         backdropFilter: 'blur(12px) saturate(180%)',

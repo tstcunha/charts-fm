@@ -94,6 +94,10 @@ export default function ArtistImageUpload({
         if (response.status === 429) {
           throw new Error(t('errors.dailyLimitReached'))
         }
+        // Check for email verification error (403 status code)
+        if (response.status === 403 && data.error?.includes('Email verification required')) {
+          throw new Error(t('errors.emailVerificationRequired'))
+        }
         throw new Error(data.error || t('errors.uploadFailed'))
       }
 

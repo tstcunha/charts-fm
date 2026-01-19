@@ -67,6 +67,7 @@ export default function GroupDetailsTab({
       'Image must be a valid URL or path': t('errors.invalidImageUrl'),
       'Image URL cannot exceed 500 characters': t('errors.imageTooLong'),
       'Image must be a string': t('errors.imageMustBeString'),
+      'Email verification required. Please verify your email address before uploading images.': t('errors.emailVerificationRequired'),
     }
     return errorMap[errorMessage] || errorMessage
   }
@@ -201,6 +202,10 @@ export default function GroupDetailsTab({
       const data = await response.json()
 
       if (!response.ok) {
+        // Check for email verification error (403 status code)
+        if (response.status === 403 && data.error?.includes('Email verification required')) {
+          throw new Error(t('errors.emailVerificationRequired'))
+        }
         throw new Error(data.error || t('upload.failed'))
       }
 
