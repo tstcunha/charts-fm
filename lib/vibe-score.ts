@@ -110,6 +110,11 @@ function aggregateTopTracksVS(
     }
 
     for (const entry of userData.vsData) {
+      // Only contribute VR if this entry received at least 2 plays from this user
+      if (entry.playcount < 2) {
+        continue
+      }
+
       // Look up original item to get proper capitalization
       const originalItem = originalItemsMap.get(entry.entryKey)
       const name = originalItem?.name || entry.entryKey.split('|')[0]
@@ -178,6 +183,11 @@ function aggregateTopArtistsVS(
     }
 
     for (const entry of userData.vsData) {
+      // Only contribute VR if this entry received at least 2 plays from this user
+      if (entry.playcount < 2) {
+        continue
+      }
+
       // Look up original item to get proper capitalization
       const originalItem = originalItemsMap.get(entry.entryKey)
       const name = originalItem?.name || entry.entryKey
@@ -247,6 +257,11 @@ function aggregateTopAlbumsVS(
     }
 
     for (const entry of userData.vsData) {
+      // Only contribute VR if this entry received at least 2 plays from this user
+      if (entry.playcount < 2) {
+        continue
+      }
+
       // Look up original item to get proper capitalization
       const originalItem = originalItemsMap.get(entry.entryKey)
       const name = originalItem?.name || entry.entryKey.split('|')[0]
