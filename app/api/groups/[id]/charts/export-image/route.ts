@@ -69,10 +69,11 @@ async function generateChartHTML(config: ChartHTMLConfig): Promise<string> {
     const badgeSize = isFirst ? '96px' : '80px'
     const badgeFontSize = isFirst ? '40px' : '32px'
     // Reduce padding for tracks/albums to accommodate "by <artist>" text
+    // Reduced padding for artists only to make chart more compact; tracks/albums keep original padding
     const needsArtistSubheader = chartType !== 'artists' && entry.artist
     const padding = isFirst 
-      ? (needsArtistSubheader ? '36px 0' : '44px 0')
-      : (needsArtistSubheader ? '28px 0' : '34px 0')
+      ? (needsArtistSubheader ? '36px 0' : '38px 0')
+      : (needsArtistSubheader ? '28px 0' : '30px 0')
     
     const value = showVS && entry.vibeScore !== null 
       ? entry.vibeScore.toFixed(2) 
@@ -133,7 +134,7 @@ async function generateChartHTML(config: ChartHTMLConfig): Promise<string> {
             font-size: ${valueFontSize};
             font-weight: bold;
             color: ${themeColors.primaryDark};
-            margin-bottom: 6px;
+            margin-bottom: 4px;
           ">${value}</div>
           <div style="
             font-size: ${isFirst ? '24px' : '22px'};
@@ -152,6 +153,35 @@ async function generateChartHTML(config: ChartHTMLConfig): Promise<string> {
     albums: 'Top Albums',
   }
   const chartTitle = chartTypeLabels[chartType]
+
+  // Calculate dynamic font size for group name based on length
+  // Dynamically calculate optimal font size to maximize use of available space
+  // Available width is approximately: 1080px - 50px (left padding) - 360px (right padding if images) - 40px (margin)
+  const hasImages = itemImages.length > 0
+  const availableWidth = hasImages ? 1080 - 50 - 360 - 40 : 1080 - 50 - 40 - 40
+  const maxFontSize = 100 // Maximum font size to prevent excessive vertical space usage
+  const minFontSize = 64
+  const avgCharWidthRatio = 0.52 // Character width ratio (52% of font size) - more conservative to prevent truncation
+  const widthBuffer = 20 // Buffer to ensure text doesn't get cut off
+  
+  // Calculate optimal font size to fill available space
+  // For shorter names, use larger font; for longer names, scale down proportionally
+  const calculatedFontSize = Math.floor(((availableWidth - widthBuffer) / groupName.length) / avgCharWidthRatio)
+  
+  // Cap at maxFontSize to prevent vertical space issues (line-height 1.2 + margin = significant vertical space)
+  let groupNameFontSize = Math.min(maxFontSize, Math.max(minFontSize, calculatedFontSize))
+  let displayGroupName = groupName
+  
+  // If calculated size is at minimum and name is still too long, truncate with ellipsis
+  if (groupNameFontSize <= minFontSize) {
+    const maxCharsAtMinSize = Math.floor((availableWidth / minFontSize) / avgCharWidthRatio)
+    if (groupName.length > maxCharsAtMinSize * 1.3) {
+      const maxDisplayLength = Math.floor(maxCharsAtMinSize * 1.2)
+      displayGroupName = groupName.length > maxDisplayLength 
+        ? groupName.substring(0, maxDisplayLength - 3) + '...'
+        : groupName
+    }
+  }
 
   // Item images section - positioned on the right, all vertically stacked
   // #1 is large (280x280), #2-10 are smaller (150x150 each) with staggered horizontal positioning
@@ -238,27 +268,30 @@ async function generateChartHTML(config: ChartHTMLConfig): Promise<string> {
     
     <!-- Title with Gradient Text -->
     <div style="
-      margin-bottom: 60px;
+      margin-bottom: 40px;
       padding-bottom: 0.1em;
       text-align: left;
     ">
       <h1 style="
-        font-size: 88px;
+        font-size: ${groupNameFontSize}px;
         font-weight: bold;
         line-height: 1.2;
         background-image: linear-gradient(to right, ${themeColors.primaryDarker}, ${themeColors.primary}, ${themeColors.primaryLight});
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        margin-bottom: 24px;
-        overflow: visible;
-        letter-spacing: -2px;
-      ">${escapeHtml(groupName)}</h1>
+        margin-bottom: 16px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        letter-spacing: ${groupNameFontSize >= 90 ? '-2.5px' : groupNameFontSize >= 75 ? '-2px' : groupNameFontSize >= 65 ? '-1.5px' : '-1px'};
+        max-width: 100%;
+      ">${escapeHtml(displayGroupName)}</h1>
       <div style="
         font-size: 42px;
         color: ${themeColors.text};
         font-weight: 600;
-        margin-bottom: 14px;
+        margin-bottom: 10px;
       ">${escapeHtml(chartTitle)}</div>
       <div style="
         font-size: 28px;
