@@ -4,20 +4,34 @@ import { prisma } from '@/lib/prisma'
 import { getGroupChartEntries } from '@/lib/group-queries'
 import { GROUP_THEMES, type ThemeName } from '@/lib/group-themes'
 import { formatWeekLabel } from '@/lib/weekly-utils'
-import { getArtistImage } from '@/lib/lastfm'
+import { getArtistImage, getAlbumImage } from '@/lib/lastfm'
 import fs from 'fs'
 import path from 'path'
 
-// Import the HTML generation function (we'll extract it to a shared module)
-async function generateChartHTML(
-  groupName: string,
-  weekLabel: string,
-  entries: Array<{ position: number; name: string; playcount: number; vibeScore: number | null }>,
-  themeColors: typeof GROUP_THEMES.white,
-  showVS: boolean,
-  topArtistImages: Array<{ name: string; imageBase64: string | null }>,
+// Chart HTML template configuration
+interface ChartHTMLConfig {
+  groupName: string
+  weekLabel: string
+  chartType: 'artists' | 'tracks' | 'albums'
+  entries: Array<{ position: number; name: string; playcount: number; vibeScore: number | null; artist?: string | null }>
+  themeColors: typeof GROUP_THEMES.white
+  showVS: boolean
+  itemImages: Array<{ name: string; imageBase64: string | null }>
   logoBase64: string
-): Promise<string> {
+}
+
+// Generate HTML template for chart export
+async function generateChartHTML(config: ChartHTMLConfig): Promise<string> {
+  const {
+    groupName,
+    weekLabel,
+    chartType,
+    entries,
+    themeColors,
+    showVS,
+    itemImages,
+    logoBase64,
+  } = config
   // Instagram Stories aspect ratio: 9:16 (1080x1920)
   const width = 1080
   const height = 1920
@@ -54,7 +68,11 @@ async function generateChartHTML(
     const fontSize = isFirst ? '56px' : '40px'
     const badgeSize = isFirst ? '96px' : '80px'
     const badgeFontSize = isFirst ? '40px' : '32px'
-    const padding = isFirst ? '44px 0' : '34px 0'
+    // Reduce padding for tracks/albums to accommodate "by <artist>" text
+    const needsArtistSubheader = chartType !== 'artists' && entry.artist
+    const padding = isFirst 
+      ? (needsArtistSubheader ? '36px 0' : '44px 0')
+      : (needsArtistSubheader ? '28px 0' : '34px 0')
     
     const value = showVS && entry.vibeScore !== null 
       ? entry.vibeScore.toFixed(2) 
@@ -94,6 +112,21 @@ async function generateChartHTML(
             letter-spacing: ${isFirst ? '-1px' : '-0.6px'};
             line-height: 1.2;
           ">${escapeHtml(entry.name)}</div>
+          ${chartType !== 'artists' && entry.artist ? `
+            <div style="
+              font-size: ${isFirst ? '28px' : '22px'};
+              color: ${themeColors.text};
+              margin-top: ${isFirst ? '6px' : '4px'};
+              margin-left: 16px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              line-height: 1.2;
+            ">
+              <span style="opacity: 0.7; font-size: ${isFirst ? '32px' : '26px'}; font-weight: bold;">by </span>
+              <span style="opacity: 0.85; font-size: ${isFirst ? '32px' : '26px'}; font-weight: bold;">${escapeHtml(entry.artist)}</span>
+            </div>
+          ` : ''}
         </div>
         <div style="text-align: right; margin-left: 48px; flex-shrink: 0; min-width: 140px;">
           <div style="
@@ -112,124 +145,60 @@ async function generateChartHTML(
     `
   }).join('')
 
-  // Top artist images section - positioned on the right, all vertically stacked
-  // #1 is large (280x280), #2-5 are smaller (180x180 each)
-  const topArtistSection = topArtistImages.length > 0 ? `
-    ${topArtistImages[0]?.imageBase64 ? `
-      <!-- #1 Artist - Large -->
+  // Chart type labels
+  const chartTypeLabels = {
+    artists: 'Top Artists',
+    tracks: 'Top Tracks',
+    albums: 'Top Albums',
+  }
+  const chartTitle = chartTypeLabels[chartType]
+
+  // Item images section - positioned on the right, all vertically stacked
+  // #1 is large (280x280), #2-10 are smaller (150x150 each) with staggered horizontal positioning
+  const generateItemImage = (index: number, top: number, right: number, size: number) => {
+    if (!itemImages[index]?.imageBase64) return ''
+    
+    const borderRadius = index === 0 ? 32 : 20
+    const borderWidth = index === 0 ? 4 : 2
+    const shadowIntensity = index === 0 ? '0 20px 40px rgba(0, 0, 0, 0.3)' : '0 8px 16px rgba(0, 0, 0, 0.2)'
+    const blurIntensity = index === 0 ? '10px' : '6px'
+    
+    return `
+      <!-- #${index + 1} ${chartTitle.slice(4)} -->
       <div style="
         position: absolute;
-        top: 80px;
-        right: 40px;
-        width: 280px;
-        height: 280px;
-        border-radius: 32px;
+        top: ${top}px;
+        right: ${right}px;
+        width: ${size}px;
+        height: ${size}px;
+        border-radius: ${borderRadius}px;
         overflow: hidden;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 4px ${rgbToRgba(themeColors.primary, 0.5)};
-        border: 4px solid ${themeColors.primary};
+        box-shadow: ${shadowIntensity}, 0 0 0 ${borderWidth}px ${rgbToRgba(themeColors.primary, index === 0 ? 0.5 : 0.3)};
+        border: ${borderWidth}px solid ${themeColors.primary};
         background: ${themeColors.primaryLighter};
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(${blurIntensity});
+        -webkit-backdrop-filter: blur(${blurIntensity});
       ">
         <img 
-          src="${escapeHtml(topArtistImages[0].imageBase64)}" 
-          alt="${escapeHtml(topArtistImages[0].name)}"
+          src="${escapeHtml(itemImages[index].imageBase64)}" 
+          alt="${escapeHtml(itemImages[index].name)}"
           style="width: 100%; height: 100%; object-fit: cover;"
         />
       </div>
-    ` : ''}
-    ${topArtistImages[1]?.imageBase64 ? `
-      <!-- #2 Artist - Slightly offset to the left -->
-      <div style="
-        position: absolute;
-        top: 380px;
-        right: 60px;
-        width: 180px;
-        height: 180px;
-        border-radius: 24px;
-        overflow: hidden;
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25), 0 0 0 3px ${rgbToRgba(themeColors.primary, 0.4)};
-        border: 3px solid ${themeColors.primary};
-        background: ${themeColors.primaryLighter};
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-      ">
-        <img 
-          src="${escapeHtml(topArtistImages[1].imageBase64)}" 
-          alt="${escapeHtml(topArtistImages[1].name)}"
-          style="width: 100%; height: 100%; object-fit: cover;"
-        />
-      </div>
-    ` : ''}
-    ${topArtistImages[2]?.imageBase64 ? `
-      <!-- #3 Artist - Slightly offset to the right -->
-      <div style="
-        position: absolute;
-        top: 580px;
-        right: 20px;
-        width: 180px;
-        height: 180px;
-        border-radius: 24px;
-        overflow: hidden;
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25), 0 0 0 3px ${rgbToRgba(themeColors.primary, 0.4)};
-        border: 3px solid ${themeColors.primary};
-        background: ${themeColors.primaryLighter};
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-      ">
-        <img 
-          src="${escapeHtml(topArtistImages[2].imageBase64)}" 
-          alt="${escapeHtml(topArtistImages[2].name)}"
-          style="width: 100%; height: 100%; object-fit: cover;"
-        />
-      </div>
-    ` : ''}
-    ${topArtistImages[3]?.imageBase64 ? `
-      <!-- #4 Artist - Slightly offset to the left -->
-      <div style="
-        position: absolute;
-        top: 780px;
-        right: 50px;
-        width: 180px;
-        height: 180px;
-        border-radius: 24px;
-        overflow: hidden;
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25), 0 0 0 3px ${rgbToRgba(themeColors.primary, 0.4)};
-        border: 3px solid ${themeColors.primary};
-        background: ${themeColors.primaryLighter};
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-      ">
-        <img 
-          src="${escapeHtml(topArtistImages[3].imageBase64)}" 
-          alt="${escapeHtml(topArtistImages[3].name)}"
-          style="width: 100%; height: 100%; object-fit: cover;"
-        />
-      </div>
-    ` : ''}
-    ${topArtistImages[4]?.imageBase64 ? `
-      <!-- #5 Artist - Slightly offset to the right -->
-      <div style="
-        position: absolute;
-        top: 980px;
-        right: 30px;
-        width: 180px;
-        height: 180px;
-        border-radius: 24px;
-        overflow: hidden;
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25), 0 0 0 3px ${rgbToRgba(themeColors.primary, 0.4)};
-        border: 3px solid ${themeColors.primary};
-        background: ${themeColors.primaryLighter};
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-      ">
-        <img 
-          src="${escapeHtml(topArtistImages[4].imageBase64)}" 
-          alt="${escapeHtml(topArtistImages[4].name)}"
-          style="width: 100%; height: 100%; object-fit: cover;"
-        />
-      </div>
-    ` : ''}
+    `
+  }
+  
+  const itemImagesSection = itemImages.length > 0 ? `
+    ${generateItemImage(0, 80, 40, 280)}
+    ${generateItemImage(1, 380, 80, 150)}
+    ${generateItemImage(2, 545, 20, 150)}
+    ${generateItemImage(3, 710, 70, 150)}
+    ${generateItemImage(4, 875, 15, 150)}
+    ${generateItemImage(5, 1040, 75, 150)}
+    ${generateItemImage(6, 1205, 25, 150)}
+    ${generateItemImage(7, 1370, 65, 150)}
+    ${generateItemImage(8, 1535, 10, 150)}
+    ${generateItemImage(9, 1700, 60, 150)}
   ` : ''
 
   return `<!DOCTYPE html>
@@ -263,9 +232,9 @@ async function generateChartHTML(
     position: relative;
     height: ${height - footerHeight}px;
     overflow: visible;
-    padding: 80px ${topArtistImages.length > 0 ? '360px' : '40px'} 40px 50px;
+    padding: 80px ${itemImages.length > 0 ? '360px' : '40px'} 40px 50px;
   ">
-    ${topArtistSection}
+    ${itemImagesSection}
     
     <!-- Title with Gradient Text -->
     <div style="
@@ -290,7 +259,7 @@ async function generateChartHTML(
         color: ${themeColors.text};
         font-weight: 600;
         margin-bottom: 14px;
-      ">Top Artists</div>
+      ">${escapeHtml(chartTitle)}</div>
       <div style="
         font-size: 28px;
         color: ${themeColors.text};
@@ -321,22 +290,23 @@ async function generateChartHTML(
     padding: 0 20px;
   ">
     <div style="
-      width: 100px;
+      width: 160px;
       height: 30px;
       display: flex;
       align-items: center;
+      overflow: hidden;
     ">
       <img 
         src="${logoBase64}" 
         alt="ChartsFM"
-        style="max-width: 100%; max-height: 100%; object-fit: contain;"
+        style="width: 140px; height: 50px; object-fit: cover; object-position: center;"
         onerror="this.style.display='none'"
       />
     </div>
     <div style="
       color: white;
-      font-size: 12px;
-      font-weight: 500;
+      font-size: 16px;
+      font-weight: bold;
     ">Create yours on chartsfm.greatwhiteshark.dev</div>
   </div>
 </body>
@@ -422,10 +392,18 @@ export async function GET(
     // Get query params
     const { searchParams } = new URL(request.url)
     const weekStartParam = searchParams.get('weekStart')
+    const chartTypeParam = searchParams.get('chartType') || 'artists'
     
     if (!weekStartParam) {
       return NextResponse.json({ error: 'weekStart parameter is required' }, { status: 400 })
     }
+
+    // Validate chart type
+    const validChartTypes: Array<'artists' | 'tracks' | 'albums'> = ['artists', 'tracks', 'albums']
+    if (!validChartTypes.includes(chartTypeParam as any)) {
+      return NextResponse.json({ error: 'Invalid chartType. Must be one of: artists, tracks, albums' }, { status: 400 })
+    }
+    const chartType = chartTypeParam as 'artists' | 'tracks' | 'albums'
 
     // Parse date string as UTC (YYYY-MM-DD format)
     const [year, month, day] = weekStartParam.split('-').map(Number)
@@ -450,11 +428,11 @@ export async function GET(
     const normalizedWeekStart = new Date(weeklyStats.weekStart)
     normalizedWeekStart.setUTCHours(0, 0, 0, 0)
 
-    // Get chart entries for artists (top 10)
+    // Get chart entries for the specified chart type (top 10)
     const chartEntries = await getGroupChartEntries(
       group.id,
       normalizedWeekStart,
-      'artists'
+      chartType
     )
 
     if (chartEntries.length === 0) {
@@ -467,6 +445,7 @@ export async function GET(
       name: entry.name,
       playcount: entry.playcount,
       vibeScore: entry.vibeScore,
+      artist: entry.artist, // Needed for tracks and albums
     }))
 
     // Get theme colors
@@ -477,15 +456,32 @@ export async function GET(
     const chartMode = (group.chartMode || 'plays_only') as string
     const showVS = chartMode === 'vs' || chartMode === 'vs_weighted'
 
-    // Get artist images for top 3 entries and convert to base64
+    // Get images for top 10 entries and convert to base64
     const apiKey = process.env.LASTFM_API_KEY || ''
-    const topArtistImages: Array<{ name: string; imageBase64: string | null }> = []
+    const itemImages: Array<{ name: string; imageBase64: string | null }> = []
     
-    // Fetch images for top 5 artists in parallel
-    const imagePromises = topEntries.slice(0, 5).map(async (entry) => {
+    // Fetch images for top 10 items in parallel
+    const imagePromises = topEntries.slice(0, 10).map(async (entry) => {
       try {
-        const imageUrl = await getArtistImage(entry.name, apiKey)
-        console.log(`Artist ${entry.position} (${entry.name}) image URL:`, imageUrl)
+        let imageUrl: string | null = null
+        
+        if (chartType === 'artists') {
+          // For artists, use artist image
+          imageUrl = await getArtistImage(entry.name, apiKey)
+          console.log(`Artist ${entry.position} (${entry.name}) image URL:`, imageUrl)
+        } else if (chartType === 'tracks') {
+          // For tracks, use artist image (from the track's artist)
+          if (entry.artist) {
+            imageUrl = await getArtistImage(entry.artist, apiKey)
+            console.log(`Track ${entry.position} (${entry.name} by ${entry.artist}) artist image URL:`, imageUrl)
+          }
+        } else if (chartType === 'albums') {
+          // For albums, use album image (requires artist and album name)
+          if (entry.artist) {
+            imageUrl = await getAlbumImage(entry.artist, entry.name, apiKey)
+            console.log(`Album ${entry.position} (${entry.name} by ${entry.artist}) image URL:`, imageUrl)
+          }
+        }
         
         if (imageUrl) {
           const imageBase64 = await convertImageToBase64(imageUrl)
@@ -510,9 +506,9 @@ export async function GET(
     })
     
     const imageResults = await Promise.all(imagePromises)
-    topArtistImages.push(...imageResults)
+    itemImages.push(...imageResults)
     
-    console.log(`Loaded ${topArtistImages.filter(img => img.imageBase64).length} artist images out of ${topArtistImages.length} attempts`)
+    console.log(`Loaded ${itemImages.filter(img => img.imageBase64).length} images out of ${itemImages.length} attempts`)
 
     // Format week label
     const weekLabel = formatWeekLabel(normalizedWeekStart)
@@ -523,18 +519,25 @@ export async function GET(
     // Generate HTML
     let html: string
     try {
-      html = await generateChartHTML(
-        group.name,
+      html = await generateChartHTML({
+        groupName: group.name,
         weekLabel,
-        topEntries,
+        chartType,
+        entries: topEntries.map(entry => ({
+          position: entry.position,
+          name: entry.name,
+          playcount: entry.playcount,
+          vibeScore: entry.vibeScore,
+          artist: entry.artist,
+        })),
         themeColors,
         showVS,
-        topArtistImages,
-        logoBase64
-      )
+        itemImages,
+        logoBase64,
+      })
       console.log('HTML generated successfully, length:', html.length)
       console.log('HTML contains image tag:', html.includes('<img'))
-      const hasAnyImage = topArtistImages.some(img => img.imageBase64)
+      const hasAnyImage = itemImages.some((img: { name: string; imageBase64: string | null }) => img.imageBase64)
       if (hasAnyImage) {
         console.log('HTML contains image data URI:', html.includes('data:image'))
       }
@@ -727,8 +730,8 @@ export async function GET(
       
       // Create filename
       const weekStr = weekStartParam
-      const groupName = group.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()
-      const filename = `${groupName}_artists_${weekStr}.png`
+      const groupNameSlug = group.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()
+      const filename = `${groupNameSlug}_${chartType}_${weekStr}.png`
       
       // Return PNG file (Playwright screenshot returns Buffer)
       return new NextResponse(screenshot as unknown as BodyInit, {

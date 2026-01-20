@@ -5,8 +5,7 @@ import WeekSelector from './WeekSelector'
 import ChartDisplay from './ChartDisplay'
 import { EnrichedChartItem } from '@/lib/group-chart-metrics'
 import WeeklyChartDownloadButton from '@/components/charts/WeeklyChartDownloadButton'
-import ChartImageDownloadButton from '@/components/charts/ChartImageDownloadButton'
-import CombinedChartImageDownloadButton from '@/components/charts/CombinedChartImageDownloadButton'
+import ShareChartButton from '@/components/charts/ShareChartButton'
 
 type ChartType = 'artists' | 'tracks' | 'albums'
 
@@ -49,19 +48,18 @@ export default function ChartsClient({
         </div>
         <div className="space-y-3">
           <div className="flex justify-center">
+            <ShareChartButton
+              groupId={groupId}
+              weekStart={currentWeek}
+              fullWidth
+            />
+          </div>
+          <div className="flex justify-center">
             <WeeklyChartDownloadButton
               groupId={groupId}
               weekStart={currentWeek}
             />
           </div>
-          {isSuperuser && currentChartType === 'artists' && (
-            <div className="flex justify-center">
-              <ChartImageDownloadButton
-                groupId={groupId}
-                weekStart={currentWeek}
-              />
-            </div>
-          )}
         </div>
       </div>
       <div className="col-span-12 md:col-span-9">

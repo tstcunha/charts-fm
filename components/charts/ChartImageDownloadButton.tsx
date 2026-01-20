@@ -7,11 +7,15 @@ import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 interface ChartImageDownloadButtonProps {
   groupId: string
   weekStart: Date
+  chartType?: 'artists' | 'tracks' | 'albums'
+  label?: string
 }
 
 export default function ChartImageDownloadButton({
   groupId,
   weekStart,
+  chartType = 'artists',
+  label,
 }: ChartImageDownloadButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const t = useSafeTranslations('charts')
@@ -21,7 +25,7 @@ export default function ChartImageDownloadButton({
     try {
       // Format weekStart as ISO string
       const weekStartStr = weekStart.toISOString().split('T')[0]
-      const url = `/api/groups/${groupId}/charts/export-image?weekStart=${weekStartStr}`
+      const url = `/api/groups/${groupId}/charts/export-image?weekStart=${weekStartStr}&chartType=${chartType}`
       
       // Fetch the image
       const response = await fetch(url)
@@ -36,7 +40,7 @@ export default function ChartImageDownloadButton({
       
       // Get filename from Content-Disposition header or use default
       const contentDisposition = response.headers.get('Content-Disposition')
-      let filename = `chart_artists_${weekStartStr}.png`
+      let filename = `chart_${chartType}_${weekStartStr}.png`
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="(.+)"/)
         if (filenameMatch) {
@@ -64,7 +68,7 @@ export default function ChartImageDownloadButton({
 
   const buttonText = isLoading 
     ? t('generatingImage')
-    : t('downloadAsImage')
+    : label || t('downloadAsImage')
 
   return (
     <LiquidGlassButton

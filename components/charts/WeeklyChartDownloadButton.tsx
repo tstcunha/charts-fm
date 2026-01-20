@@ -65,7 +65,7 @@ export default function WeeklyChartDownloadButton({
       onClick={handleDownload}
       disabled={isLoading}
       variant="primary"
-      size="sm"
+      useTheme
       fullWidth
     >
       {isLoading ? t('generating') : t('downloadRawData')}

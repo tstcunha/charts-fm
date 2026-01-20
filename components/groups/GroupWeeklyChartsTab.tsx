@@ -9,7 +9,7 @@ import { LiquidGlassLink } from '@/components/LiquidGlassButton'
 import { generateSlug, ChartType } from '@/lib/chart-slugs'
 import SafeImage from '@/components/SafeImage'
 import { useSafeTranslations } from '@/hooks/useSafeTranslations'
-import ChartImageDownloadButton from '@/components/charts/ChartImageDownloadButton'
+import ShareChartButton from '@/components/charts/ShareChartButton'
 
 interface GroupWeeklyChartsTabProps {
   groupId: string
@@ -363,19 +363,19 @@ export default function GroupWeeklyChartsTab({ groupId, isOwner, isSuperuser = f
             href={`/groups/${groupId}/charts`}
             variant="primary"
             useTheme
+            className="w-full sm:w-auto"
           >
             {t('exploreCharts')}
           </LiquidGlassLink>
+          <div className="w-full sm:w-auto">
+            <ShareChartButton
+              groupId={groupId}
+              weekStart={weekStartDate}
+              fullWidth
+            />
+          </div>
         </div>
       </div>
-      {isSuperuser && (
-        <div className="mb-4 md:mb-6 flex flex-wrap gap-2">
-          <ChartImageDownloadButton
-            groupId={groupId}
-            weekStart={weekStartDate}
-          />
-        </div>
-      )}
       <div className="mb-4 md:mb-6">
         <h3 className="text-lg md:text-2xl font-bold text-gray-900">
           {t('weekOf', { date: latestWeek.weekStartFormatted })}
