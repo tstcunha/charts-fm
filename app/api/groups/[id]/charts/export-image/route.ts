@@ -601,7 +601,23 @@ export async function GET(
       // Use lightweight Chromium binary in serverless environment
       if (chromiumBinary) {
         try {
-          const executablePath = await chromiumBinary.executablePath()
+          // @sparticuz/chromium-min will automatically use CHROMIUM_REMOTE_EXEC_PATH env var if set
+          // If not set, it will look for local files (which don't exist in Vercel)
+          // So we need to ensure the env var is set, or pass the location directly
+          const remotePath = process.env.CHROMIUM_REMOTE_EXEC_PATH
+          
+          let executablePath: string
+          if (remotePath) {
+            console.log('Using CHROMIUM_REMOTE_EXEC_PATH from environment:', remotePath)
+            // Pass the location to executablePath if env var is set
+            executablePath = await chromiumBinary.executablePath(remotePath)
+          } else {
+            // Try default remote location for v141.0.0
+            const defaultRemotePath = 'https://github.com/Sparticuz/chromium/releases/download/v141.0.0/chromium-v141.0.0-pack.tar.br'
+            console.log('CHROMIUM_REMOTE_EXEC_PATH not set, using default remote path:', defaultRemotePath)
+            executablePath = await chromiumBinary.executablePath(defaultRemotePath)
+          }
+          
           launchOptions.executablePath = executablePath
           // Merge args - chromiumBinary.args should be used, but keep our essential ones
           const chromiumArgs = chromiumBinary.args || []
@@ -611,8 +627,15 @@ export async function GET(
           console.log('Using serverless-optimized Chromium binary')
         } catch (execPathError) {
           console.error('Failed to get Chromium executable path:', execPathError)
-          // Fallback: try without explicit executable path (might work if bundled)
-          console.log('Falling back to system Chromium')
+          const errorMsg = execPathError instanceof Error ? execPathError.message : String(execPathError)
+          return NextResponse.json(
+            { 
+              error: 'Failed to get Chromium executable for image generation',
+              details: `Please set CHROMIUM_REMOTE_EXEC_PATH environment variable in Vercel to: https://github.com/Sparticuz/chromium/releases/download/v141.0.0/chromium-v141.0.0-pack.tar.br`,
+              errorMessage: process.env.NODE_ENV === 'development' ? errorMsg : undefined
+            },
+            { status: 500 }
+          )
         }
       }
       
