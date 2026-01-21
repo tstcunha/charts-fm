@@ -3,35 +3,37 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import LiquidGlassTabs, { TabItem } from '@/components/LiquidGlassTabs'
-import { faUserPlus, faUsers, faTrash, faSearch } from '@fortawesome/free-solid-svg-icons'
+import { faUserPlus, faUsers, faTrash, faSearch, faChartBar } from '@fortawesome/free-solid-svg-icons'
 
 interface AdminTabsProps {
   createUserContent: React.ReactNode
   bulkGenerateContent: React.ReactNode
   cleanupContent: React.ReactNode
   userListContent: React.ReactNode
+  metricsContent: React.ReactNode
 }
 
-type TabId = 'create-user' | 'bulk-generate' | 'cleanup' | 'user-list'
+type TabId = 'create-user' | 'bulk-generate' | 'cleanup' | 'user-list' | 'metrics'
 
 export default function AdminTabs({
   createUserContent,
   bulkGenerateContent,
   cleanupContent,
   userListContent,
+  metricsContent,
 }: AdminTabsProps) {
   const searchParams = useSearchParams()
   const tabFromUrl = searchParams.get('tab') as TabId | null
   
-  // Validate tab from URL, default to 'create-user' if invalid
-  const validTabs: TabId[] = ['create-user', 'bulk-generate', 'cleanup', 'user-list']
-  const initialTab = tabFromUrl && validTabs.includes(tabFromUrl) ? tabFromUrl : 'create-user'
+  // Validate tab from URL, default to 'metrics' if invalid
+  const validTabs: TabId[] = ['create-user', 'bulk-generate', 'cleanup', 'user-list', 'metrics']
+  const initialTab = tabFromUrl && validTabs.includes(tabFromUrl) ? tabFromUrl : 'metrics'
   
   const [activeTab, setActiveTab] = useState<TabId>(initialTab)
 
   // Update active tab when URL changes
   useEffect(() => {
-    const validTabs: TabId[] = ['create-user', 'bulk-generate', 'cleanup', 'user-list']
+    const validTabs: TabId[] = ['create-user', 'bulk-generate', 'cleanup', 'user-list', 'metrics']
     if (tabFromUrl && validTabs.includes(tabFromUrl)) {
       setActiveTab(tabFromUrl)
     }
@@ -46,6 +48,7 @@ export default function AdminTabs({
   }
 
   const tabs: TabItem[] = [
+    { id: 'metrics', label: 'Metrics', icon: faChartBar },
     { id: 'create-user', label: 'Create User', icon: faUserPlus },
     { id: 'bulk-generate', label: 'Bulk Generate', icon: faUsers },
     { id: 'user-list', label: 'User List', icon: faSearch },
@@ -65,6 +68,9 @@ export default function AdminTabs({
 
       {/* Tab Content */}
       <div className="bg-white/60 backdrop-blur-md rounded-xl p-4 md:p-6 border border-theme shadow-sm">
+        <div style={{ display: activeTab === 'metrics' ? 'block' : 'none' }}>
+          {metricsContent}
+        </div>
         <div style={{ display: activeTab === 'create-user' ? 'block' : 'none' }}>
           {createUserContent}
         </div>
