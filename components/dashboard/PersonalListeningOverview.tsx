@@ -22,14 +22,22 @@ interface PersonalListeningStats {
   weekStart: string
 }
 
-export default function PersonalListeningOverview() {
+export default function PersonalListeningOverview({
+  username,
+}: {
+  username?: string
+}) {
   const t = useSafeTranslations('dashboard.personalListening')
   const [stats, setStats] = useState<PersonalListeningStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/api/dashboard/personal-stats')
+    const endpoint = username
+      ? `/api/users/${encodeURIComponent(username)}/personal-stats`
+      : '/api/dashboard/personal-stats'
+
+    fetch(endpoint)
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
@@ -44,7 +52,7 @@ export default function PersonalListeningOverview() {
         setIsLoading(false)
         console.error('Error fetching personal stats:', err)
       })
-  }, [t])
+  }, [t, username])
 
   // All hooks must be called before any conditional returns
   const currentWeek = stats?.currentWeek ?? null
@@ -96,7 +104,9 @@ export default function PersonalListeningOverview() {
         className="rounded-xl shadow-lg p-4 md:p-6 border border-gray-200"
         style={glassStyle}
       >
-        <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-900">{t('title')}</h2>
+        <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-900">
+          {username ? t('titleForUser', { username }) : t('title')}
+        </h2>
         <div className="flex items-center justify-center py-12">
           <FontAwesomeIcon icon={faSpinner} className="animate-spin text-4xl text-yellow-500" />
         </div>
@@ -110,7 +120,9 @@ export default function PersonalListeningOverview() {
         className="rounded-xl shadow-lg p-4 md:p-6 border border-gray-200"
         style={glassStyle}
       >
-        <h2 className="text-xl md:text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">{t('title')}</h2>
+        <h2 className="text-xl md:text-2xl font-bold mb-4 text-[var(--theme-primary-dark)]">
+          {username ? t('titleForUser', { username }) : t('title')}
+        </h2>
         <div className="text-center py-8 text-gray-500">
           <p className="mb-2">{t('noData')}</p>
           <p className="text-sm">{t('noDataDescription')}</p>
@@ -129,7 +141,9 @@ export default function PersonalListeningOverview() {
       }}
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 md:mb-6 gap-2">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900">{t('title')}</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+          {username ? t('titleForUser', { username }) : t('title')}
+        </h2>
         {currentWeek && (
           <span className="text-xs sm:text-sm text-gray-500">
             {t('weekOf', { date: formatWeekLabel(weekStartDate) })}

@@ -44,6 +44,17 @@
       "failed": "Failed to remove profile picture. Please try again."
     },
     "lastfmUsernameTooltip": "This was set when the account was created, and cannot be changed",
+    "bio": "Bio",
+    "bioPlaceholder": "Write a short bio about your taste, what you’re listening to, or anything you’d like to share.",
+    "bioHelp": "Shown on your public profile.",
+    "publicProfile": {
+      "title": "Public profile",
+      "profilePublic": "Make my profile public",
+      "showStats": "Show my listening stats",
+      "showGroups": "Show my groups",
+      "viewPublicProfileLabel": "Public profile link",
+      "viewPublicProfileLink": "View my public profile"
+    },
     "saveChanges": "Save Changes",
     "saving": "Saving...",
     "profileUpdated": "Profile updated successfully!",
@@ -101,10 +112,18 @@
       }
     }
   },
+  "profilePublic": {
+    "viewOnLastfm": "View on Last.fm",
+    "groupsTitle": "Groups",
+    "noGroups": "No groups to show.",
+    "privateGroupBadge": "Private",
+    "noBio": "No bio yet."
+  },
   "navbar": {
     "home": "Home",
     "dashboard": "Dashboard",
     "profile": "Profile",
+    "publicProfile": "Public Profile",
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "signingOut": "Signing out...",
@@ -148,6 +167,7 @@
     },
     "personalListening": {
       "title": "Your Listening This Week",
+      "titleForUser": "{username}'s Listening This Week",
       "weekOf": "Week of {date}",
       "totalPlays": "Total Plays",
       "uniqueArtists": "Unique Artists",

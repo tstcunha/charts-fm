@@ -15,6 +15,10 @@ model User {
   image                         String?
   lastfmUsername                String                         @unique
   lastfmSessionKey              String?
+  bio                           String?
+  profilePublic                 Boolean                        @default(true)
+  showProfileStats              Boolean                        @default(true)
+  showProfileGroups             Boolean                        @default(true)
   isSuperuser                   Boolean                        @default(false)
   createdAt                     DateTime                       @default(now())
   updatedAt                     DateTime                       @updatedAt

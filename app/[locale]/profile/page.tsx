@@ -27,6 +27,10 @@ export default function ProfilePage() {
     email: '',
     image: '',
     locale: 'en',
+    bio: '',
+    profilePublic: true,
+    showProfileStats: true,
+    showProfileGroups: true,
   })
   const [originalLocale, setOriginalLocale] = useState<string>('en')
   const [lastfmUsername, setLastfmUsername] = useState<string | null>(null)
@@ -55,6 +59,10 @@ export default function ProfilePage() {
             email: data.user.email || '',
             image: data.user.image || '',
             locale: userLocale,
+            bio: data.user.bio || '',
+            profilePublic: data.user.profilePublic ?? true,
+            showProfileStats: data.user.showProfileStats ?? true,
+            showProfileGroups: data.user.showProfileGroups ?? true,
           })
           setOriginalLocale(userLocale)
           setOriginalEmail(data.user.email || '')
@@ -569,6 +577,87 @@ export default function ProfilePage() {
                     }}
                   >
                     <p className="text-base md:text-lg text-gray-900 font-medium break-words">{lastfmUsername || 'Not set'}</p>
+                  </div>
+                </div>
+
+                {/* Public profile settings */}
+                <div>
+                  <label htmlFor="bio" className="block text-xs md:text-sm font-semibold text-gray-800 mb-2">
+                    {t('bio')}
+                  </label>
+                  <textarea
+                    id="bio"
+                    value={formData.bio}
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base rounded-xl border border-gray-300 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.8)',
+                      backdropFilter: 'blur(8px)',
+                    }}
+                    placeholder={t('bioPlaceholder')}
+                    rows={4}
+                    maxLength={500}
+                    disabled={isSaving || isUploading}
+                  />
+                  <div className="mt-2 flex items-center justify-between">
+                    <p className="text-xs text-gray-600">{t('bioHelp')}</p>
+                    <p className="text-xs text-gray-500">{(formData.bio || '').length}/500</p>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-xs md:text-sm font-semibold text-gray-800 mb-2">{t('publicProfile.title')}</h3>
+                  <div
+                    className="rounded-xl border border-gray-200 p-3 md:p-4 space-y-3"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.8)',
+                      backdropFilter: 'blur(8px)',
+                    }}
+                  >
+                    <label className="flex items-center justify-between gap-3">
+                      <span className="text-sm text-gray-800 font-medium">{t('publicProfile.profilePublic')}</span>
+                      <input
+                        type="checkbox"
+                        checked={formData.profilePublic}
+                        onChange={(e) => setFormData({ ...formData, profilePublic: e.target.checked })}
+                        disabled={isSaving || isUploading}
+                        className="h-5 w-5 accent-yellow-500"
+                      />
+                    </label>
+
+                    <label className="flex items-center justify-between gap-3">
+                      <span className="text-sm text-gray-800 font-medium">{t('publicProfile.showStats')}</span>
+                      <input
+                        type="checkbox"
+                        checked={formData.showProfileStats}
+                        onChange={(e) => setFormData({ ...formData, showProfileStats: e.target.checked })}
+                        disabled={isSaving || isUploading || !formData.profilePublic}
+                        className="h-5 w-5 accent-yellow-500"
+                      />
+                    </label>
+
+                    <label className="flex items-center justify-between gap-3">
+                      <span className="text-sm text-gray-800 font-medium">{t('publicProfile.showGroups')}</span>
+                      <input
+                        type="checkbox"
+                        checked={formData.showProfileGroups}
+                        onChange={(e) => setFormData({ ...formData, showProfileGroups: e.target.checked })}
+                        disabled={isSaving || isUploading || !formData.profilePublic}
+                        className="h-5 w-5 accent-yellow-500"
+                      />
+                    </label>
+
+                    {lastfmUsername && formData.profilePublic && (
+                      <div className="pt-2 border-t border-gray-200">
+                        <p className="text-xs text-gray-600 mb-2">{t('publicProfile.viewPublicProfileLabel')}</p>
+                        <a
+                          href={`/u/${encodeURIComponent(lastfmUsername)}`}
+                          className="text-sm font-semibold text-[var(--theme-primary-dark)] hover:underline"
+                        >
+                          {t('publicProfile.viewPublicProfileLink')}
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
 

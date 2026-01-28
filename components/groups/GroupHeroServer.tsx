@@ -219,9 +219,19 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme, is
               <div className="flex flex-wrap items-center gap-2 md:gap-3 lg:gap-4 mb-3 md:mb-4 text-xs md:text-sm">
                 <div className="flex items-center gap-1 md:gap-2 min-w-0">
                   <span className="text-gray-600">{t('owner')}</span>
-                  <span className="font-semibold text-gray-900 truncate max-w-[120px] md:max-w-[200px]">
-                    {group.creator ? (group.creator.name || group.creator.lastfmUsername) : t('deletedUser')}
-                  </span>
+                  {group.creator?.lastfmUsername ? (
+                    <Link
+                      href={`/u/${encodeURIComponent(group.creator.lastfmUsername)}`}
+                      className="font-semibold text-gray-900 truncate max-w-[120px] md:max-w-[200px] hover:underline"
+                      title={group.creator.name || group.creator.lastfmUsername}
+                    >
+                      {group.creator.name || group.creator.lastfmUsername}
+                    </Link>
+                  ) : (
+                    <span className="font-semibold text-gray-900 truncate max-w-[120px] md:max-w-[200px]">
+                      {group.creator ? (group.creator.name || group.creator.lastfmUsername) : t('deletedUser')}
+                    </span>
+                  )}
                 </div>
                 <span className="text-gray-300 hidden sm:inline">•</span>
                 <div className="flex items-center gap-1 md:gap-2">

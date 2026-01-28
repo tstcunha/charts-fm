@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import SafeImage from '@/components/SafeImage'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { Link } from '@/i18n/routing'
 import InviteMemberButton from '@/app/[locale]/groups/[id]/InviteMemberButton'
 import RemoveMemberButton from '@/app/[locale]/groups/[id]/RemoveMemberButton'
 import RevokeInviteButton from '@/app/[locale]/groups/[id]/RevokeInviteButton'
@@ -115,7 +116,13 @@ export default function GroupMembersTab({ groupId }: GroupMembersTabProps) {
               <div className="flex-1 min-w-0 overflow-hidden pr-1 md:pr-2">
                 <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
                   <p className="font-semibold text-gray-900 truncate flex-1 min-w-0 text-sm md:text-base">
-                    {member.user.name || member.user.lastfmUsername}
+                    {member.user.lastfmUsername ? (
+                      <Link href={`/u/${encodeURIComponent(member.user.lastfmUsername)}`} className="hover:underline">
+                        {member.user.name || member.user.lastfmUsername}
+                      </Link>
+                    ) : (
+                      member.user.name || member.user.lastfmUsername
+                    )}
                   </p>
                   {member.user.id === creatorId && (
                     <span className="flex-shrink-0 text-xs bg-[var(--theme-primary)] text-[var(--theme-button-text)] px-1.5 md:px-2 py-0.5 rounded-full font-bold shadow-sm whitespace-nowrap">
@@ -162,7 +169,13 @@ export default function GroupMembersTab({ groupId }: GroupMembersTabProps) {
               <div className="flex-1 min-w-0 overflow-hidden">
                 <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
                   <p className="font-semibold text-gray-900 truncate flex-1 min-w-0 text-sm md:text-base">
-                    {invite.user.name || invite.user.lastfmUsername}
+                    {invite.user.lastfmUsername ? (
+                      <Link href={`/u/${encodeURIComponent(invite.user.lastfmUsername)}`} className="hover:underline">
+                        {invite.user.name || invite.user.lastfmUsername}
+                      </Link>
+                    ) : (
+                      invite.user.name || invite.user.lastfmUsername
+                    )}
                   </p>
                   <span className="flex-shrink-0 text-xs bg-[var(--theme-primary)] text-[var(--theme-button-text)] px-1.5 md:px-2 py-0.5 rounded-full font-bold shadow-sm whitespace-nowrap">
                     {t('invited')}

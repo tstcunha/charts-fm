@@ -44,6 +44,17 @@
       "failed": "Falha ao remover foto de perfil. Por favor, tente novamente."
     },
     "lastfmUsernameTooltip": "Seu usuário foi definido quando a conta foi criada e não pode ser alterado",
+    "bio": "Bio",
+    "bioPlaceholder": "Escreva uma bio curta sobre seu gosto, o que você está ouvindo, ou o que quiser compartilhar.",
+    "bioHelp": "Aparece no seu perfil público.",
+    "publicProfile": {
+      "title": "Perfil público",
+      "profilePublic": "Tornar meu perfil público",
+      "showStats": "Mostrar minhas estatísticas",
+      "showGroups": "Mostrar minhas comunidades",
+      "viewPublicProfileLabel": "Link do perfil público",
+      "viewPublicProfileLink": "Ver meu perfil público"
+    },
     "saveChanges": "Salvar Alterações",
     "saving": "Salvando...",
     "profileUpdated": "Perfil atualizado com sucesso!",
@@ -101,10 +112,18 @@
       }
     }
   },
+  "profilePublic": {
+    "viewOnLastfm": "Ver no Last.fm",
+    "groupsTitle": "Comunidades",
+    "noGroups": "Nenhuma comunidade para mostrar.",
+    "privateGroupBadge": "Privada",
+    "noBio": "Sem bio ainda."
+  },
   "navbar": {
     "home": "Início",
     "dashboard": "Painel",
     "profile": "Perfil",
+    "publicProfile": "Perfil público",
     "signIn": "Entrar",
     "signOut": "Sair",
     "signingOut": "Saindo...",
@@ -148,6 +167,7 @@
     },
     "personalListening": {
       "title": "O que você está escutando?",
+      "titleForUser": "O que {username} está escutando?",
       "weekOf": "Semana de {date}",
       "totalPlays": "Total de plays",
       "uniqueArtists": "Artistas distintos",
@@ -159,7 +179,7 @@
       "plays": "{count} reproduções",
       "by": "de {artist}",
       "noChange": "Sem mudança",
-      "noData": "Ainda não há dados de escuta disponíveis.",
+      "noData": "Ainda não há dados musicais disponíveis.",
       "noDataDescription": "Suas estatísticas semanais aparecerão aqui assim que suas comunidades gerarem gráficos.",
       "failedToLoad": "Falha ao carregar estatísticas"
     },

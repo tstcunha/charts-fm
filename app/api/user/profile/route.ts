@@ -22,6 +22,10 @@ export async function GET() {
       email: true,
       image: true,
       lastfmUsername: true,
+      bio: true,
+      profilePublic: true,
+      showProfileStats: true,
+      showProfileGroups: true,
       locale: true,
       emailVerified: true,
     },
@@ -52,7 +56,7 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json()
-  const { name, email, image, locale } = body
+  const { name, email, image, locale, bio, profilePublic, showProfileStats, showProfileGroups } = body
 
   // Validate name if provided
   if (name !== undefined) {
@@ -111,6 +115,31 @@ export async function PATCH(request: Request) {
     }
   }
 
+  // Validate bio if provided
+  if (bio !== undefined) {
+    if (bio !== null && typeof bio !== 'string') {
+      return NextResponse.json({ error: 'Bio must be a string' }, { status: 400 })
+    }
+    const trimmedBio = typeof bio === 'string' ? bio.trim() : null
+    if (trimmedBio && trimmedBio.length > 500) {
+      return NextResponse.json({ error: 'Bio cannot exceed 500 characters' }, { status: 400 })
+    }
+  }
+
+  // Validate profile visibility toggles if provided
+  const validateBoolean = (value: any, field: string) => {
+    if (value !== undefined && value !== null && typeof value !== 'boolean') {
+      return NextResponse.json({ error: `${field} must be a boolean` }, { status: 400 })
+    }
+    return null
+  }
+  const profilePublicErr = validateBoolean(profilePublic, 'profilePublic')
+  if (profilePublicErr) return profilePublicErr
+  const showProfileStatsErr = validateBoolean(showProfileStats, 'showProfileStats')
+  if (showProfileStatsErr) return showProfileStatsErr
+  const showProfileGroupsErr = validateBoolean(showProfileGroups, 'showProfileGroups')
+  if (showProfileGroupsErr) return showProfileGroupsErr
+
   // Validate email if provided
   let emailChanged = false
   let newEmail = user.email
@@ -165,6 +194,10 @@ export async function PATCH(request: Request) {
     email?: string
     image?: string | null
     locale?: string | null
+    bio?: string | null
+    profilePublic?: boolean
+    showProfileStats?: boolean
+    showProfileGroups?: boolean
     emailVerified?: boolean
     emailVerificationToken?: string | null
     emailVerificationTokenExpires?: Date | null
@@ -173,6 +206,10 @@ export async function PATCH(request: Request) {
     ...(name !== undefined && { name: name.trim() || null }),
     ...(image !== undefined && { image: image.trim() || null }),
     ...(locale !== undefined && { locale: locale || null }),
+    ...(bio !== undefined && { bio: (typeof bio === 'string' ? bio.trim() : null) }),
+    ...(profilePublic !== undefined && profilePublic !== null && { profilePublic }),
+    ...(showProfileStats !== undefined && showProfileStats !== null && { showProfileStats }),
+    ...(showProfileGroups !== undefined && showProfileGroups !== null && { showProfileGroups }),
   }
 
   // If email changed, reset verification and generate new token
@@ -201,6 +238,10 @@ export async function PATCH(request: Request) {
         email: true,
         image: true,
         lastfmUsername: true,
+        bio: true,
+        profilePublic: true,
+        showProfileStats: true,
+        showProfileGroups: true,
         locale: true,
       },
     })
