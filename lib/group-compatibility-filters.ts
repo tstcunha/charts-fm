@@ -34,6 +34,7 @@ export async function preFilterGroups(userId: string): Promise<string[]> {
   const groups = await prisma.group.findMany({
     where: {
       isPrivate: false,
+      isSolo: false,
       createdAt: { lte: oneWeekAgo },
       id: {
         notIn: Array.from(userGroupIds),

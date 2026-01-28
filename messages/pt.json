@@ -167,7 +167,11 @@
       "title": "Pronto para começar?",
       "description": "Junte-se a uma comunidade musical, ou crie a sua, para explorar tendências e construir um histórico compartilhado das suas músicas favoritas ao longo do tempo.",
       "discoverGroups": "Descobrir comunidades",
-      "createYourOwn": "Crie a sua"
+      "createSolo": "Gerar charts pessoais",
+      "creatingSolo": "Criando…",
+      "soloCreateFailed": "Falha ao criar sua comunidade solo.",
+      "soloGroupName": "Meus charts",
+      "createYourOwn": "Criar comunidade com amigos"
     },
     "activityFeed": {
       "title": "Atividade recente",
@@ -251,6 +255,15 @@
       "public": {
         "viewAsMember": "Visualizar como membro"
       }
+    },
+    "soloOverlay": {
+      "title": "Gerar seus charts",
+      "description": "Sua comunidade solo está pronta — clique abaixo para gerar seus primeiros charts.",
+      "cta": "Gerar meus charts",
+      "starting": "Iniciando…",
+      "later": "Depois",
+      "dismiss": "Fechar",
+      "failed": "Falha ao iniciar a geração de charts."
     },
     "share": {
       "title": "Compartilhar comunidade",

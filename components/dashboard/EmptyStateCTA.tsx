@@ -2,14 +2,18 @@
 
 import { useState, useEffect } from 'react'
 import { Link } from '@/i18n/routing'
+import { useRouter } from '@/i18n/routing'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUsers, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faUsers, faPlus, faUser } from '@fortawesome/free-solid-svg-icons'
 import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 export default function EmptyStateCTA() {
   const t = useSafeTranslations('dashboard.emptyState')
+  const router = useRouter()
   const [groupsCount, setGroupsCount] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isCreatingSolo, setIsCreatingSolo] = useState(false)
+  const [createSoloError, setCreateSoloError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/dashboard/groups')
@@ -28,6 +32,27 @@ export default function EmptyStateCTA() {
         setIsLoading(false)
       })
   }, [])
+
+  const handleCreateSolo = async () => {
+    if (isCreatingSolo) return
+    setCreateSoloError(null)
+    setIsCreatingSolo(true)
+
+    try {
+      const res = await fetch('/api/groups/solo', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data?.error || t('soloCreateFailed'))
+      }
+      if (!data?.groupId) {
+        throw new Error(t('soloCreateFailed'))
+      }
+      router.push(`/groups/${data.groupId}`)
+    } catch (err) {
+      setCreateSoloError(err instanceof Error ? err.message : t('soloCreateFailed'))
+      setIsCreatingSolo(false)
+    }
+  }
 
   // Don't show anything while loading
   if (isLoading) {
@@ -57,18 +82,38 @@ export default function EmptyStateCTA() {
         <p className="text-base sm:text-lg text-gray-600 mb-4 sm:mb-6 px-2 sm:px-0">
           {t('description')}
         </p>
+
+        {createSoloError && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+            {createSoloError}
+          </div>
+        )}
         
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center">
           <Link
             href="/groups/discover"
+            aria-disabled={isCreatingSolo}
+            tabIndex={isCreatingSolo ? -1 : 0}
             className="flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black rounded-lg hover:from-yellow-600 hover:to-yellow-500 transition-all shadow-md hover:shadow-lg font-semibold text-base sm:text-lg w-full sm:w-auto"
           >
             <FontAwesomeIcon icon={faUsers} className="text-lg sm:text-xl" />
             <span>{t('discoverGroups')}</span>
           </Link>
+
+          <button
+            type="button"
+            onClick={handleCreateSolo}
+            disabled={isCreatingSolo}
+            className="flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black rounded-lg hover:from-yellow-600 hover:to-yellow-500 transition-all shadow-md hover:shadow-lg font-semibold text-base sm:text-lg w-full sm:w-auto disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <FontAwesomeIcon icon={faUser} className="text-lg sm:text-xl" />
+            <span>{isCreatingSolo ? t('creatingSolo') : t('createSolo')}</span>
+          </button>
           
           <Link
             href="/groups/create"
+            aria-disabled={isCreatingSolo}
+            tabIndex={isCreatingSolo ? -1 : 0}
             className="flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black rounded-lg hover:from-yellow-600 hover:to-yellow-500 transition-all shadow-md hover:shadow-lg font-semibold text-base sm:text-lg w-full sm:w-auto"
           >
             <FontAwesomeIcon icon={faPlus} className="text-lg sm:text-xl" />

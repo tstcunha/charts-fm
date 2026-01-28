@@ -33,6 +33,7 @@ export async function GET(request: Request) {
   // Build where clause
   const where: any = {
     isPrivate: false, // Only public groups
+    isSolo: false, // Exclude solo groups
   }
 
   // Search filter

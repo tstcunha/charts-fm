@@ -167,7 +167,11 @@
       "title": "Ready to get started?",
       "description": "Join or create a group to track stats, explore trends, and build a shared history of your music listening over time.",
       "discoverGroups": "Discover Groups",
-      "createYourOwn": "Create Your Own"
+      "createSolo": "Create Personal Charts",
+      "creatingSolo": "Creating…",
+      "soloCreateFailed": "Failed to create your solo group.",
+      "soloGroupName": "My charts",
+      "createYourOwn": "Create Group With Friends"
     },
     "activityFeed": {
       "title": "Recent Activity",
@@ -251,6 +255,15 @@
       "public": {
         "viewAsMember": "View as Member"
       }
+    },
+    "soloOverlay": {
+      "title": "Generate your charts",
+      "description": "Your solo group is ready — click below to generate your first charts.",
+      "cta": "Generate my charts",
+      "starting": "Starting…",
+      "later": "Later",
+      "dismiss": "Dismiss",
+      "failed": "Failed to start chart generation."
     },
     "share": {
       "title": "Share Group",

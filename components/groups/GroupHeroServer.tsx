@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getWeekStartForDay, getWeekEndForDay, formatWeekLabel } from '@/lib/weekly-utils'
 import { getLastChartWeek, canUpdateCharts as canUpdateChartsHelper } from '@/lib/group-service'
 import UpdateChartsButton from './UpdateChartsButton'
+import SoloChartsEmptyOverlay from './SoloChartsEmptyOverlay'
 import ShareGroupButton from '@/app/[locale]/groups/[id]/ShareGroupButton'
 import QuickAccessButton from '@/app/[locale]/groups/[id]/QuickAccessButton'
 import RequestToJoinButton from '@/app/[locale]/groups/[id]/public/RequestToJoinButton'
@@ -136,6 +137,9 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme, is
   // Check if charts can be updated
   const lastChartWeek = await getLastChartWeek(groupId)
   const chartGenerationInProgress = group.chartGenerationInProgress || false
+  const hasCharts = !!lastChartWeek
+  // @ts-expect-error Prisma client typing may be stale if schema changed without regenerating/migrating
+  const isSolo = Boolean((group as any).isSolo)
   
   // Charts can be updated if it's at least the next day of the week since the last chart was generated
   // and generation is not already in progress
@@ -171,6 +175,12 @@ export default async function GroupHeroServer({ groupId, isOwner, colorTheme, is
   return (
     <div className={`mb-6 md:mb-8 relative ${themeClass}`}>
       <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm p-4 md:p-6 lg:p-8 border border-theme relative">
+        {isMember && (
+          <SoloChartsEmptyOverlay
+            groupId={groupId}
+            enabled={isSolo && !hasCharts && canUpdateCharts && !chartGenerationInProgress}
+          />
+        )}
         {/* Breadcrumb Navigation */}
         <nav className="mb-4 md:mb-6 flex items-center gap-2 text-xs md:text-sm">
           <Link 

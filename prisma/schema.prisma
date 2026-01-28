@@ -90,6 +90,7 @@ model Group {
   name                           String
   image                          String?
   creatorId                      String?
+  isSolo                         Boolean                        @default(false)
   isPrivate                      Boolean                        @default(false)
   allowFreeJoin                  Boolean                        @default(false)
   chartSize                      Int                            @default(10)

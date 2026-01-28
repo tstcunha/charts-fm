@@ -30,6 +30,7 @@ export async function findCandidateGroups(
   const groupsWithStats = await prisma.group.findMany({
     where: {
       isPrivate: false,
+      isSolo: false,
       allTimeStats: {
         isNot: null,
       },
